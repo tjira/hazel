@@ -20,7 +20,7 @@ private:
 
 template <class R>
 void Printer::printIteration(const R& result, int i, bool last) {
-    boost::format line("║ %04i │ %20.14f │ %.2e │ %.2e │ %06i ║");
+    boost::format line("║ %04i │ %020.14f │ %.2e │ %.2e │ %06i ║");
     if (i == 1) {
         std::cout << "╔════════════════════════════════════════════════════════════╗\n";
         std::cout << "║                     STARTING SCF CYCLE                     ║\n";
@@ -48,5 +48,10 @@ void Printer::printMethod(const O& opt) {
 }
 
 template <class R>
-void Printer::printResult(const R&) {
+void Printer::printResult(const R& result) {
+    boost::format energy("║ FINAL SINGLE POINT ENERGY: %020.14f Eh ║");
+    std::cout << "╔════════════════════════════════════════════════════╗\n";
+    std::cout << energy % result.Es.at(result.Es.size() - 1) << "\n";
+    std::cout << "╚════════════════════════════════════════════════════╝\n";
+    std::cout << std::endl;
 }

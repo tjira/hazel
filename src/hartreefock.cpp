@@ -61,9 +61,3 @@ Eigen::MatrixXd HartreeFock::computeDensity(Eigen::MatrixXd S, Eigen::MatrixXd F
 double HartreeFock::computeEnergy(Eigen::ArrayXXd H, Eigen::ArrayXXd F, Eigen::ArrayXXd D) const {
     return (D * (H + F)).sum();
 };
-
-void HartreeFock::logIteration(int i, const Result& result) const {
-    std::cout << std::setw(4) << i + 1 << " " << result.Es.at(i) - result.Vnn << " " << result.Es.at(i);
-    if (i > 0) std::cout << " " << std::abs(result.Es.at(i - 1) - result.Es.at(i));
-    std::cout << std::endl;
-}

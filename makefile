@@ -9,8 +9,6 @@ else
 FLAGS += -O2
 endif
 
-# -include $(wildcard .build/*.d)
-
 all: .build hazel
 
 # Link =================================================================================================================
@@ -35,8 +33,9 @@ hazel: .build/hazel.o .build/hartreefock.o .build/molecule.o .build/printer.o
 # Libraries
 
 libint:
-	git clone --depth 1 https://github.com/evaleev/libint.git lib/libint
-	cd lib/libint && ./autogen.sh && ./configure --prefix="$$PWD/install" --with-cxxgen-optflags="-O3" && make && make install && cd -
+	git clone --depth 1 https://github.com/evaleev/libint.git lib/libint && cd lib/libint && ./autogen.sh && cd -
+	cd lib/libint && ./configure --prefix="$$PWD/install" --with-cxxgen-optflags="-O3" && cd -
+	cd lib/libint && make && make install && cd -
 
 # Miscellaneous ========================================================================================================
 
