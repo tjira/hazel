@@ -3,8 +3,8 @@
 .clangd/
 .makefile/
 .vscode/
-lib/libint
-clean.sh
+bin/
+lib/libint/
 hazel
 *.0
 *.densities

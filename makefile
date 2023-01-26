@@ -1,19 +1,23 @@
 FLAGS := -std=c++17
 
+LIBS := lib/libint/install/lib/libint2.a -l boost_json -l boost_program_options
 INCLUDE := -isystem lib/libint/install/include
-LIBS := lib/libint/install/lib/libint2.a
 
-ifeq ($(DEBUG),1)
-FLAGS += -g -MMD -O0 -Wall -Wextra
+ifeq ($(DEBUG), 1)
+FLAGS += -flarge-source-files -g -MMD -MP -O0 -Wall -Wextra
 else
 FLAGS += -O2
 endif
 
-all: .build hazel
+all: folders bin/hazel
+
+# Include Dependencies =================================================================================================
+
+-include $(wildcard .build/*.d)
 
 # Link =================================================================================================================
 
-hazel: .build/hazel.o .build/hartreefock.o .build/molecule.o .build/printer.o
+bin/hazel: .build/hazel.o .build/hartreefock.o .build/molecule.o .build/printer.o
 	g++ $(FLAGS) $(INCLUDE) -o $@ $^ $(LIBS)
 
 .build/hazel.o: hazel.cpp
@@ -30,7 +34,7 @@ hazel: .build/hazel.o .build/hartreefock.o .build/molecule.o .build/printer.o
 .build/printer.o: src/printer.cpp
 	g++ $(FLAGS) $(INCLUDE) -c -o $@ $<
 
-# Libraries
+# Libraries ============================================================================================================
 
 libint:
 	git clone --depth 1 https://github.com/evaleev/libint.git lib/libint && cd lib/libint && ./autogen.sh && cd -
@@ -40,7 +44,7 @@ libint:
 # Miscellaneous ========================================================================================================
 
 clean:
-	rm -rf hazel .build .cache .clangd .makefile .vscode *.exe *.json
+	rm -rf hazel .build .cache .clangd .makefile .vscode bin *.exe *.json
 
-.build:
-	mkdir -p .build
+folders:
+	mkdir -p .build bin

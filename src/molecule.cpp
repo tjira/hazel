@@ -56,6 +56,8 @@ template <>
 Eigen::MatrixXd Molecule::integral<2>(libint2::Engine engine, Eigen::MatrixXd D) const {
     Eigen::MatrixXd matrix = Eigen::MatrixXd::Zero(shells.nbf(), shells.nbf());
     const auto& result = engine.results(); auto sh2bf = shells.shell2bf();
+
+
     for(size_t i = 0; i < shells.size(); i++) {
         for(size_t j = 0; j <= i; j++) {
             for(size_t k = 0; k <= i; k++) {

@@ -53,5 +53,5 @@ void Printer::printResult(const R& result) {
     std::cout << "╔════════════════════════════════════════════════════╗\n";
     std::cout << energy % result.Es.at(result.Es.size() - 1) << "\n";
     std::cout << "╚════════════════════════════════════════════════════╝\n";
-    std::cout << std::endl;
+    std::cout << std::flush;
 }

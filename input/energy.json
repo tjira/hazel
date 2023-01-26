@@ -1,5 +1,5 @@
 {
-    "molecule" : "molecule/cyclopropanone.xyz",
+    "molecule" : "../molecule/cyclopropanone.xyz",
     "basis" : "STO-3G",
     "maxiter" : 10000,
     "thresh" : 1e-12,
