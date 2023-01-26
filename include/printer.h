@@ -4,14 +4,16 @@
 #include <boost/format.hpp>
 #include <iomanip>
 #include <iostream>
-#include <sstream>
 
 class Printer {
 public:
+    template <class R>
+    static void printIteration(const R& result, int i, bool last);
+    template <class O>
+    static void printMethod(const O& opt);
+    template <class R>
+    static void printResult(const R& result);
     static void printTitle();
-    template <class R> static void printIteration(const R& result, int i, bool last);
-    template <class O> static void printMethod(const O& opt);
-    template <class R> static void printResult(const R& result);
 
 private:
     static std::string repeat(const std::string& str, int i);

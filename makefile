@@ -4,7 +4,7 @@ LIBS := lib/libint/install/lib/libint2.a -l boost_json -l boost_program_options
 INCLUDE := -isystem lib/libint/install/include
 
 ifeq ($(DEBUG), 1)
-FLAGS += -flarge-source-files -g -MMD -MP -O0 -Wall -Wextra
+FLAGS += -flarge-source-files -g -MMD -MP -O0 -pedantic -Wall -Wextra
 else
 FLAGS += -O2
 endif

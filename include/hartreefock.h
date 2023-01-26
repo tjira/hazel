@@ -1,6 +1,5 @@
 #pragma once
 
-#include "forward.h"
 #include "printer.h"
 
 class HartreeFock {

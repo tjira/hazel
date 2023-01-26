@@ -7,8 +7,8 @@ class HartreeFock;
 class Molecule;
 
 struct HartreeFockOptions {
-    double damp = 0, thresh = 1e-12;
-    int maxiter = 1000;
+    double damp, thresh;
+    int maxiter;
 };
 
 struct HartreeFockResult {

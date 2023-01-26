@@ -4,7 +4,7 @@
 .makefile/
 .vscode/
 bin/
-lib/libint/
+lib/
 hazel
 *.0
 *.densities

@@ -12,9 +12,10 @@ HartreeFock::Result HartreeFock::scf(const Molecule& molecule) const {
     Result result; auto times = &result.times;
     
     auto start = Timer::now();
-    Eigen::MatrixXd T = molecule.kinetic(), V = molecule.nuclear();
-    Eigen::MatrixXd S = molecule.overlap(), H = T + V;
-    double Vnn = molecule.nuclearRepulsion();
+    Eigen::MatrixXd T = molecule.integral<1>(libint2::Operator::kinetic);
+    Eigen::MatrixXd V = molecule.integral<1>(libint2::Operator::nuclear);
+    Eigen::MatrixXd S = molecule.integral<1>(libint2::Operator::overlap);
+    double Vnn = molecule.nuclearRepulsion(); Eigen::MatrixXd H = T + V;
     times->ints = Timer::elapsed(start);
 
     result.T = T, result.V = V, result.S = S, result.Vnn = Vnn;
@@ -29,7 +30,7 @@ HartreeFock::Result HartreeFock::scf(const Molecule& molecule) const {
 
     start = Timer::now();
     for (int i = 1; i <= opt.maxiter; i++) {
-        Eigen::MatrixXd F = H + molecule.coulomb(D);
+        Eigen::MatrixXd F = H + molecule.integral<2>(libint2::Operator::coulomb, D);
         D = computeDensity(S, F, nocc);
 
         result.Es.push_back(computeEnergy(H, F, D) + Vnn);
