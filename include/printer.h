@@ -8,7 +8,7 @@
 class Printer {
 public:
     template <class R>
-    static void printIteration(const R& result, int i, bool last);
+    static void printIteration(const R& result, bool last);
     template <class O>
     static void printMethod(const O& opt);
     template <class R>
@@ -21,17 +21,18 @@ private:
 };
 
 template <class R>
-void Printer::printIteration(const R& result, int i, bool last) {
+void Printer::printIteration(const R& result, bool last) {
     boost::format line("║ %4i │ %22.14f │ %.2e │ %.2e │ %6i ║");
-    if (i == 1) {
+    if (result.iters == 1) {
         std::cout << "╔══════════════════════════════════════════════════════════════╗\n";
         std::cout << "║                      STARTING SCF CYCLE                      ║\n";
         std::cout << "╠══════╤════════════════════════╤══════════╤══════════╤════════╣\n";
         std::cout << "║  ##  │         energy         │    dE    │    dD    │  time  ║\n";
         std::cout << "╟──────┼────────────────────────┼──────────┼──────────┼────────╢\n";
     }
-    double dE = std::abs(result.Es.at(i) - result.Es.at(i - 1)), dD = std::abs(result.Ds.at(i).norm() - result.Ds.at(i - 1).norm());
-    std::cout << line % i % result.Es.at(i) % dE % dD % result.times.iters.at(i - 1) << std::endl;
+    double dD = std::abs(result.Ds.at(result.iters).norm() - result.Ds.at(result.iters - 1).norm());
+    double dE = std::abs(result.Es.at(result.iters) - result.Es.at(result.iters - 1));
+    std::cout << line % result.iters % result.Es.at(result.iters) % dE % dD % result.times.iters.at(result.iters - 1) << std::endl;
     if (last) std::cout << "╚══════╧════════════════════════╧══════════╧══════════╧════════╝" << std::endl;
 }
 

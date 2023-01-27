@@ -11,6 +11,5 @@ public:
     Result scf(const Molecule& molecule) const;
 
 private:
-    bool checkConvergence(const Result& result, int i) const;
     Options opt;
 };

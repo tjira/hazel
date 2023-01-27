@@ -44,4 +44,6 @@ int main(int argc, char** argv) {
     libint2::initialize();
     auto result = hfock.scf(molecule);
     libint2::finalize();
+
+    Printer::printResult(result);
 }

@@ -17,7 +17,7 @@ struct HartreeFockResult {
     std::vector<Eigen::MatrixXd> Fs, Ds;
     std::vector<double> Es;
     Eigen::VectorXd Eo;
-    int nocc;
+    int nocc, iters;
     struct {
         std::vector<long> iters;
         long guess, ints;

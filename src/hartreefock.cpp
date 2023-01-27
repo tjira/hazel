@@ -31,7 +31,7 @@ HartreeFock::Result HartreeFock::scf(const Molecule& molecule) const {
     result.Fs.push_back(H), result.Ds.push_back(D);
 
     start = Timer::now();
-    for (int i = 1; i <= opt.maxiter; i++) {
+    for (result.iters = 1; result.iters <= opt.maxiter; result.iters++) {
         Eigen::MatrixXd F = H + molecule.integral<2>(libint2::Operator::coulomb, D);
         Eigen::GeneralizedSelfAdjointEigenSolver<Eigen::MatrixXd> solver(F, S);
         Eigen::MatrixXd C = solver.eigenvectors().leftCols(result.nocc);
@@ -39,21 +39,17 @@ HartreeFock::Result HartreeFock::scf(const Molecule& molecule) const {
 
         result.Es.push_back((D.array() * (H + F).array()).sum() + Vnn);
         result.Fs.push_back(F), result.Ds.push_back(D);
+        result.Eo = solver.eigenvalues();
 
-        if (opt.damp > 0) D = (1 - opt.damp) * D + opt.damp * result.Ds.at(i - 1);
+        if (opt.damp > 0) D = (1 - opt.damp) * D + opt.damp * result.Ds.at(result.iters - 1);
         times->iters.push_back(Timer::elapsed(start)), start = Timer::now();
 
-        bool converged = checkConvergence(result, i);
-        Printer::printIteration(result, i, converged);
-        if (converged) {
-            result.Eo = solver.eigenvalues(); break;
-        }
-    }
-    Printer::printResult(result); return result;
-}
+        double dD = std::abs(result.Ds.at(result.iters).norm() - result.Ds.at(result.iters - 1).norm());
+        double dE = std::abs(result.Es.at(result.iters) - result.Es.at(result.iters - 1));
 
-bool HartreeFock::checkConvergence(const Result& result, int i) const {
-    if (std::abs(result.Es.at(i) - result.Es.at(i - 1)) < opt.thresh && std::abs(result.Ds.at(i).norm() - result.Ds.at(i - 1).norm()) < opt.thresh) return true;
-    else if (i == opt.maxiter) std::cerr << "Algorithm did not converge." << std::endl;
-    return false;
+        bool converged = dE < opt.thresh && dD < opt.thresh, lastiter = result.iters == opt.maxiter;
+        Printer::printIteration(result, converged || lastiter); if (converged) break;
+        if (lastiter) std::cerr << "Algorithm did not converge." << std::endl;
+    }
+    return result;
 }
