@@ -1,4 +1,4 @@
-FLAGS := -std=c++17
+FLAGS := -std=c++17 -static
 
 LIBS := lib/libint/install/lib/libint2.a -l boost_json -l boost_program_options
 INCLUDE := -isystem lib/libint/install/include
@@ -17,7 +17,7 @@ all: folders bin/hazel
 
 # Link =================================================================================================================
 
-bin/hazel: .build/hazel.o .build/hartreefock.o .build/molecule.o .build/printer.o
+bin/hazel: .build/hazel.o .build/hartreefock.o .build/molecule.o .build/printer.o .build/ptable.o .build/timer.o
 	g++ $(FLAGS) $(INCLUDE) -o $@ $^ $(LIBS)
 
 .build/hazel.o: hazel.cpp
@@ -34,6 +34,12 @@ bin/hazel: .build/hazel.o .build/hartreefock.o .build/molecule.o .build/printer.
 .build/printer.o: src/printer.cpp
 	g++ $(FLAGS) $(INCLUDE) -c -o $@ $<
 
+.build/ptable.o: src/ptable.cpp
+	g++ $(FLAGS) $(INCLUDE) -c -o $@ $<
+
+.build/timer.o: src/timer.cpp
+	g++ $(FLAGS) $(INCLUDE) -c -o $@ $<
+
 # Libraries ============================================================================================================
 
 libint:
@@ -44,7 +50,7 @@ libint:
 # Miscellaneous ========================================================================================================
 
 clean:
-	rm -rf hazel .build .cache .clangd .makefile .vscode bin *.exe *.json
+	rm -rf hazel .build .cache .clangd .makefile .vscode bin *.exe
 
 folders:
 	mkdir -p .build bin

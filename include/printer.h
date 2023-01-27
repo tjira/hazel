@@ -22,17 +22,17 @@ private:
 
 template <class R>
 void Printer::printIteration(const R& result, int i, bool last) {
-    boost::format line("║ %04i │ %020.14f │ %.2e │ %.2e │ %06i ║");
+    boost::format line("║ %4i │ %22.14f │ %.2e │ %.2e │ %6i ║");
     if (i == 1) {
-        std::cout << "╔════════════════════════════════════════════════════════════╗\n";
-        std::cout << "║                     STARTING SCF CYCLE                     ║\n";
-        std::cout << "╠══════╤══════════════════════╤══════════╤══════════╤════════╣\n";
-        std::cout << "║  ##  │        energy        │    dE    │    dD    │  time  ║\n";
-        std::cout << "╟──────┼──────────────────────┼──────────┼──────────┼────────╢\n";
+        std::cout << "╔══════════════════════════════════════════════════════════════╗\n";
+        std::cout << "║                      STARTING SCF CYCLE                      ║\n";
+        std::cout << "╠══════╤════════════════════════╤══════════╤══════════╤════════╣\n";
+        std::cout << "║  ##  │         energy         │    dE    │    dD    │  time  ║\n";
+        std::cout << "╟──────┼────────────────────────┼──────────┼──────────┼────────╢\n";
     }
-    double dE = std::abs(result.Es.at(i - 1) - result.Es.at(i)), dD = std::abs(result.DNs.at(i - 1) - result.DNs.at(i));
+    double dE = std::abs(result.Es.at(i) - result.Es.at(i - 1)), dD = std::abs(result.Ds.at(i).norm() - result.Ds.at(i - 1).norm());
     std::cout << line % i % result.Es.at(i) % dE % dD % result.times.iters.at(i - 1) << std::endl;
-    if (last) std::cout << "╚════════════════════════════════════════════════════════════╝" << std::endl;
+    if (last) std::cout << "╚══════╧════════════════════════╧══════════╧══════════╧════════╝" << std::endl;
 }
 
 template <class O>
@@ -51,9 +51,20 @@ void Printer::printMethod(const O& opt) {
 
 template <class R>
 void Printer::printResult(const R& result) {
-    boost::format energy("║ FINAL SINGLE POINT ENERGY: %020.14f Eh ║");
-    std::cout << "╔════════════════════════════════════════════════════╗\n";
-    std::cout << energy % result.Es.at(result.Es.size() - 1) << "\n";
-    std::cout << "╚════════════════════════════════════════════════════╝\n";
+    boost::format final("║ FINAL SINGLE POINT ENERGY: %22.14f Eh ║");
+    boost::format orbital("║ %4i │ %3.1f │ %22.14f │ %22.14f ║");
+    std::cout << "╔══════════════════════════════════════════════════════════════╗\n";
+    std::cout << "║                       ORBITAL ENERGIES                       ║\n";
+    std::cout << "╠══════╤═════╤════════════════════════╤════════════════════════╣\n";
+    std::cout << "║  ##  │ occ │         E (Eh)         │         E (eV)         ║\n";
+    std::cout << "╟──────┼─────┼────────────────────────┼────────────────────────╢\n";
+    for (int i = 0; i < result.Eo.rows(); i++) {
+        double occ = ((i + 1) <= result.nocc ? 2.0 : 0.0);
+        std::cout << orbital % i % occ % result.Eo(i) % (result.Eo(i) * EH2EV) << "\n";
+    }
+    std::cout << "╚══════╧═════╧════════════════════════╧════════════════════════╝\n";
+    std::cout << "╔══════════════════════════════════════════════════════╗\n";
+    std::cout << final % result.Es.at(result.Es.size() - 1) << "\n";
+    std::cout << "╚══════════════════════════════════════════════════════╝\n";
     std::cout << std::flush;
 }

@@ -4,7 +4,7 @@ BASIS="STO-3G"
 METHOD="RHF"
 
 echo "#!/bin/bash
-rm -f clean.sh *.0 *.densities *.engrad *.gbw *.inp *.opt *.out *.tmp *.txt *trj* " > clean.sh
+rm -f clean.sh *.0 *.densities *.engrad *.gbw *.hess *.inp *.opt *.out *.tmp *.txt *trj* " > clean.sh
 chmod +x clean.sh
 
 for MOL in *.xyz; do

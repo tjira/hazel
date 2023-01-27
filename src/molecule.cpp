@@ -1,7 +1,19 @@
 #include "../include/molecule.h"
 
 Molecule::Molecule(std::string filename, std::string basis) : filename(filename), setname(basis) {
-    std::ifstream file(filename); atoms = libint2::read_dotxyz(file), shells = libint2::BasisSet(basis, atoms);
+    std::ifstream file(filename); atoms = libint2::read_dotxyz(file), shells = libint2::BasisSet(basis, atoms, true);
+}
+
+double Molecule::mass() const {
+    double value = 0;
+    for (const libint2::Atom& atom : atoms) {
+        value += ptable.at(atom.atomic_number).mass;
+    }
+    return value;
+}
+
+int Molecule::nel() const {
+    return std::accumulate(atoms.begin(), atoms.end(), 0, [](int e, const auto& a) { return e + a.atomic_number; });
 }
 
 double Molecule::nuclearRepulsion() const {

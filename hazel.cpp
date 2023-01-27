@@ -1,9 +1,7 @@
 #include "include/hartreefock.h"
 #include "include/molecule.h"
-
 #include <boost/json.hpp>
 #include <boost/program_options.hpp>
-
 #include <filesystem>
 
 namespace js = boost::json;

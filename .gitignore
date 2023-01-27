@@ -5,12 +5,14 @@
 .vscode/
 bin/
 lib/
+clean.sh
 hazel
 *.0
 *.densities
 *.engrad
 *.exe
 *.gbw
+*.hess
 *.inp
 *.opt
 *.out

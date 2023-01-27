@@ -1,7 +1,8 @@
 #pragma once
 
 #include <Eigen/Eigen>
-#include <chrono>
+
+#define EH2EV 27.211324570273
 
 class HartreeFock;
 class Molecule;
@@ -14,17 +15,11 @@ struct HartreeFockOptions {
 struct HartreeFockResult {
     Eigen::MatrixXd T, V, S; double Vnn;
     std::vector<Eigen::MatrixXd> Fs, Ds;
-    std::vector<double> Es, DNs;
+    std::vector<double> Es;
+    Eigen::VectorXd Eo;
+    int nocc;
     struct {
         std::vector<long> iters;
         long guess, ints;
     } times;
-};
-
-struct Timer {
-    typedef std::chrono::time_point<std::chrono::high_resolution_clock> timepoint;
-    typedef std::chrono::milliseconds millis;
-
-    static long elapsed(timepoint start) { return std::chrono::duration_cast<millis>(now() - start).count(); };
-    static timepoint now() { return std::chrono::high_resolution_clock().now(); };
 };
