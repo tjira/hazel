@@ -1,7 +1,9 @@
 #pragma once
 
+#include "molecule.h"
 #include "printer.h"
 #include "timer.h"
+#include <libint2/diis.h>
 
 class HartreeFock {
     typedef HartreeFockOptions Options;

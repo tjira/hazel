@@ -27,29 +27,27 @@ HartreeFock::Result HartreeFock::scf(const Molecule& molecule) const {
     Eigen::MatrixXd D =  C * C.transpose();
     times->guess = Timer::elapsed(start);
 
-    result.Es.push_back((2 * D.array() * H.array()).sum() + Vnn);
-    result.Fs.push_back(H), result.Ds.push_back(D);
+    libint2::DIIS<Eigen::MatrixXd> diis(opt.diis.start - 1, opt.diis.keep, opt.diis.damp);
+    double E = D.cwiseProduct(2 * H).sum() + Vnn; start = Timer::now();
 
-    start = Timer::now();
-    for (result.iters = 1; result.iters <= opt.maxiter; result.iters++) {
-        Eigen::MatrixXd F = H + molecule.integral<2>(libint2::Operator::coulomb, D);
-        Eigen::GeneralizedSelfAdjointEigenSolver<Eigen::MatrixXd> solver(F, S);
+    for (result.i = 1; result.i <= opt.maxiter; result.i++) {
+        result.F = H + molecule.integral<2>(libint2::Operator::coulomb, D);
+        Eigen::MatrixXd e = S * D * result.F - result.F * D * S, Fold = result.F;
+        if (opt.diis.start > 0) diis.extrapolate(result.F, e);
+
+        Eigen::GeneralizedSelfAdjointEigenSolver<Eigen::MatrixXd> solver(result.F, S);
         Eigen::MatrixXd C = solver.eigenvectors().leftCols(result.nocc);
-        D = C * C.transpose();
+        result.D = C * C.transpose();
 
-        result.Es.push_back((D.array() * (H + F).array()).sum() + Vnn);
-        result.Fs.push_back(F), result.Ds.push_back(D);
-        result.Eo = solver.eigenvalues();
+        if (opt.damp > 0) result.D = (1 - opt.damp) * result.D + opt.damp * D;
+        result.E = result.D.cwiseProduct(H + result.F).sum() + Vnn;
 
-        if (opt.damp > 0) D = (1 - opt.damp) * D + opt.damp * result.Ds.at(result.iters - 1);
+        result.dD = std::abs(result.D.norm() - D.norm()), result.dE = std::abs(result.E - E);
         times->iters.push_back(Timer::elapsed(start)), start = Timer::now();
+        Printer::printIteration(result, opt); D = result.D, E = result.E;
 
-        double dD = std::abs(result.Ds.at(result.iters).norm() - result.Ds.at(result.iters - 1).norm());
-        double dE = std::abs(result.Es.at(result.iters) - result.Es.at(result.iters - 1));
-
-        bool converged = dE < opt.thresh && dD < opt.thresh, lastiter = result.iters == opt.maxiter;
-        Printer::printIteration(result, converged || lastiter); if (converged) break;
-        if (lastiter) std::cerr << "Algorithm did not converge." << std::endl;
+        if (result.dE < opt.thresh && result.dD < opt.thresh) { result.Eo = solver.eigenvalues(); break; }
+        else if (result.i == opt.maxiter) std::cerr << "Algorithm did not converge." << std::endl;
     }
     return result;
 }

@@ -10,14 +10,17 @@ class Molecule;
 struct HartreeFockOptions {
     double damp, thresh;
     int maxiter;
+    struct diis {
+        int start, keep;
+        double damp;
+    } diis;
 };
 
 struct HartreeFockResult {
-    Eigen::MatrixXd T, V, S; double Vnn;
-    std::vector<Eigen::MatrixXd> Fs, Ds;
-    std::vector<double> Es;
+    Eigen::MatrixXd T, V, S, F, D;
+    double dD, dE, E, Vnn;
     Eigen::VectorXd Eo;
-    int nocc, iters;
+    int nocc, i;
     struct {
         std::vector<long> iters;
         long guess, ints;

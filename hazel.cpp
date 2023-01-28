@@ -33,9 +33,14 @@ int main(int argc, char** argv) {
     std::string basis = js::value_to<std::string>(input.at("basis"));
     
     HartreeFockOptions opt = {
-        js::value_to<double>(input.at("damp")),
-        js::value_to<double>(input.at("thresh")),
-        js::value_to<int>(input.at("maxiter"))
+        js::value_to<double>(input.at("method").at("damp")),
+        js::value_to<double>(input.at("method").at("thresh")),
+        js::value_to<int>(input.at("method").at("maxiter")),
+        {
+            js::value_to<int>(input.at("method").at("diis").at("start")),
+            js::value_to<int>(input.at("method").at("diis").at("keep")),
+            js::value_to<double>(input.at("method").at("diis").at("damp"))
+        }
     };
     Molecule molecule(path + "/" + molfile, basis);
     Printer::printTitle();

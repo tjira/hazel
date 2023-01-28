@@ -7,12 +7,12 @@
 
 class Printer {
 public:
-    template <class R>
-    static void printIteration(const R& result, bool last);
+    template <class R, class O>
+    static void printIteration(const R& res, const O& opt);
     template <class O>
     static void printMethod(const O& opt);
     template <class R>
-    static void printResult(const R& result);
+    static void printResult(const R& res);
     static void printTitle();
 
 private:
@@ -20,20 +20,20 @@ private:
     static int w1, w2, w3;
 };
 
-template <class R>
-void Printer::printIteration(const R& result, bool last) {
+template <class R, class O>
+void Printer::printIteration(const R& res, const O& opt) {
     boost::format line("║ %4i │ %22.14f │ %.2e │ %.2e │ %6i ║");
-    if (result.iters == 1) {
+    if (res.i == 1) {
         std::cout << "╔══════════════════════════════════════════════════════════════╗\n";
         std::cout << "║                      STARTING SCF CYCLE                      ║\n";
         std::cout << "╠══════╤════════════════════════╤══════════╤══════════╤════════╣\n";
         std::cout << "║  ##  │         energy         │    dE    │    dD    │  time  ║\n";
         std::cout << "╟──────┼────────────────────────┼──────────┼──────────┼────────╢\n";
     }
-    double dD = std::abs(result.Ds.at(result.iters).norm() - result.Ds.at(result.iters - 1).norm());
-    double dE = std::abs(result.Es.at(result.iters) - result.Es.at(result.iters - 1));
-    std::cout << line % result.iters % result.Es.at(result.iters) % dE % dD % result.times.iters.at(result.iters - 1) << std::endl;
-    if (last) std::cout << "╚══════╧════════════════════════╧══════════╧══════════╧════════╝" << std::endl;
+    std::cout << line % res.i % res.E % res.dE % res.dD % res.times.iters.at(res.i - 1) << std::endl;
+    if ((res.dE < opt.thresh && res.dD < opt.thresh) || res.i == opt.maxiter) {
+        std::cout << "╚══════╧════════════════════════╧══════════╧══════════╧════════╝" << std::endl;
+    }
 }
 
 template <class O>
@@ -51,7 +51,7 @@ void Printer::printMethod(const O& opt) {
 }
 
 template <class R>
-void Printer::printResult(const R& result) {
+void Printer::printResult(const R& res) {
     boost::format final("║ FINAL SINGLE POINT ENERGY: %22.14f Eh ║");
     boost::format orbital("║ %4i │ %3.1f │ %22.14f │ %22.14f ║");
     std::cout << "╔══════════════════════════════════════════════════════════════╗\n";
@@ -59,13 +59,13 @@ void Printer::printResult(const R& result) {
     std::cout << "╠══════╤═════╤════════════════════════╤════════════════════════╣\n";
     std::cout << "║  ##  │ occ │         E (Eh)         │         E (eV)         ║\n";
     std::cout << "╟──────┼─────┼────────────────────────┼────────────────────────╢\n";
-    for (int i = 0; i < result.Eo.rows(); i++) {
-        double occ = ((i + 1) <= result.nocc ? 2.0 : 0.0);
-        std::cout << orbital % i % occ % result.Eo(i) % (result.Eo(i) * EH2EV) << "\n";
+    for (int i = 0; i < res.Eo.rows(); i++) {
+        double occ = ((i + 1) <= res.nocc ? 2.0 : 0.0);
+        std::cout << orbital % i % occ % res.Eo(i) % (res.Eo(i) * EH2EV) << "\n";
     }
     std::cout << "╚══════╧═════╧════════════════════════╧════════════════════════╝\n";
     std::cout << "╔══════════════════════════════════════════════════════╗\n";
-    std::cout << final % result.Es.at(result.Es.size() - 1) << "\n";
+    std::cout << final % res.E << "\n";
     std::cout << "╚══════════════════════════════════════════════════════╝\n";
     std::cout << std::flush;
 }
