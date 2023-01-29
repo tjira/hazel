@@ -39,15 +39,17 @@ Eigen::MatrixXd Molecule::integral(libint2::Operator op, Eigen::MatrixXd D) cons
     return integralSingle(engine);
 }
 
-Eigen::MatrixXd Molecule::integralDouble(libint2::Engine engine2, Eigen::MatrixXd D) const {
-    libint2::Engine engine = engine2;
+Eigen::MatrixXd Molecule::integralDouble(libint2::Engine engine, Eigen::MatrixXd D) const {
     Eigen::MatrixXd matrix = Eigen::MatrixXd::Zero(shells.nbf(), shells.nbf());
-    const auto& result = engine.results(); auto sh2bf = shells.shell2bf();
-    for(size_t i = 0; i < shells.size(); i++) {
+    std::vector<Eigen::MatrixXd> matrices(libint2::nthreads, matrix);
+    std::vector<libint2::Engine> engines(libint2::nthreads, engine);
+    #pragma omp parallel for default(none) num_threads(libint2::nthreads) shared(std::cout, D, engines, matrices)
+    for(size_t i = 0; i < shells.size(); i++) { int id = libint2::threadID();
+        const auto& result = engines.at(id).results(); auto sh2bf = shells.shell2bf();
         for(size_t j = 0; j <= i; j++) {
             for(size_t k = 0; k <= i; k++) {
                 for(size_t l = 0; l <= (i == k ? j : k); l++) {
-                    engine.compute(shells[i], shells[j], shells[k], shells[l]); if (result[0] == nullptr) continue;
+                    engines.at(id).compute(shells[i], shells[j], shells[k], shells[l]); if (result[0] == nullptr) continue;
                     double degeneracy = (i == j ? 1 : 2) * (k == l ? 1 : 2) * (i == k ? (j == l ? 1 : 2) : 2);
                     for(size_t m = 0, q = 0; m < shells[i].size(); m++) {
                         for(size_t n = 0; n < shells[j].size(); n++) {
@@ -55,12 +57,12 @@ Eigen::MatrixXd Molecule::integralDouble(libint2::Engine engine2, Eigen::MatrixX
                                 for(size_t p = 0; p < shells[l].size(); p++, q++) {
                                     size_t bf1 = m + sh2bf[i], bf2 = n + sh2bf[j];
                                     size_t bf3 = o + sh2bf[k], bf4 = p + sh2bf[l];
-                                    matrix(bf1, bf3) -= 0.25 * D(bf2, bf4) * result[0][q] * degeneracy;
-                                    matrix(bf2, bf4) -= 0.25 * D(bf1, bf3) * result[0][q] * degeneracy;
-                                    matrix(bf1, bf4) -= 0.25 * D(bf2, bf3) * result[0][q] * degeneracy;
-                                    matrix(bf2, bf3) -= 0.25 * D(bf1, bf4) * result[0][q] * degeneracy;
-                                    matrix(bf1, bf2) += D(bf3, bf4) * result[0][q] * degeneracy;
-                                    matrix(bf3, bf4) += D(bf1, bf2) * result[0][q] * degeneracy;
+                                    matrices.at(id)(bf1, bf3) -= 0.25 * D(bf2, bf4) * result[0][q] * degeneracy;
+                                    matrices.at(id)(bf2, bf4) -= 0.25 * D(bf1, bf3) * result[0][q] * degeneracy;
+                                    matrices.at(id)(bf1, bf4) -= 0.25 * D(bf2, bf3) * result[0][q] * degeneracy;
+                                    matrices.at(id)(bf2, bf3) -= 0.25 * D(bf1, bf4) * result[0][q] * degeneracy;
+                                    matrices.at(id)(bf1, bf2) += D(bf3, bf4) * result[0][q] * degeneracy;
+                                    matrices.at(id)(bf3, bf4) += D(bf1, bf2) * result[0][q] * degeneracy;
                                 }
                             }
                         }
@@ -69,6 +71,7 @@ Eigen::MatrixXd Molecule::integralDouble(libint2::Engine engine2, Eigen::MatrixX
             }
         }
     }
+    for (const auto& M : matrices) matrix += M;
     return 0.5 * (matrix + matrix.transpose());
 };
 
@@ -76,10 +79,10 @@ Eigen::MatrixXd Molecule::integralSingle(libint2::Engine engine) const {
     Eigen::MatrixXd matrix = Eigen::MatrixXd::Zero(shells.nbf(), shells.nbf());
     std::vector<libint2::Engine> engines(libint2::nthreads, engine);
     #pragma omp parallel for default(none) num_threads(libint2::nthreads) shared(engines, matrix)
-    for (size_t i = 0; i < shells.size(); i++) {
-        const auto& result = engines.at(libint2::threadID()).results(); auto sh2bf = shells.shell2bf();
+    for (size_t i = 0; i < shells.size(); i++) { int id = libint2::threadID();
+        const auto& result = engines.at(id).results(); auto sh2bf = shells.shell2bf();
         for (size_t j = 0; j <= i; j++) {
-            engines.at(libint2::threadID()).compute(shells[j], shells[i]); if (result[0] == nullptr) continue;
+            engines.at(id).compute(shells[j], shells[i]); if (result[0] == nullptr) continue;
             Eigen::Map<const Eigen::MatrixXd> buffer(result[0], shells[i].size(), shells[j].size());
             matrix.block(sh2bf[i], sh2bf[j], shells[i].size(), shells[j].size()) = buffer;
             if (i != j) {

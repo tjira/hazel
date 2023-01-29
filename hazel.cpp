@@ -16,7 +16,7 @@ int main(int argc, char** argv) {
     // add options to the parser
     desc.add_options()
         ("input", po::value<std::string>(), "input file")
-        ("ncores,n", po::value<int>()->default_value(1), "number of CPU cores to use")
+        ("nthreads,n", po::value<int>()->default_value(1), "number of threads to use")
         ("version,v", "print version string")
         ("help,h", "produce help message")
     ;pos.add("input", 1);
@@ -35,7 +35,7 @@ int main(int argc, char** argv) {
     js::value input = js::parse(buffer.str());
 
     #if defined(_OPENMP)
-    libint2::nthreads = vm["ncores"].as<int>(),
+    libint2::nthreads = vm["nthreads"].as<int>(),
     omp_set_num_threads(libint2::nthreads);
     #endif
 
@@ -73,6 +73,5 @@ int main(int argc, char** argv) {
 
     // print the results and elapsed time
     Printer::printResult(result);
-    /* Printer::printTimings(result); */
     Printer::printElapsed(Timer::elapsed(start));
 }
