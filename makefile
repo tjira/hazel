@@ -1,4 +1,4 @@
-FLAGS := -std=c++17 -static
+FLAGS := -std=c++17
 
 LIBS := lib/libint/install/lib/libint2.a -l boost_json -l boost_program_options
 INCLUDE := -isystem lib/libint/install/include
@@ -6,10 +6,11 @@ INCLUDE := -isystem lib/libint/install/include
 ifeq ($(DEBUG), 1)
 FLAGS += -flarge-source-files -g -MMD -MP -O0 -pedantic -Wall -Wextra
 else
-FLAGS += -O2
+FLAGS += -fopenmp -O2
 endif
+FLAGS += -DGPPFLAGS="$(FLAGS)"
 
-all: folders bin/hazel
+all: .build bin bin/hazel
 
 # Include Dependencies =================================================================================================
 
@@ -49,8 +50,8 @@ libint:
 
 # Miscellaneous ========================================================================================================
 
+.build bin:
+	mkdir -p $@
+
 clean:
 	rm -rf hazel .build .cache .clangd .makefile .vscode bin *.exe
-
-folders:
-	mkdir -p .build bin

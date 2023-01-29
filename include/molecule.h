@@ -7,18 +7,23 @@
 
 class Molecule {
 public:
+    // constructor
     Molecule(std::string filename, std::string basis);
-    template <int n>
+
+    // getters
+    int getElectronCount() const;
+    double getRepulsion() const;
+
+    // integral computer
     Eigen::MatrixXd integral(libint2::Operator op, Eigen::MatrixXd D = {}) const;
-    double mass() const; int nel() const;
-    double nuclearRepulsion() const;
 
 private:
-    libint2::Engine makeEngine(libint2::Operator op) const;
+    // private integral coumputers
+    Eigen::MatrixXd integralDouble(libint2::Engine engine, Eigen::MatrixXd D) const;
+    Eigen::MatrixXd integralSingle(libint2::Engine engine) const;
+
+    // private variables
     std::vector<libint2::Atom> atoms;
     std::string filename, setname;
     libint2::BasisSet shells;
 };
-
-template<> Eigen::MatrixXd Molecule::integral<1>(libint2::Operator op, Eigen::MatrixXd D) const;
-template<> Eigen::MatrixXd Molecule::integral<2>(libint2::Operator op, Eigen::MatrixXd D) const;

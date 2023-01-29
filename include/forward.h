@@ -1,17 +1,23 @@
 #pragma once
 
 #include <Eigen/Eigen>
+#include <unordered_map>
 
 #define EH2EV 27.211324570273
 
 class HartreeFock;
 class Molecule;
 
+namespace libint2 {
+    inline int nthreads;
+}
+
 struct HartreeFockOptions {
-    double damp, thresh;
+    double thresh;
     int maxiter;
     struct diis {
         int start, keep;
+        bool enabled;
         double damp;
     } diis;
 };
@@ -22,7 +28,8 @@ struct HartreeFockResult {
     Eigen::VectorXd Eo;
     int nocc, i;
     struct {
+        std::unordered_map<std::string, long> ints;
+        std::array<long, 2> guess;
         std::vector<long> iters;
-        long guess, ints;
     } times;
 };

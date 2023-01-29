@@ -1,22 +1,24 @@
 #include "../include/molecule.h"
 
+namespace libint2 {
+    int threadID() {
+        #if defined(_OPENMP)
+        return omp_get_thread_num();
+        #else
+        return 0;
+        #endif
+    }
+}
+
 Molecule::Molecule(std::string filename, std::string basis) : filename(filename), setname(basis) {
     std::ifstream file(filename); atoms = libint2::read_dotxyz(file), shells = libint2::BasisSet(basis, atoms, true);
 }
 
-double Molecule::mass() const {
-    double value = 0;
-    for (const libint2::Atom& atom : atoms) {
-        value += ptable.at(atom.atomic_number).mass;
-    }
-    return value;
-}
-
-int Molecule::nel() const {
+int Molecule::getElectronCount() const {
     return std::accumulate(atoms.begin(), atoms.end(), 0, [](int e, const auto& a) { return e + a.atomic_number; });
 }
 
-double Molecule::nuclearRepulsion() const {
+double Molecule::getRepulsion() const {
     auto value = 0.0;
     for (size_t i = 0; i < atoms.size(); i++) {
         for (size_t j = i + 1; j < atoms.size(); j++) {
@@ -27,35 +29,20 @@ double Molecule::nuclearRepulsion() const {
     return value;
 }
 
-libint2::Engine Molecule::makeEngine(libint2::Operator op) const {
+Eigen::MatrixXd Molecule::integral(libint2::Operator op, Eigen::MatrixXd D) const {
     libint2::Engine engine(op, shells.max_nprim(), shells.max_l());
     if (op == libint2::Operator::nuclear) {
         engine.set_params(libint2::make_point_charges(atoms));
+    } else if (op == libint2::Operator::coulomb) {
+        return integralDouble(engine, D);
     }
-    return engine;
+    return integralSingle(engine);
 }
 
-template <>
-Eigen::MatrixXd Molecule::integral<1>(libint2::Operator op, Eigen::MatrixXd) const {
-    auto engine = makeEngine(op); const auto& result = engine.results(); auto sh2bf = shells.shell2bf();
+Eigen::MatrixXd Molecule::integralDouble(libint2::Engine engine2, Eigen::MatrixXd D) const {
+    libint2::Engine engine = engine2;
     Eigen::MatrixXd matrix = Eigen::MatrixXd::Zero(shells.nbf(), shells.nbf());
-    for (size_t i = 0; i < shells.size(); i++) {
-        for (size_t j = 0; j <= i; j++) {
-            engine.compute(shells[j], shells[i]); if (result[0] == nullptr) continue;
-            Eigen::Map<const Eigen::MatrixXd> buffer(result[0], shells[i].size(), shells[j].size());
-            matrix.block(sh2bf[i], sh2bf[j], shells[i].size(), shells[j].size()) = buffer;
-            if (i != j) {
-                matrix.block(sh2bf[j], sh2bf[i], shells[j].size(), shells[i].size()) = buffer.transpose();
-            }
-        }
-    }
-    return matrix;
-};
-
-template <>
-Eigen::MatrixXd Molecule::integral<2>(libint2::Operator op, Eigen::MatrixXd D) const {
-    auto engine = makeEngine(op); const auto& result = engine.results(); auto sh2bf = shells.shell2bf();
-    Eigen::MatrixXd matrix = Eigen::MatrixXd::Zero(shells.nbf(), shells.nbf());
+    const auto& result = engine.results(); auto sh2bf = shells.shell2bf();
     for(size_t i = 0; i < shells.size(); i++) {
         for(size_t j = 0; j <= i; j++) {
             for(size_t k = 0; k <= i; k++) {
@@ -83,4 +70,22 @@ Eigen::MatrixXd Molecule::integral<2>(libint2::Operator op, Eigen::MatrixXd D) c
         }
     }
     return 0.5 * (matrix + matrix.transpose());
+};
+
+Eigen::MatrixXd Molecule::integralSingle(libint2::Engine engine) const {
+    Eigen::MatrixXd matrix = Eigen::MatrixXd::Zero(shells.nbf(), shells.nbf());
+    std::vector<libint2::Engine> engines(libint2::nthreads, engine);
+    #pragma omp parallel for default(none) num_threads(libint2::nthreads) shared(engines, matrix)
+    for (size_t i = 0; i < shells.size(); i++) {
+        const auto& result = engines.at(libint2::threadID()).results(); auto sh2bf = shells.shell2bf();
+        for (size_t j = 0; j <= i; j++) {
+            engines.at(libint2::threadID()).compute(shells[j], shells[i]); if (result[0] == nullptr) continue;
+            Eigen::Map<const Eigen::MatrixXd> buffer(result[0], shells[i].size(), shells[j].size());
+            matrix.block(sh2bf[i], sh2bf[j], shells[i].size(), shells[j].size()) = buffer;
+            if (i != j) {
+                matrix.block(sh2bf[j], sh2bf[i], shells[j].size(), shells[i].size()) = buffer.transpose();
+            }
+        }
+    }
+    return matrix;
 };
