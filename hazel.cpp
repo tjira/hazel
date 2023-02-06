@@ -33,10 +33,10 @@ int main(int argc, char** argv) {
     // open the provided JSON input
     std::ifstream file(vm["input"].as<std::string>());
     std::stringstream buffer; buffer << file.rdbuf();
+    libint2::nthreads = vm["nthreads"].as<int>();
     js::value input = js::parse(buffer.str());
 
     #if defined(_OPENMP)
-    libint2::nthreads = vm["nthreads"].as<int>(),
     omp_set_num_threads(libint2::nthreads);
     #endif
 
