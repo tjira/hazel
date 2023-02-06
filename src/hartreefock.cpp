@@ -1,5 +1,6 @@
 #include "../include/hartreefock.h"
 #include "../include/molecule.h"
+#include <boost/format.hpp>
 #include <libint2/diis.h>
 
 typedef HartreeFockOptions Options;
@@ -7,10 +8,16 @@ typedef HartreeFockResult Result;
 
 HartreeFock::HartreeFock(Options opt) : opt(opt) {
     // print method specification
-    Printer::printMethod(opt);
+    std::cout << "HARTREE-FOCK" << std::endl;
+    std::cout << boost::format("MAXITER: %4i, THRESH: %.2e, DIIS: [ENABLED: %1i, START: %2i, KEEP: %2i, DAMP: %4.2f]") % opt.maxiter
+    % opt.thresh % opt.diis.enabled % opt.diis.start % opt.diis.keep % opt.diis.damp << std::endl << std::endl;
 }
 
 HartreeFock::Result HartreeFock::scf(const Molecule& molecule) const {
+    // print initial info
+    std::cout << "STARTING SCF CYCLE" << std::endl;
+    std::cout << "ITER        ENERGY           dE       dD        TIME" << std::endl;
+
     // initialize the result container
     Result result; auto times = &result.times;
     
@@ -40,10 +47,7 @@ HartreeFock::Result HartreeFock::scf(const Molecule& molecule) const {
     double E = D.cwiseProduct(2 * H).sum() + Vnn; start = Timer::now();
     times->guess.at(1) = Timer::elapsed(start);
 
-    // print initial timings
-    Printer::printInitialTimings(result);
-
-    // initialize the DIIS algorithm and start the timer for the sCF cycle
+    // initialize the DIIS algorithm and start the timer for the SCF cycle
     libint2::DIIS<Eigen::MatrixXd> diis(opt.diis.start - 1, opt.diis.keep, opt.diis.damp);
     start = Timer::now();
 
@@ -69,12 +73,16 @@ HartreeFock::Result HartreeFock::scf(const Molecule& molecule) const {
         times->iters.push_back(Timer::elapsed(start)), start = Timer::now();
 
         // print the iteration
-        Printer::printIteration(result, opt); D = result.D, E = result.E;
+        std::cout << boost::format("%4i %20.14f %.2e %.2e %s") % result.i % result.E % result.dE % result.dD
+        % Timer::format(times->iters.at(result.i - 1)) << std::endl;
+
+        // overwrite matrices
+        D = result.D, E = result.E;
 
         // check for convergence
         if (result.dE < opt.thresh && result.dD < opt.thresh) { result.Eo = solver.eigenvalues(); break; }
         else if (result.i == opt.maxiter) std::cerr << "Algorithm did not converge." << std::endl;
     }
-    // return the results
-    return result;
+    // print blank line and return the results
+    std::cout << std::endl; return result;
 }

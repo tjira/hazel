@@ -1,6 +1,7 @@
 #include "include/hartreefock.h"
 #include "include/molecule.h"
 #include <boost/json.hpp>
+#include <boost/format.hpp>
 #include <boost/program_options.hpp>
 #include <filesystem>
 
@@ -60,8 +61,8 @@ int main(int argc, char** argv) {
     auto start = Timer::now();
 
     // print the initial info
-    Printer::printTitle();
-    
+    std::cout << "HAZEL" << std::endl << std::endl;
+
     // initialize the molecule and Hartree-Fock method
     Molecule molecule(path + "/" + molfile, basis);
     HartreeFock hfock(opt);
@@ -71,7 +72,16 @@ int main(int argc, char** argv) {
     auto result = hfock.scf(molecule);
     libint2::finalize();
 
-    // print the results and elapsed time
-    Printer::printResult(result);
-    Printer::printElapsed(Timer::elapsed(start));
+    // print orbital energies
+    std::cout << "ITER OCC        E [Eh]                E [eV]" << std::endl;
+    for (int i = 0; i < result.Eo.rows(); i++) {
+        std::cout << boost::format("%4i %3.1f %20.14f %22.14f") % i % ((i + 1) <= result.nocc ? 2.0 : 0.0) % result.Eo(i) % (result.Eo(i) * EH2EV) << "\n";
+    }
+    std::cout << std::endl;
+
+    // print final energy
+    std::cout << boost::format("FINAL SINGLE POINT ENERGY: %.14f Eh") % result.E << std::endl << std::endl;
+
+    // print elapsed time
+    std::cout << boost::format("DONE IN %s") % Timer::format(Timer::elapsed(start)) << std::endl;
 }

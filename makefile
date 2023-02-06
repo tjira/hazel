@@ -18,7 +18,7 @@ all: .build bin bin/hazel
 
 # Link =================================================================================================================
 
-bin/hazel: .build/hazel.o .build/hartreefock.o .build/molecule.o .build/printer.o .build/ptable.o .build/timer.o
+bin/hazel: .build/hazel.o .build/hartreefock.o .build/molecule.o .build/ptable.o .build/timer.o
 	g++ $(FLAGS) $(INCLUDE) -o $@ $^ $(LIBS)
 
 .build/hazel.o: hazel.cpp
@@ -30,9 +30,6 @@ bin/hazel: .build/hazel.o .build/hartreefock.o .build/molecule.o .build/printer.
 	g++ $(FLAGS) $(INCLUDE) -c -o $@ $<
 
 .build/molecule.o: src/molecule.cpp
-	g++ $(FLAGS) $(INCLUDE) -c -o $@ $<
-
-.build/printer.o: src/printer.cpp
 	g++ $(FLAGS) $(INCLUDE) -c -o $@ $<
 
 .build/ptable.o: src/ptable.cpp
