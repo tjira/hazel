@@ -229,6 +229,10 @@ for MOL in *.xyz; do
     echo -e "! $METHOD $BASIS OPT\n*xyzfile 0 1 $MOL" > "${MOL%.*}.inp" && orca "${MOL%.*}.inp" | tee "${MOL%.*}.out"
     ENERGY=$(grep "FINAL SINGLE POINT ENERGY" "${MOL%.*}.out" | tail -n 1 | awk '{print $5}')
     sed -i "2s/.*/${MOL%.*}\/$METHOD\/$BASIS\/$ENERGY/" "$MOL"
+    while read -r LINE; do
+        echo "$LINE" | awk 'NF==4 {printf("%s % 2.14f % 2.14f % 2.14f\n", $1, $2, $3, $4)}' >> "$MOL.tmp"
+        echo "$LINE" | awk 'NF==1 {printf("%s\n", $1)}' >> "$MOL.tmp"
+    done < "$MOL" && mv "$MOL.tmp" "$MOL"
 done
 
 for MOL in *.xyz; do
