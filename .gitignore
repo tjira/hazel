@@ -12,6 +12,7 @@ hazel
 *.engrad
 *.exe
 *.gbw
+*.ges
 *.hess
 *.inp
 *.opt

@@ -1,6 +1,6 @@
 {
     "molecule" : "../molecule/water.xyz",
-    "basis" : "CC-PVDZ",
+    "basis" : "STO-3G",
     "method" : {
         "name" : "HF",
         "maxiter" : 100,

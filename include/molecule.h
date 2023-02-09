@@ -11,11 +11,14 @@ public:
     Molecule(std::string filename, std::string basis);
 
     // getters
+    libint2::Atom getAtom(int i) const;
+    double getNuclearRepulsion() const;
     int getElectronCount() const;
-    double getRepulsion() const;
+    int getAtomCount() const;
 
-    // integral computer
+    // computers
     Eigen::MatrixXd integral(libint2::Operator op, Eigen::MatrixXd D = {}) const;
+    MullikenResult mulliken(Eigen::MatrixXd D) const;
 
 private:
     // private integral coumputers

@@ -9,18 +9,18 @@ typedef HartreeFockResult Result;
 HartreeFock::HartreeFock(Options opt) : opt(opt) {
     // print method specification
     std::cout << "HARTREE-FOCK" << std::endl;
-    std::cout << boost::format("MAXITER: %4i, THRESH: %.2e, DIIS: [ENABLED: %1i, START: %2i, KEEP: %2i, DAMP: %4.2f]") % opt.maxiter
+    std::cout << boost::format("MAXITER: %i, THRESH: %.2e, DIIS: [ENABLED: %i, START: %i, KEEP: %i, DAMP: %.2f]") % opt.maxiter
     % opt.thresh % opt.diis.enabled % opt.diis.start % opt.diis.keep % opt.diis.damp << std::endl << std::endl;
 }
 
 HartreeFock::Result HartreeFock::scf(const Molecule& molecule) const {
     // print initial info
-    std::cout << "STARTING SCF CYCLE" << std::endl;
-    std::cout << "ITER        ENERGY           dE       dD        TIME" << std::endl;
+    std::cout << "SCF CYCLE" << std::endl;
+    std::cout << "ITER        E [Eh]           dE       dD        TIME" << std::endl;
 
     // initialize the result container
     Result result; auto times = &result.times;
-    
+
     // calculate the necessary integrals
     auto start = Timer::now();
     Eigen::MatrixXd T = molecule.integral(libint2::Operator::kinetic);
@@ -29,7 +29,7 @@ HartreeFock::Result HartreeFock::scf(const Molecule& molecule) const {
     times->ints["V"]= Timer::elapsed(start), start = Timer::now();
     Eigen::MatrixXd S = molecule.integral(libint2::Operator::overlap);
     times->ints["S"]= Timer::elapsed(start), start = Timer::now();
-    double Vnn = molecule.getRepulsion(); Eigen::MatrixXd H = T + V;
+    double Vnn = molecule.getNuclearRepulsion(); Eigen::MatrixXd H = T + V;
 
     // save the integrals to the result container
     result.T = T, result.V = V, result.S = S, result.Vnn = Vnn;
@@ -39,7 +39,7 @@ HartreeFock::Result HartreeFock::scf(const Molecule& molecule) const {
     start = Timer::now();
     Eigen::GeneralizedSelfAdjointEigenSolver<Eigen::MatrixXd> solver(H, S);
     Eigen::MatrixXd C = solver.eigenvectors().leftCols(result.nocc);
-    Eigen::MatrixXd D =  C * C.transpose();
+    Eigen::MatrixXd D =  2 * C * C.transpose();
     times->guess.at(0) = Timer::elapsed(start);
 
     // compute the guess energy
@@ -54,7 +54,7 @@ HartreeFock::Result HartreeFock::scf(const Molecule& molecule) const {
     // start the SCF cycle
     for (result.i = 1; result.i <= opt.maxiter; result.i++) {
         // compute the Fock matrix
-        result.F = H + molecule.integral(libint2::Operator::coulomb, D);
+        result.F = H + 0.5 * molecule.integral(libint2::Operator::coulomb, D);
 
         // compute error and extrapolate the Fock matrix
         Eigen::MatrixXd e = S * D * result.F - result.F * D * S, Fold = result.F;
@@ -63,10 +63,10 @@ HartreeFock::Result HartreeFock::scf(const Molecule& molecule) const {
         // solve the Roothan equations and compute the density matrix from the result
         Eigen::GeneralizedSelfAdjointEigenSolver<Eigen::MatrixXd> solver(result.F, S);
         Eigen::MatrixXd C = solver.eigenvectors().leftCols(result.nocc);
-        result.D = C * C.transpose();
+        result.C = C, result.D = 2 * C * C.transpose();
 
         // calculate the energy
-        result.E = result.D.cwiseProduct(H + result.F).sum() + Vnn;
+        result.E = 0.5 * result.D.cwiseProduct(H + result.F).sum() + Vnn;
 
         // write the secondary results to the result container
         result.dD = std::abs(result.D.norm() - D.norm()), result.dE = std::abs(result.E - E);
@@ -80,7 +80,7 @@ HartreeFock::Result HartreeFock::scf(const Molecule& molecule) const {
         D = result.D, E = result.E;
 
         // check for convergence
-        if (result.dE < opt.thresh && result.dD < opt.thresh) { result.Eo = solver.eigenvalues(); break; }
+        if (result.dE < opt.thresh && result.dD < opt.thresh) { result.eps = solver.eigenvalues(); break; }
         else if (result.i == opt.maxiter) std::cerr << "Algorithm did not converge." << std::endl;
     }
     // print blank line and return the results

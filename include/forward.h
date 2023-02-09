@@ -23,13 +23,18 @@ struct HartreeFockOptions {
 };
 
 struct HartreeFockResult {
-    Eigen::MatrixXd T, V, S, F, D;
+    Eigen::MatrixXd T, V, S, F, D, C;
     double dD, dE, E, Vnn;
-    Eigen::VectorXd Eo;
+    Eigen::VectorXd eps;
     int nocc, i;
     struct {
         std::unordered_map<std::string, long> ints;
         std::array<long, 2> guess;
         std::vector<long> iters;
     } times;
+};
+
+struct MullikenResult {
+    Eigen::MatrixXd DS;
+    Eigen::VectorXd q;
 };

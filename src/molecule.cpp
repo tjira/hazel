@@ -14,11 +14,19 @@ Molecule::Molecule(std::string filename, std::string basis) : filename(filename)
     std::ifstream file(filename); atoms = libint2::read_dotxyz(file), shells = libint2::BasisSet(basis, atoms, true);
 }
 
+libint2::Atom Molecule::getAtom(int i) const {
+    return atoms.at(i);
+}
+
+int Molecule::getAtomCount() const {
+    return atoms.size();
+}
+
 int Molecule::getElectronCount() const {
     return std::accumulate(atoms.begin(), atoms.end(), 0, [](int e, const auto& a) { return e + a.atomic_number; });
 }
 
-double Molecule::getRepulsion() const {
+double Molecule::getNuclearRepulsion() const {
     auto value = 0.0;
     for (size_t i = 0; i < atoms.size(); i++) {
         for (size_t j = i + 1; j < atoms.size(); j++) {
@@ -39,11 +47,29 @@ Eigen::MatrixXd Molecule::integral(libint2::Operator op, Eigen::MatrixXd D) cons
     return integralSingle(engine);
 }
 
+MullikenResult Molecule::mulliken(Eigen::MatrixXd D) const {
+    Eigen::MatrixXd S = integral(libint2::Operator::overlap, D);
+    Eigen::VectorXd q = Eigen::VectorXd::Zero(atoms.size());
+    Eigen::MatrixXd DS = D.cwiseProduct(S);
+    for (size_t i = 0, j = 0; i < shells.size(); i++) {
+        for (size_t k = 0; k < shells.at(i).size(); k++) {
+            q(shells.shell2atom(atoms).at(i)) -= DS.colwise().sum()(j + k);
+        }
+        j += shells.at(i).size();
+    }
+    for (size_t i = 0; i < atoms.size(); i++) {
+        q(i) += atoms.at(i).atomic_number;
+    }
+    return { DS, q };
+}
+
 Eigen::MatrixXd Molecule::integralDouble(libint2::Engine engine, Eigen::MatrixXd D) const {
     Eigen::MatrixXd matrix = Eigen::MatrixXd::Zero(shells.nbf(), shells.nbf());
     std::vector<Eigen::MatrixXd> matrices(libint2::nthreads, matrix);
     std::vector<libint2::Engine> engines(libint2::nthreads, engine);
-    #pragma omp parallel for default(none) num_threads(libint2::nthreads) shared(std::cout, D, engines, matrices)
+    #if defined(_OPENMP)
+    #pragma omp parallel for default(none) num_threads(libint2::nthreads) shared(D, engines, matrices)
+    #endif
     for(size_t i = 0; i < shells.size(); i++) { int id = libint2::threadID();
         const auto& result = engines.at(id).results(); auto sh2bf = shells.shell2bf();
         for(size_t j = 0; j <= i; j++) {
@@ -78,7 +104,9 @@ Eigen::MatrixXd Molecule::integralDouble(libint2::Engine engine, Eigen::MatrixXd
 Eigen::MatrixXd Molecule::integralSingle(libint2::Engine engine) const {
     Eigen::MatrixXd matrix = Eigen::MatrixXd::Zero(shells.nbf(), shells.nbf());
     std::vector<libint2::Engine> engines(libint2::nthreads, engine);
+    #if defined(_OPENMP)
     #pragma omp parallel for default(none) num_threads(libint2::nthreads) shared(engines, matrix)
+    #endif
     for (size_t i = 0; i < shells.size(); i++) { int id = libint2::threadID();
         const auto& result = engines.at(id).results(); auto sh2bf = shells.shell2bf();
         for (size_t j = 0; j <= i; j++) {

@@ -5,8 +5,11 @@
 #include <boost/program_options.hpp>
 #include <filesystem>
 
-namespace js = boost::json;
+#define STRINGIFY(X) STRING(X)
+#define STRING(X) #X
+
 namespace po = boost::program_options;
+namespace js = boost::json;
 
 int main(int argc, char** argv) {
     // initialize the argument parser and container for the arguments
@@ -31,11 +34,19 @@ int main(int argc, char** argv) {
     }
 
     // open the provided JSON input
+    if (!std::filesystem::exists(vm["input"].as<std::string>())) {
+        throw std::runtime_error("Input file does not exist.");
+    }
     std::ifstream file(vm["input"].as<std::string>());
     std::stringstream buffer; buffer << file.rdbuf();
-    libint2::nthreads = vm["nthreads"].as<int>();
     js::value input = js::parse(buffer.str());
 
+    // print the initial info and input
+    std::cout << "HAZEL\nCOMPILE FLAGS: " << STRINGIFY(GPPFLAGS) << "\n" << std::endl;
+    std::cout << "INPUT\n" << buffer.str() << "\n" << std::endl;
+
+    // set number of threads
+    libint2::nthreads = vm["nthreads"].as<int>();
     #if defined(_OPENMP)
     omp_set_num_threads(libint2::nthreads);
     #endif
@@ -60,28 +71,47 @@ int main(int argc, char** argv) {
     // start the timer
     auto start = Timer::now();
 
-    // print the initial info
-    std::cout << "HAZEL" << std::endl << std::endl;
+    // initialize the libint library 
+    libint2::initialize();
 
-    // initialize the molecule and Hartree-Fock method
+    // initialize the molecule
+    if (!std::filesystem::exists(path + "/" + molfile)) {
+        throw std::runtime_error("Molecule file does not exist.");
+    }
     Molecule molecule(path + "/" + molfile, basis);
+
+    // print the molecule specification
+    std::cout << boost::format("MOLECULE\nATOMS: %i, ELECTRONS: %i, BASIS: %i\n") % molecule.getAtomCount() % molecule.getElectronCount() % basis << std::endl;
+
+    // initialize HF
     HartreeFock hfock(opt);
 
     // perform the SCF cycle
-    libint2::initialize();
     auto result = hfock.scf(molecule);
-    libint2::finalize();
+
+    // perform the mulliken analysis
+    auto mulliken = molecule.mulliken(result.D);
 
     // print orbital energies
-    std::cout << "ITER OCC        E [Eh]                E [eV]" << std::endl;
-    for (int i = 0; i < result.Eo.rows(); i++) {
-        std::cout << boost::format("%4i %3.1f %20.14f %22.14f") % i % ((i + 1) <= result.nocc ? 2.0 : 0.0) % result.Eo(i) % (result.Eo(i) * EH2EV) << "\n";
+    std::cout << "ORBITAL ENERGIES AND OCCUPATION\nITER OCC        E [Eh]                E [eV]\n";
+    for (int i = 0; i < result.eps.rows(); i++) {
+        std::cout << boost::format("%4i %3.1f %20.14f %22.14f\n") % i % ((i + 1) <= result.nocc ? 2.0 : 0.0) % result.eps(i) % (result.eps(i) * EH2EV);
+    }
+    std::cout << std::endl;
+
+    // print the mulliken charges
+    std::cout << "MULLIKEN CHARGES\nAN     Q\n";
+    for (int i = 0; i < molecule.getAtomCount(); i++) {
+        std::cout << boost::format("%2i %9.6f\n") % molecule.getAtom(i).atomic_number % mulliken.q(i);
     }
     std::cout << std::endl;
 
     // print final energy
-    std::cout << boost::format("FINAL SINGLE POINT ENERGY: %.14f Eh") % result.E << std::endl << std::endl;
+    std::cout << boost::format("FINAL SINGLE POINT ENERGY: %.14f Eh\n") % result.E << std::endl;
 
     // print elapsed time
     std::cout << boost::format("DONE IN %s") % Timer::format(Timer::elapsed(start)) << std::endl;
+
+    // finalize the libint library 
+    libint2::finalize();
 }
