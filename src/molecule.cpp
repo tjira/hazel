@@ -47,6 +47,7 @@ Eigen::MatrixXd Molecule::integral(libint2::Operator op, Eigen::MatrixXd D) cons
     return integralSingle(engine);
 }
 
+// algorithm from: https://www.cup.uni-muenchen.de/ch/compchem/pop/mull1.html
 MullikenResult Molecule::mulliken(Eigen::MatrixXd D) const {
     Eigen::MatrixXd S = integral(libint2::Operator::overlap, D);
     Eigen::VectorXd q = Eigen::VectorXd::Zero(atoms.size());

@@ -104,7 +104,7 @@ int main(int argc, char** argv) {
     for (int i = 0; i < molecule.getAtomCount(); i++) {
         std::cout << boost::format("%2i %9.6f\n") % molecule.getAtom(i).atomic_number % mulliken.q(i);
     }
-    std::cout << std::endl;
+    std::cout << "\nSUM OF MULLIKEN CHARGES: " << boost::format("%.6f\n") % mulliken.q.sum() << std::endl;
 
     // print final energy
     std::cout << boost::format("FINAL SINGLE POINT ENERGY: %.14f Eh\n") % result.E << std::endl;
