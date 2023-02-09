@@ -19,5 +19,6 @@ hazel
 *.out
 *.tmp
 *.txt
+*.xyz
 /*.json
 *trj*
