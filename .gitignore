@@ -1,3 +1,4 @@
+compile_commands.json
 .build/
 .cache/
 .clangd/
@@ -5,20 +6,4 @@
 .vscode/
 bin/
 lib/
-clean.sh
 hazel
-*.0
-*.densities
-*.engrad
-*.exe
-*.gbw
-*.ges
-*.hess
-*.inp
-*.opt
-*.out
-*.tmp
-*.txt
-*.xyz
-/*.json
-*trj*

@@ -3,11 +3,7 @@
 BASIS="STO-3G"
 METHOD="RHF"
 
-[[ -f clean.sh ]] && ./clean.sh
-
-echo "#!/bin/bash
-rm -f clean.sh *.0 *.densities *.engrad *.gbw *.ges *.hess *.inp *.opt *.out *.tmp *.txt *.xyz *trj* " > clean.sh
-chmod +x clean.sh
+rm -rf out xyz
 
 cat > acetone.xyz << EOM
 10
@@ -235,6 +231,10 @@ for MOL in *.xyz; do
     done < "$MOL" && mv "$MOL.tmp" "$MOL"
 done
 
+rm -- *_trj.xyz
+
 for MOL in *.xyz; do
     echo -e "! $METHOD $BASIS HCORE LARGEPRINT\n*xyzfile 0 1 $MOL" > "${MOL%.*}.inp" && orca "${MOL%.*}.inp" | tee "${MOL%.*}.out"
 done
+
+mkdir -p out xyz && mv -- *.out out && mv -- *.xyz xyz && rm -rf -- *.densities *.engrad *.gbw *.inp *.opt *.tmp *.txt
