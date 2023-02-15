@@ -6,4 +6,5 @@ compile_commands.json
 .vscode/
 bin/
 lib/
+out/
 hazel
