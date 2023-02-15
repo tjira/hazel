@@ -1,6 +1,6 @@
 #include "include/hartreefock.h"
 #include "include/molecule.h"
-#include <boost/json.hpp>
+#include <boost/json/src.hpp>
 #include <boost/format.hpp>
 #include <boost/program_options.hpp>
 #include <filesystem>
