@@ -3,8 +3,6 @@
 BASIS="STO-3G"
 METHOD="RHF"
 
-rm -rf xyz
-
 cat > acetone.xyz << EOM
 10
 acetone
@@ -230,5 +228,4 @@ for MOL in *.xyz; do
         echo "$LINE" | awk 'NF==1 {printf("%s\n", $1)}' >> "$MOL.tmp"
     done < "$MOL" && mv "$MOL.tmp" "$MOL"
 done
-
 rm -- *_trj.xyz && mkdir -p xyz && mv -- *.xyz xyz && rm -rf -- *.densities *.engrad *.gbw *.inp *.opt *.out *.tmp *.txt
