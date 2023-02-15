@@ -1,4 +1,4 @@
-INCLUDE := -isystem lib/boost/install/include -isystem lib/glm -isystem lib/libint/install/include
+INCLUDE := -isystem lib/boost/install/include -isystem lib/eigen -isystem lib/glm -isystem lib/libint/install/include
 FLAGS := -std=c++17
 
 ifeq ($(DEBUG), 1)
