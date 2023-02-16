@@ -136,7 +136,7 @@ int main(int argc, char** argv) {
 
     {
         // Create mesh, shader and GUI
-        Mesh3D mesh = Mesh3D::Cylinder(8, 0);
+        Mesh mesh = Mesh::Cylinder(8, 0);
         Shader shader(vertex, fragment);
         Gui gui(window);
         

@@ -13,7 +13,7 @@ Gui::~Gui() {
     ImGui::DestroyContext();
 }
 
-void Gui::render(Mesh3D& mesh) {
+void Gui::render(Mesh& mesh) {
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();

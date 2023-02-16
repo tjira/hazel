@@ -1,8 +1,6 @@
-#define TINYOBJLOADER_IMPLEMENTATION
+#include "../include/mesh.h"
 
-#include "../include/mesh3D.h"
-
-Mesh3D Mesh3D::Cylinder(int sectors, bool smooth, const std::string& name) {
+Mesh Mesh::Cylinder(int sectors, bool smooth, const std::string& name) {
     std::vector<Vertex3D> data;
     for (int j = 0; j < sectors; j++) {
         data.push_back({{ cosf(2 * (float)M_PI / sectors * (j + 0)),  1, sinf(2 * (float)M_PI / sectors * (j + 0)) }});
@@ -20,10 +18,10 @@ Mesh3D Mesh3D::Cylinder(int sectors, bool smooth, const std::string& name) {
         data.at(i + 1).normal = smooth ? data.at(i + 1).position : glm::normalize(glm::cross(v1, v2));
         data.at(i + 2).normal = smooth ? data.at(i + 2).position : glm::normalize(glm::cross(v1, v2));
     }
-    return Mesh3D(data, name);
+    return Mesh(data, name);
 }
 
-Mesh3D Mesh3D::Icosphere(int subdivisions, bool smooth, const std::string& name) {
+Mesh Mesh::Icosphere(int subdivisions, bool smooth, const std::string& name) {
     std::vector<Vertex3D> data; float k = (1.0f + sqrtf(5.0f)) / 2.0f;
 
     data.push_back({glm::normalize(glm::vec3{ -1,  k,  0 })});
@@ -141,10 +139,10 @@ Mesh3D Mesh3D::Icosphere(int subdivisions, bool smooth, const std::string& name)
         data.at(i + 1).normal = smooth ? data.at(i + 1).position : glm::normalize(glm::cross(v1, v2));
         data.at(i + 2).normal = smooth ? data.at(i + 2).position : glm::normalize(glm::cross(v1, v2));
     }
-    return Mesh3D(data, name);
+    return Mesh(data, name);
 }
 
-void Mesh3D::render(const Shader& shader, const glm::mat4& transform) const {
+void Mesh::render(const Shader& shader, const glm::mat4& transform) const {
     shader.use(), shader.set<glm::mat4>("u_model", transform * model);
     buffer.bind(), glDrawArrays(GL_TRIANGLES, 0, (int)buffer.getSize());
 }
