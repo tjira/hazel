@@ -1,7 +1,6 @@
 #define TINYOBJLOADER_IMPLEMENTATION
 
 #include "../include/mesh3D.h"
-#include "../lib/tinyobjloader/tiny_obj_loader.h"
 
 Mesh3D Mesh3D::Cylinder(int sectors, bool smooth, const std::string& name) {
     std::vector<Vertex3D> data;

@@ -115,7 +115,7 @@ int main(int argc, char** argv) {
     }
 
     // Initialize GLAD
-    if (glfwMakeContextCurrent(window); !gladLoadGLLoader((GLADloadproc) glfwGetProcAddress)) {
+    if (glfwMakeContextCurrent(window); !gladLoadGL(glfwGetProcAddress)) {
         throw std::runtime_error("Error during GLAD initialization.");
     }
 

@@ -1,7 +1,8 @@
 #include "mesh3D.h"
-#include "lib/imgui/imgui_impl_opengl3.h"
-#include "lib/imgui/imgui_impl_glfw.h"
-#include "lib/imgui/ImGuiFileDialog.h"
+
+#include <imgui_impl_opengl3.h>
+#include <imgui_impl_glfw.h>
+#include <dialog/ImGuiFileDialog.h>
 
 class Gui {
 public:

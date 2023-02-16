@@ -5,8 +5,5 @@ compile_commands.json
 .makefile/
 .vscode/
 bin/
+lib/
 out/
-lib/boost
-lib/eigen
-lib/glm
-lib/libint
