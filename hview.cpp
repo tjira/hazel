@@ -1,9 +1,11 @@
 #include "include/gui.h"
-#include <glm/gtc/matrix_transform.hpp>
+#include <boost/program_options.hpp>
 #include <iostream>
 
 #define WIDTH 1024
 #define HEIGHT 576
+
+namespace po = boost::program_options;
 
 std::string vertex = R"(
 #version 420 core
@@ -38,7 +40,7 @@ void main() {
 
 struct GLFWPointer {
     int width = WIDTH, height = HEIGHT, samples = 16, major = 4, minor = 2;
-    std::string title = "3D Model Viewer"; glm::vec2 mouse;
+    std::string title = "Hazel Viewer"; glm::vec2 mouse;
     struct Camera {
         glm::mat4 view, proj;
     } camera{};
@@ -52,8 +54,8 @@ void keyCallback(GLFWwindow* window, int key, int, int action, int mods) {
     if (action == GLFW_PRESS) {
         if (mods == GLFW_MOD_CONTROL && action == GLFW_PRESS) {
             if (key == GLFW_KEY_O) {
-                std::string files = "Model Files{.obj,.stl},All Files{.*}";
-                ImGuiFileDialog::Instance()->OpenDialog("Import 3D Model", "Import 3D Model", files.c_str(), ".");
+                std::string files = "Molecule Files{.xyz},All Files{.*}";
+                ImGuiFileDialog::Instance()->OpenDialog("Import Molecule", "Import Molecule", files.c_str(), ".");
             } else if (key == GLFW_KEY_Q) {
                 glfwSetWindowShouldClose(window, GLFW_TRUE);
             }
@@ -80,7 +82,9 @@ void resizeCallback(GLFWwindow* window, int width, int height) {
 }
 
 void scrollCallback(GLFWwindow* window, double, double dy) {
-    ((GLFWPointer*)glfwGetWindowUserPointer(window))->camera.view *= glm::mat4(glm::mat3(1.0f + 0.08f * (float)dy));
+    if (!ImGui::GetIO().WantCaptureMouse) {
+        ((GLFWPointer*)glfwGetWindowUserPointer(window))->camera.view *= glm::mat4(glm::mat3(1.0f + 0.08f * (float)dy));
+    }
 }
 
 void set(const Shader& shader, const GLFWPointer::Camera& camera, const GLFWPointer::Light& light) {
@@ -95,6 +99,31 @@ void set(const Shader& shader, const GLFWPointer::Camera& camera, const GLFWPoin
 }
 
 int main(int argc, char** argv) {
+    // initialize the argument parser and container for the arguments
+    po::options_description desc("options");
+    po::positional_options_description pos;
+    po::variables_map vm;
+
+    // add options to the parser
+    desc.add_options()
+        ("input", po::value<std::string>(), "input file")
+        ("version,v", "print version string")
+        ("help,h", "produce help message")
+    ;pos.add("input", 1);
+
+    // extract the variables from the command line
+    po::store(po::command_line_parser(argc, argv).options(desc).positional(pos).run(), vm); po::notify(vm);
+
+    // print help if the help flag was provided
+    if (vm.count("help")) {
+        std::cout << desc << std::endl; return EXIT_SUCCESS;
+    }
+
+    // open the provided JSON input
+    if (!vm["input"].empty() && !std::filesystem::exists(vm["input"].as<std::string>())) {
+        throw std::runtime_error("Input file does not exist.");
+    }
+
     // Create GLFW variable struct and a window pointer
     GLFWPointer pointer; GLFWwindow* window;
 
@@ -135,8 +164,11 @@ int main(int argc, char** argv) {
     pointer.camera.view = glm::lookAt({ 0.0f, 0.0f, 5.0f }, glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
     {
-        // Create mesh, shader and GUI
-        Mesh mesh = Mesh::Cylinder(8, 0);
+        // Create scene, shader and GUI
+        Scene scene;
+        if (!vm["input"].empty()) {
+            scene = Scene::LoadMolecule(vm["input"].as<std::string>());
+        }
         Shader shader(vertex, fragment);
         Gui gui(window);
         
@@ -150,8 +182,8 @@ int main(int argc, char** argv) {
             set(shader, pointer.camera, pointer.light);
 
             // Render mesh and GUI
-            mesh.render(shader);
-            gui.render(mesh);
+            scene.render(shader);
+            gui.render(scene);
             
             // Swap buffers and poll events
             glfwSwapBuffers(window);

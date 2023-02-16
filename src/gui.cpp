@@ -13,7 +13,7 @@ Gui::~Gui() {
     ImGui::DestroyContext();
 }
 
-void Gui::render(Mesh& mesh) {
+void Gui::render(Scene& scene) {
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
@@ -29,9 +29,9 @@ void Gui::render(Mesh& mesh) {
     ImGui::Text("%.1f", ImGui::GetIO().Framerate);
     ImGui::End();
 
-    if (ImGuiFileDialog::Instance()->Display("Import 3D Model", ImGuiWindowFlags_NoCollapse, { 512, 288 })) {
+    if (ImGuiFileDialog::Instance()->Display("Import Molecule", ImGuiWindowFlags_NoCollapse, { 512, 288 })) {
         if (ImGuiFileDialog::Instance()->IsOk()) {
-            /* mesh = Mesh3D::Load(ImGuiFileDialog::Instance()->GetFilePathName()); */
+            scene = Scene::LoadMolecule(ImGuiFileDialog::Instance()->GetFilePathName());
         }
         ImGuiFileDialog::Instance()->Close();
     }

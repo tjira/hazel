@@ -20,7 +20,7 @@ libs: boost eigen glad glfw glm imgui libint
 bin/hazel: .build/hazel.o .build/hartreefock.o .build/molecule.o .build/ptable.o .build/timer.o
 	g++ $(FLAGS) $(INCLUDE) -o $@ $^ lib/boost/install/lib/libboost_program_options.a lib/libint/install/lib/libint2.a
 
-bin/hview: .build/hview.o .build/buffer.o .build/gui.o .build/mesh.o .build/shader.o .build/glad.o .build/imgui.o .build/imgui_demo.o .build/imgui_dilog.o .build/imgui_draw.o .build/imgui_glfw.o .build/imgui_opengl.o .build/imgui_tables.o .build/imgui_widgets.o
+bin/hview: .build/hview.o .build/buffer.o .build/gui.o .build/mesh.o .build/ptable.o .build/scene.o .build/shader.o .build/glad.o .build/imgui.o .build/imgui_demo.o .build/imgui_dilog.o .build/imgui_draw.o .build/imgui_glfw.o .build/imgui_opengl.o .build/imgui_tables.o .build/imgui_widgets.o
 	g++ $(FLAGS) $(INCLUDE) -o $@ $^ lib/boost/install/lib/libboost_program_options.a lib/glfw/install/lib/libglfw3.a -ldl
 
 .build/hazel.o: hazel.cpp
@@ -47,6 +47,9 @@ bin/hview: .build/hview.o .build/buffer.o .build/gui.o .build/mesh.o .build/shad
 	g++ $(FLAGS) $(INCLUDE) -c -o $@ $<
 
 .build/ptable.o: src/ptable.cpp
+	g++ $(FLAGS) $(INCLUDE) -c -o $@ $<
+
+.build/scene.o: src/scene.cpp
 	g++ $(FLAGS) $(INCLUDE) -c -o $@ $<
 
 .build/shader.o: src/shader.cpp

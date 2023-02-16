@@ -1,7 +1,7 @@
 #include "../include/mesh.h"
 
 Mesh Mesh::Cylinder(int sectors, bool smooth, const std::string& name) {
-    std::vector<Vertex3D> data;
+    std::vector<Vertex> data;
     for (int j = 0; j < sectors; j++) {
         data.push_back({{ cosf(2 * (float)M_PI / sectors * (j + 0)),  1, sinf(2 * (float)M_PI / sectors * (j + 0)) }});
         data.push_back({{ cosf(2 * (float)M_PI / sectors * (j + 1)),  1, sinf(2 * (float)M_PI / sectors * (j + 1)) }});
@@ -22,7 +22,7 @@ Mesh Mesh::Cylinder(int sectors, bool smooth, const std::string& name) {
 }
 
 Mesh Mesh::Icosphere(int subdivisions, bool smooth, const std::string& name) {
-    std::vector<Vertex3D> data; float k = (1.0f + sqrtf(5.0f)) / 2.0f;
+    std::vector<Vertex> data; float k = (1.0f + sqrtf(5.0f)) / 2.0f;
 
     data.push_back({glm::normalize(glm::vec3{ -1,  k,  0 })});
     data.push_back({glm::normalize(glm::vec3{ -k,  0,  1 })});
@@ -105,7 +105,7 @@ Mesh Mesh::Icosphere(int subdivisions, bool smooth, const std::string& name) {
     data.push_back({glm::normalize(glm::vec3{  k,  0,  1 })});
 
     for (int i = 0; i < subdivisions; i++) {
-        std::vector<Vertex3D> subdivided;
+        std::vector<Vertex> subdivided;
         for (size_t j = 0; j < data.size(); j += 3) {
             glm::vec3 p1 = data.at(j + 0).position;
             glm::vec3 p2 = data.at(j + 1).position;
@@ -142,7 +142,25 @@ Mesh Mesh::Icosphere(int subdivisions, bool smooth, const std::string& name) {
     return Mesh(data, name);
 }
 
+std::string Mesh::getName() const {
+    return name;
+}
+
+glm::vec3 Mesh::getPosition() const {
+    return glm::vec3(model[3]);
+}
+
 void Mesh::render(const Shader& shader, const glm::mat4& transform) const {
     shader.use(), shader.set<glm::mat4>("u_model", transform * model);
     buffer.bind(), glDrawArrays(GL_TRIANGLES, 0, (int)buffer.getSize());
+}
+
+void Mesh::setColor(const glm::vec3& color) {
+    std::vector<Vertex> data = buffer.getData();
+    std::for_each(data.begin(), data.end(), [color](Vertex& v) { v.color = color; });
+    buffer = Buffer(data);
+}
+
+void Mesh::setModel(const glm::mat4& model) {
+    this->model = model;
 }
