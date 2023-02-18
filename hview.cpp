@@ -119,7 +119,7 @@ int main(int argc, char** argv) {
         std::cout << desc << std::endl; return EXIT_SUCCESS;
     }
 
-    // open the provided JSON input
+    // open the provided input
     if (!vm["input"].empty() && !std::filesystem::exists(vm["input"].as<std::string>())) {
         throw std::runtime_error("Input file does not exist.");
     }
@@ -165,9 +165,9 @@ int main(int argc, char** argv) {
 
     {
         // Create scene, shader and GUI
-        Scene scene;
+        Movie movie;
         if (!vm["input"].empty()) {
-            scene = Scene::LoadMolecule(vm["input"].as<std::string>());
+            movie = Movie::LoadTrajectory(vm["input"].as<std::string>());
         }
         Shader shader(vertex, fragment);
         Gui gui(window);
@@ -182,8 +182,8 @@ int main(int argc, char** argv) {
             set(shader, pointer.camera, pointer.light);
 
             // Render mesh and GUI
-            scene.render(shader);
-            gui.render(scene);
+            movie.render(shader);
+            gui.render(movie);
             
             // Swap buffers and poll events
             glfwSwapBuffers(window);

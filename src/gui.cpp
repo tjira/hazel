@@ -13,13 +13,12 @@ Gui::~Gui() {
     ImGui::DestroyContext();
 }
 
-void Gui::render(Scene& scene) {
+void Gui::render(Movie& scene) {
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
-    ImGui::SetNextWindowPos({ 0, 0 });
-    ImGui::Begin("info", nullptr,
+    ImGui::SetNextWindowPos({ 0, 0 }); ImGui::Begin("info", nullptr,
         ImGuiWindowFlags_NoTitleBar |
         ImGuiWindowFlags_AlwaysAutoResize |
         ImGuiWindowFlags_NoResize |
@@ -31,7 +30,7 @@ void Gui::render(Scene& scene) {
 
     if (ImGuiFileDialog::Instance()->Display("Import Molecule", ImGuiWindowFlags_NoCollapse, { 512, 288 })) {
         if (ImGuiFileDialog::Instance()->IsOk()) {
-            scene = Scene::LoadMolecule(ImGuiFileDialog::Instance()->GetFilePathName());
+            scene = Movie::LoadTrajectory(ImGuiFileDialog::Instance()->GetFilePathName());
         }
         ImGuiFileDialog::Instance()->Close();
     }

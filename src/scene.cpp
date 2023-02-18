@@ -1,10 +1,14 @@
 #include "../include/scene.h"
 
-#define BMODEL(B) glm::scale(glm::rotate(glm::translate(glm::mat4(1.0f), B.getPosition()), B.angle, B.axis), { 0.09f, B.scale, 0.09f })
+Scene Scene::LoadMolecule(const std::string& filename) {
+    std::ifstream file(filename);
+    std::stringstream ss;
+    ss << file.rdbuf();
+    return LoadMolecule(ss);
+}
 
-Scene Scene::LoadMolecule(const std::string& path) {
+Scene Scene::LoadMolecule(std::stringstream& file) {
     // Open file and declare variables
-    std::ifstream file(path);
     Scene scene; int length;
     std::string line, name;
 

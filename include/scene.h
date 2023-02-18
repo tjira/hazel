@@ -9,7 +9,8 @@
 class Scene {
 public:
     Scene() {};
-    static Scene LoadMolecule(const std::string& path);
+    static Scene LoadMolecule(const std::string& file);
+    static Scene LoadMolecule(std::stringstream& file);
     Mesh& at(int i);
     size_t size() const;
     void render(const Shader& shader, const glm::mat4& transform = glm::mat4(1.0f)) const;
