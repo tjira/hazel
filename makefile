@@ -8,20 +8,30 @@ FLAGS += -fopenmp -O2
 endif
 FLAGS += -DIMGUI_DEFINE_MATH_OPERATORS -DGPPFLAGS="$(FLAGS)"
 
-all: .build bin bin/hazel bin/hview
-libs: boost eigen glad glfw glm imgui libint
+# Object Files =========================================================================================================
+
+IMGUI := imgui.o imgui_demo.o imgui_dilog.o imgui_draw.o imgui_glfw.o imgui_opengl.o imgui_tables.o imgui_widgets.o
+HVIEW := hview.o buffer.o gui.o mesh.o movie.o ptable.o scene.o shader.o
+HAZEL := hazel.o hartreefock.o molecule.o ptable.o timer.o
 
 # Include Dependencies =================================================================================================
 
 -include $(wildcard .build/*.d)
 
+# Targets ==============================================================================================================
+
+all: .build bin bin/hazel bin/hview
+libs: boost eigen glad glfw glm imgui libint
+
 # Link =================================================================================================================
 
-bin/hazel: .build/hazel.o .build/hartreefock.o .build/molecule.o .build/ptable.o .build/timer.o
+bin/hazel: $(addprefix .build/, $(HAZEL))
 	g++ $(FLAGS) $(INCLUDE) -o $@ $^ lib/boost/install/lib/libboost_program_options.a lib/libint/install/lib/libint2.a
 
-bin/hview: .build/hview.o .build/buffer.o .build/gui.o .build/mesh.o .build/movie.o .build/ptable.o .build/scene.o .build/shader.o .build/glad.o .build/imgui.o .build/imgui_demo.o .build/imgui_dilog.o .build/imgui_draw.o .build/imgui_glfw.o .build/imgui_opengl.o .build/imgui_tables.o .build/imgui_widgets.o
+bin/hview: $(addprefix .build/, glad.o $(HVIEW) $(IMGUI))
 	g++ $(FLAGS) $(INCLUDE) -o $@ $^ lib/boost/install/lib/libboost_program_options.a lib/glfw/install/lib/libglfw3.a -ldl
+
+# Main Files ===========================================================================================================
 
 .build/hazel.o: hazel.cpp
 	g++ $(FLAGS) $(INCLUDE) -c -o $@ $<
