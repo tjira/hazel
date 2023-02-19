@@ -1,9 +1,5 @@
 #include "include/gui.h"
 #include <boost/program_options.hpp>
-#include <iostream>
-
-#define WIDTH 1024
-#define HEIGHT 576
 
 namespace po = boost::program_options;
 
@@ -38,21 +34,9 @@ void main() {
     o_color = vec4((vec3(u_light.ambient) + u_light.diffuse * diffuse + u_light.specular * specular), 1) * vec4(color, 1);
 })";
 
-struct GLFWPointer {
-    int width = WIDTH, height = HEIGHT, samples = 16, major = 4, minor = 2;
-    std::string title = "Hazel Viewer"; glm::vec2 mouse;
-    struct Camera {
-        glm::mat4 view, proj;
-    } camera{};
-    struct Light {
-        float ambient = 0.4f, diffuse = 0.2f, specular = 0.4f, shininess = 4.0f;
-        glm::vec3 position = { 1.0f, 1.0f, 1.0f };
-    } light{};
-};
-
 void keyCallback(GLFWwindow* window, int key, int, int action, int mods) {
-    if (action == GLFW_PRESS) {
-        if (mods == GLFW_MOD_CONTROL && action == GLFW_PRESS) {
+    if (GLFWPointer* pointer = (GLFWPointer*)glfwGetWindowUserPointer(window); action == GLFW_PRESS) {
+        if (mods == GLFW_MOD_CONTROL) {
             if (key == GLFW_KEY_O) {
                 std::string files = "Molecule Files{.xyz},All Files{.*}";
                 ImGuiFileDialog::Instance()->OpenDialog("Import Molecule", "Import Molecule", files.c_str(), ".");
@@ -60,6 +44,20 @@ void keyCallback(GLFWwindow* window, int key, int, int action, int mods) {
                 glfwSetWindowShouldClose(window, GLFW_TRUE);
             }
         }
+        else if (key == GLFW_KEY_F1) pointer->flags.renderOptions = !pointer->flags.renderOptions;
+        else if (key == GLFW_KEY_F11) {
+            static int xpos0, ypos0, width0, height0;
+            int xpos, ypos, width, height;
+            if (pointer->flags.fullscreen = !pointer->flags.fullscreen; pointer->flags.fullscreen) {
+                glfwGetWindowSize(pointer->window, &width0, &height0);
+                glfwGetWindowPos(pointer->window, &xpos0, &ypos0);
+                glfwGetMonitorWorkarea(glfwGetPrimaryMonitor(), &xpos, &ypos, &width, &height);
+                glfwSetWindowMonitor(pointer->window, glfwGetPrimaryMonitor() , 0, 0, width, height, GLFW_DONT_CARE);
+            } else {
+                glfwSetWindowMonitor(pointer->window, nullptr , xpos0, ypos0, width0, height0, GLFW_DONT_CARE);
+            }
+        }
+        else if (key == GLFW_KEY_F12) pointer->flags.info = !pointer->flags.info;
     }
 }
 
@@ -124,8 +122,8 @@ int main(int argc, char** argv) {
         throw std::runtime_error("Input file does not exist.");
     }
 
-    // Create GLFW variable struct and a window pointer
-    GLFWPointer pointer; GLFWwindow* window;
+    // Create GLFW variable struct
+    GLFWPointer pointer; 
 
     // Initialize GLFW and throw error if failed
     if(!glfwInit()) {
@@ -139,25 +137,25 @@ int main(int argc, char** argv) {
     glfwWindowHint(GLFW_SAMPLES, pointer.samples);
 
     // Create the window
-    if (window = glfwCreateWindow(pointer.width, pointer.height, pointer.title.c_str(), nullptr, nullptr); !window) {
+    if (pointer.window = glfwCreateWindow(pointer.width, pointer.height, pointer.title.c_str(), nullptr, nullptr); !pointer.window) {
         throw std::runtime_error("Error during window creation.");
     }
 
     // Initialize GLAD
-    if (glfwMakeContextCurrent(window); !gladLoadGL(glfwGetProcAddress)) {
+    if (glfwMakeContextCurrent(pointer.window); !gladLoadGL(glfwGetProcAddress)) {
         throw std::runtime_error("Error during GLAD initialization.");
     }
 
     // Enable some options
     glEnable(GL_DEPTH_TEST), glEnable(GL_CULL_FACE);
-    glfwSetWindowUserPointer(window, &pointer);
+    glfwSetWindowUserPointer(pointer.window, &pointer);
     glfwSwapInterval(1);
 
     // Set event callbacks
-    glfwSetCursorPosCallback(window, positionCallback);
-    glfwSetWindowSizeCallback(window, resizeCallback);
-    glfwSetScrollCallback(window, scrollCallback);
-    glfwSetKeyCallback(window, keyCallback);
+    glfwSetCursorPosCallback(pointer.window, positionCallback);
+    glfwSetWindowSizeCallback(pointer.window, resizeCallback);
+    glfwSetScrollCallback(pointer.window, scrollCallback);
+    glfwSetKeyCallback(pointer.window, keyCallback);
 
     // Initialize camera matrices
     pointer.camera.proj = glm::perspective(glm::radians(45.0f), (float)pointer.width / pointer.height, 0.01f, 1000.0f);
@@ -170,10 +168,10 @@ int main(int argc, char** argv) {
             movie = Movie::LoadTrajectory(vm["input"].as<std::string>());
         }
         Shader shader(vertex, fragment);
-        Gui gui(window);
+        Gui gui(pointer.window);
         
         // Enter the render loop
-        while (!glfwWindowShouldClose(window)) {
+        while (!glfwWindowShouldClose(pointer.window)) {
             
             // Clear the color and depth buffer
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -186,7 +184,7 @@ int main(int argc, char** argv) {
             gui.render(movie);
             
             // Swap buffers and poll events
-            glfwSwapBuffers(window);
+            glfwSwapBuffers(pointer.window);
             glfwPollEvents();
         }
     }

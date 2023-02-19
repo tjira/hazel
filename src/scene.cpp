@@ -1,12 +1,5 @@
 #include "../include/scene.h"
 
-Scene Scene::LoadMolecule(const std::string& filename) {
-    std::ifstream file(filename);
-    std::stringstream ss;
-    ss << file.rdbuf();
-    return LoadMolecule(ss);
-}
-
 Scene Scene::LoadMolecule(std::stringstream& file) {
     // Open file and declare variables
     Scene scene; int length;
@@ -25,7 +18,7 @@ Scene Scene::LoadMolecule(std::stringstream& file) {
         std::string atom; float x, y, z;
         std::stringstream iss(line);
         iss >> atom >> x >> y >> z;
-        scene.objects.push_back(Mesh::Icosphere(1, 0, atom));
+        scene.objects.push_back(Mesh::Icosphere(2, 1, atom));
         scene.at(i).setModel(glm::scale(glm::translate(glm::mat4(1.0f), glm::vec3(x, y, z)), glm::vec3(0.007f * ptable.at(atom).radius))); 
         scene.at(i).setColor(ptable.at(atom).color);
      }
@@ -40,7 +33,7 @@ Scene Scene::LoadMolecule(std::stringstream& file) {
                 glm::vec3 cross = glm::cross(glm::vec3(0, 1, 0), vector);
                 float angle = atan2f(glm::length(cross), glm::dot(glm::vec3(0, 1, 0), vector));
                 glm::mat4 model = glm::scale(glm::rotate(glm::translate(glm::mat4(1.0f), position), angle, glm::normalize(cross)), { 0.09f, glm::length(vector) / 2.0f, 0.09f });
-                scene.objects.push_back(Mesh::Cylinder(8, 0, "bond"));
+                scene.objects.push_back(Mesh::Cylinder(16, 1, "bond"));
                 scene.at(scene.size() - 1).setModel(model);
             }
         }

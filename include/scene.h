@@ -9,7 +9,6 @@
 class Scene {
 public:
     Scene() {};
-    static Scene LoadMolecule(const std::string& file);
     static Scene LoadMolecule(std::stringstream& file);
     Mesh& at(int i);
     size_t size() const;

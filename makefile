@@ -29,6 +29,7 @@ bin/hazel: $(addprefix .build/, $(HAZEL))
 	g++ $(FLAGS) $(INCLUDE) -o $@ $^ lib/boost/install/lib/libboost_program_options.a lib/libint/install/lib/libint2.a
 
 bin/hview: $(addprefix .build/, glad.o $(HVIEW) $(IMGUI))
+	echo "$(IMGUI)"
 	g++ $(FLAGS) $(INCLUDE) -o $@ $^ lib/boost/install/lib/libboost_program_options.a lib/glfw/install/lib/libglfw3.a -ldl
 
 # Main Files ===========================================================================================================
