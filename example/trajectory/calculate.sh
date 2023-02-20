@@ -5,7 +5,7 @@ METHOD="RHF"
 
 TIMESTEP="0.5_fs"
 TEMP="298_k"
-STEPS=100
+STEPS=1000
 
 cp ../molecule/xyz/* .
 for MOL in *.xyz; do
