@@ -12,6 +12,7 @@ public:
     static Movie LoadTrajectory(const std::string& movie);
 
     // Getters
+    std::vector<Scene>& getScenes() { return scenes; }
     bool& getPause() { return paused; }
     int& getFrame() { return frame; }
     int size() const { return scenes.size(); }

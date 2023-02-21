@@ -22,22 +22,37 @@ Scene Scene::LoadMolecule(std::stringstream& file) {
      }
 
     // Add bonds
+    scene.rebindMolecule(BINDINGFACTOR);
+
+    // Return scene
+    return scene;
+}
+
+void Scene::rebindMolecule(float factor) {
+    std::vector<Object> objects;
+    for (Object obj : this->objects) {
+        if (obj.name != "bond") objects.push_back(obj);
+    }
+
+    int length = objects.size();
+
     for (size_t i = 0; i < length; i++) {
         for (size_t j = i + 1; j < length; j++) {
-            float distance = glm::length(scene.objects.at(j).getPosition() - scene.objects.at(i).getPosition());
-            if (scene.objects.at(i).name == "El" || scene.objects.at(j).name == "El") continue;
-            if (distance < 0.013f * (ptable.at(scene.objects.at(i).name).covalent + ptable.at(scene.objects.at(j).name).covalent)) {
-                glm::vec3 position = (scene.objects.at(i).getPosition() + scene.objects.at(j).getPosition()) / 2.0f;
-                glm::vec3 vector = scene.objects.at(j).getPosition() - scene.objects.at(i).getPosition();
+            float distance = glm::length(objects.at(j).getPosition() - objects.at(i).getPosition());
+            if (objects.at(i).name == "El" || objects.at(j).name == "El") continue;
+            if (distance < factor * (ptable.at(objects.at(i).name).covalent + ptable.at(objects.at(j).name).covalent)) {
+                glm::vec3 position = (objects.at(i).getPosition() + objects.at(j).getPosition()) / 2.0f;
+                glm::vec3 vector = objects.at(j).getPosition() - objects.at(i).getPosition();
                 glm::vec3 cross = glm::cross(glm::vec3(0, 1, 0), vector);
                 float angle = atan2f(glm::length(cross), glm::dot(glm::vec3(0, 1, 0), vector));
                 glm::mat4 model = glm::scale(glm::rotate(glm::translate(glm::mat4(1.0f), position), angle, glm::normalize(cross)), { 0.09f, glm::length(vector) / 2.0f, 0.09f });
-                scene.objects.push_back({ "bond", model });
+                objects.push_back({ "bond", model });
             }
         }
     }
-    return scene;
-}
+
+    this->objects = objects;
+};
 
 void Scene::render(const Shader& shader, const glm::mat4& transform) const {
     for (size_t i = 0; i < objects.size(); i++) {

@@ -47,6 +47,9 @@ void Gui::render(Movie& movie) {
         ImGui::SliderFloat("Shininess", &pointer->light.shininess, 1, 128);
 
         ImGui::SliderInt("Frame", &movie.getFrame(), 0, movie.size() - 1);
+        if (ImGui::SliderFloat("Binding Factor", &pointer->bindingFactor, 0.001f, 0.05f)) {
+            for (auto& scene : movie.getScenes()) scene.rebindMolecule(pointer->bindingFactor);
+        }
         ImGui::End();
     }
 
@@ -59,6 +62,19 @@ void Gui::render(Movie& movie) {
             ImGuiWindowFlags_NoFocusOnAppearing
         );
         ImGui::Text("%.1f", ImGui::GetIO().Framerate);
+        ImGui::End();
+    }
+
+    if (pointer->flags.pause) {
+        ImGui::SetNextWindowPos({ (float)pointer->width - 58, 0 });
+        ImGui::Begin("pause", &pointer->flags.pause,
+            ImGuiWindowFlags_NoTitleBar |
+            ImGuiWindowFlags_AlwaysAutoResize |
+            ImGuiWindowFlags_NoResize |
+            ImGuiWindowFlags_NoBringToFrontOnFocus |
+            ImGuiWindowFlags_NoFocusOnAppearing
+        );
+        ImGui::Text("PAUSED");
         ImGui::End();
     }
 
