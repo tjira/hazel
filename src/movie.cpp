@@ -38,7 +38,7 @@ void Movie::render(const Shader& shader) {
     if (scenes.size()) {
         auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock().now() - timestamp).count();
         if (elapsed > 16) {
-            frame = (frame + (int)(elapsed / 16)) % (int)scenes.size();
+            if (!paused) frame = (frame + (int)(elapsed / 16)) % (int)scenes.size();
             timestamp = std::chrono::high_resolution_clock().now();
         }
         scenes.at(frame).render(shader);

@@ -25,6 +25,7 @@ Scene Scene::LoadMolecule(std::stringstream& file) {
     for (size_t i = 0; i < length; i++) {
         for (size_t j = i + 1; j < length; j++) {
             float distance = glm::length(scene.objects.at(j).getPosition() - scene.objects.at(i).getPosition());
+            if (scene.objects.at(i).name == "El" || scene.objects.at(j).name == "El") continue;
             if (distance < 0.013f * (ptable.at(scene.objects.at(i).name).covalent + ptable.at(scene.objects.at(j).name).covalent)) {
                 glm::vec3 position = (scene.objects.at(i).getPosition() + scene.objects.at(j).getPosition()) / 2.0f;
                 glm::vec3 vector = scene.objects.at(j).getPosition() - scene.objects.at(i).getPosition();

@@ -13,7 +13,7 @@ Gui::~Gui() {
     ImGui::DestroyContext();
 }
 
-void Gui::render(Movie& scene) {
+void Gui::render(Movie& movie) {
     GLFWPointer* pointer = (GLFWPointer*)glfwGetWindowUserPointer(window);
 
     ImGui_ImplOpenGL3_NewFrame();
@@ -45,6 +45,8 @@ void Gui::render(Movie& scene) {
         ImGui::SliderFloat("Diffuse", &pointer->light.diffuse, 0, 1);
         ImGui::SliderFloat("Specular", &pointer->light.specular, 0, 1);
         ImGui::SliderFloat("Shininess", &pointer->light.shininess, 1, 128);
+
+        ImGui::SliderInt("Frame", &movie.getFrame(), 0, movie.size() - 1);
         ImGui::End();
     }
 
@@ -62,7 +64,7 @@ void Gui::render(Movie& scene) {
 
     if (ImGuiFileDialog::Instance()->Display("Import Molecule", ImGuiWindowFlags_NoCollapse, { 512, 288 })) {
         if (ImGuiFileDialog::Instance()->IsOk()) {
-            scene = Movie::LoadTrajectory(ImGuiFileDialog::Instance()->GetFilePathName());
+            movie = Movie::LoadTrajectory(ImGuiFileDialog::Instance()->GetFilePathName());
         }
         ImGuiFileDialog::Instance()->Close();
     }

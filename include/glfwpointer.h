@@ -19,6 +19,7 @@ struct GLFWPointer {
     } camera{};
     struct Flags {
         bool fullscreen = false, info = false, options = false;
+        bool pause = false;
     } flags{};
     struct Light {
         float ambient = 0.4f, diffuse = 0.2f, specular = 0.4f, shininess = 4.0f;

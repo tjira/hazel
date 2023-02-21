@@ -58,6 +58,7 @@ void keyCallback(GLFWwindow* window, int key, int, int action, int mods) {
             }
         }
         else if (key == GLFW_KEY_F12) pointer->flags.info = !pointer->flags.info;
+        else if (key == GLFW_KEY_SPACE) pointer->flags.pause = !pointer->flags.pause;
     }
 }
 
@@ -185,6 +186,9 @@ int main(int argc, char** argv) {
 
             // Set shade variables
             set(shader, pointer.camera, pointer.light);
+
+            // Pause or unpause the movie
+            movie.getPause() = pointer.flags.pause;
 
             // Render mesh and GUI
             movie.render(shader);
