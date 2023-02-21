@@ -1,8 +1,8 @@
-#include "../include/scene.h"
+#include "../include/moleculegraphic.h"
 
-Scene Scene::LoadMolecule(std::stringstream& file) {
+MoleculeGraphic MoleculeGraphic::Load(std::stringstream& file) {
     // Open file and declare variables
-    Scene scene; int length;
+    MoleculeGraphic molecule; int length;
     std::string line, name;
 
     // Extract length and name.
@@ -18,23 +18,23 @@ Scene Scene::LoadMolecule(std::stringstream& file) {
         std::string atom; float x, y, z;
         std::stringstream iss(line);
         iss >> atom >> x >> y >> z;
-        scene.objects.push_back({ atom, glm::scale(glm::translate(glm::mat4(1.0f), glm::vec3(x, y, z)), glm::vec3(0.007f * ptable.at(atom).radius)) });
+        molecule.objects.push_back({ atom, glm::scale(glm::translate(glm::mat4(1.0f), glm::vec3(x, y, z)), glm::vec3(0.007f * ptable.at(atom).radius)) });
      }
 
     // Add bonds
-    scene.rebindMolecule(BINDINGFACTOR);
+    molecule.rebind(BINDINGFACTOR);
 
-    // Return scene
-    return scene;
+    // Return molecule
+    return molecule;
 }
 
-void Scene::rebindMolecule(float factor) {
+void MoleculeGraphic::rebind(float factor) {
     std::vector<Object> objects;
     for (Object obj : this->objects) {
         if (obj.name != "bond") objects.push_back(obj);
     }
 
-    int length = objects.size();
+    size_t length = objects.size();
 
     for (size_t i = 0; i < length; i++) {
         for (size_t j = i + 1; j < length; j++) {
@@ -54,13 +54,13 @@ void Scene::rebindMolecule(float factor) {
     this->objects = objects;
 };
 
-void Scene::render(const Shader& shader, const glm::mat4& transform) const {
+void MoleculeGraphic::render(const Shader& shader, const glm::mat4& transform) const {
     for (size_t i = 0; i < objects.size(); i++) {
         if (objects.at(i).name == "bond") meshes.at("bond").render(shader, transform * objects.at(i).model);
         else meshes.at(objects.at(i).name).render(shader, transform * objects.at(i).model);
     }
 }
 
-size_t Scene::size() const {
+size_t MoleculeGraphic::size() const {
     return objects.size();
 }

@@ -8,7 +8,7 @@
 #include <sstream>
 #include <unordered_map>
 
-class Scene {
+class MoleculeGraphic {
 
     // Private subclasses
     struct Object {
@@ -22,17 +22,17 @@ class Scene {
 public:
 
     // Constructors
-    Scene() {};
+    MoleculeGraphic() {};
 
     // Statc constructors
-    static Scene LoadMolecule(std::stringstream& file);
+    static MoleculeGraphic Load(std::stringstream& file);
 
     // Getters
     size_t size() const;
 
     // State functions
     void render(const Shader& shader, const glm::mat4& transform = glm::mat4(1.0f)) const;
-    void rebindMolecule(float factor);
+    void rebind(float factor);
 
     // Public static variables
     inline static std::unordered_map<std::string, Mesh> meshes;

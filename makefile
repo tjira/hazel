@@ -8,70 +8,38 @@ FLAGS += -fopenmp -O2
 endif
 FLAGS += -DIMGUI_DEFINE_MATH_OPERATORS -DGPPFLAGS="$(FLAGS)"
 
-# Object Files =========================================================================================================
+# Object Files ==========================================================================================================
 
 IMGUI := imgui.o imgui_demo.o imgui_dilog.o imgui_draw.o imgui_glfw.o imgui_opengl.o imgui_tables.o imgui_widgets.o
-HVIEW := hview.o buffer.o gui.o mesh.o movie.o ptable.o scene.o shader.o
-HAZEL := hazel.o hartreefock.o molecule.o ptable.o timer.o
+HVIEW := buffer.o gui.o mesh.o moleculegraphic.o ptable.o shader.o trajectorygraphic.o
+HAZEL := hartreefock.o molecule.o timer.o
 
-# Targets ==============================================================================================================
+# Targets ===============================================================================================================
 
 all: .build bin bin/hazel bin/hview
 libs: boost eigen glad glfw glm imgui libint
 
-# Include Dependencies =================================================================================================
+# Include Dependencies ==================================================================================================
 
 -include $(wildcard .build/*.d)
 
-# Link =================================================================================================================
+# Link ==================================================================================================================
 
-bin/hazel: $(addprefix .build/, $(HAZEL))
+bin/hazel: $(addprefix .build/, hazel.o $(HAZEL))
 	g++ $(FLAGS) $(INCLUDE) -o $@ $^ lib/boost/install/lib/libboost_program_options.a lib/libint/install/lib/libint2.a
 
-bin/hview: $(addprefix .build/, glad.o $(HVIEW) $(IMGUI))
+bin/hview: $(addprefix .build/, hview.o glad.o $(HVIEW) $(IMGUI))
 	g++ $(FLAGS) $(INCLUDE) -o $@ $^ lib/boost/install/lib/libboost_program_options.a lib/glfw/install/lib/libglfw3.a -ldl
 
-# Main Files ===========================================================================================================
+# Project Files =========================================================================================================
 
-.build/hazel.o: hazel.cpp
+.build/hazel.o .build/hview.o: .build/%.o: %.cpp
 	g++ $(FLAGS) $(INCLUDE) -c -o $@ $<
 
-.build/hview.o: hview.cpp
+$(addprefix .build/, $(HAZEL) $(HVIEW)): .build/%.o: src/%.cpp
 	g++ $(FLAGS) $(INCLUDE) -c -o $@ $<
 
-# Project ==============================================================================================================
-
-.build/buffer.o: src/buffer.cpp
-	g++ $(FLAGS) $(INCLUDE) -c -o $@ $<
-
-.build/gui.o: src/gui.cpp
-	g++ $(FLAGS) $(INCLUDE) -c -o $@ $<
-
-.build/hartreefock.o: src/hartreefock.cpp
-	g++ $(FLAGS) $(INCLUDE) -c -o $@ $<
-
-.build/mesh.o: src/mesh.cpp
-	g++ $(FLAGS) $(INCLUDE) -c -o $@ $<
-
-.build/molecule.o: src/molecule.cpp
-	g++ $(FLAGS) $(INCLUDE) -c -o $@ $<
-
-.build/movie.o: src/movie.cpp
-	g++ $(FLAGS) $(INCLUDE) -c -o $@ $<
-
-.build/ptable.o: src/ptable.cpp
-	g++ $(FLAGS) $(INCLUDE) -c -o $@ $<
-
-.build/scene.o: src/scene.cpp
-	g++ $(FLAGS) $(INCLUDE) -c -o $@ $<
-
-.build/shader.o: src/shader.cpp
-	g++ $(FLAGS) $(INCLUDE) -c -o $@ $<
-
-.build/timer.o: src/timer.cpp
-	g++ $(FLAGS) $(INCLUDE) -c -o $@ $<
-
-# Libraries ============================================================================================================
+# Libraries =============================================================================================================
 
 boost:
 	git clone --recursive --depth 1 https://github.com/boostorg/boost.git lib/boost
@@ -131,10 +99,10 @@ libint:
 .build/imgui_widgets.o: lib/imgui/imgui_widgets.cpp
 	g++ $(FLAGS) $(INCLUDE) -c -o $@ $<
 
-# Miscellaneous ========================================================================================================
+# Miscellaneous =========================================================================================================
 
 .build bin:
-	mkdir -p $@
+	@mkdir -p $@
 
 clean:
 	rm -rf .build .cache .clangd .makefile .vscode bin lib

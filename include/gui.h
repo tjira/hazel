@@ -3,7 +3,7 @@
 #include <imgui_impl_opengl3.h>
 #include <imgui_impl_glfw.h>
 #include "glfwpointer.h"
-#include "movie.h"
+#include "trajectorygraphic.h"
 
 class Gui {
 public:
@@ -12,7 +12,7 @@ public:
     Gui(GLFWwindow* window); ~Gui();
 
     // State functions
-    void render(Movie& movie);
+    void render(TrajectoryGraphic& movie);
 
 private:
     GLFWwindow* window;

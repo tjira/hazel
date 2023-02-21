@@ -6,9 +6,15 @@
 #include <string>
 
 struct Timer {
+
+    // Type definitions
     typedef std::chrono::time_point<std::chrono::high_resolution_clock> timepoint;
     typedef std::chrono::milliseconds millis;
+
+    // Getters
     static long elapsed(timepoint start);
-    static std::string format(long ms);
     static timepoint now();
+
+    // Utilities
+    static std::string format(long ms);
 };

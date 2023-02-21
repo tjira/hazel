@@ -6,7 +6,7 @@
 #include <vector>
 
 struct Vertex {
-    glm::vec3 position, normal, color = glm::vec3(1);
+    glm::vec3 position, normal = glm::vec3(0), color = glm::vec3(1);
 };
 
 class Buffer {
@@ -15,7 +15,7 @@ public:
     // Constructors and destructors
     Buffer(const Buffer& buffer) : data(buffer.getData()) { generate(); };
     Buffer(const std::vector<Vertex>& data) : data(data) { generate(); };
-    Buffer() { generate(); }; ~Buffer();
+    Buffer() : data(0) { generate(); }; ~Buffer();
 
     // Operators
     Buffer& operator=(const Buffer& buffer);

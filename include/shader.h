@@ -9,10 +9,16 @@
 
 class Shader {
 public:
+
+    // Constructors and destructors
     Shader(const std::string& vertex, const std::string& fragment);
     ~Shader() { glDeleteProgram(id); };
-    void use() const { glUseProgram(id); };
+
+    // Setters
     template <typename T> void set(const std::string& name, T value) const;
+
+    // State functions
+    void use() const { glUseProgram(id); };
 
 private:
     void errorCheck(unsigned int shader, const std::string& title) const;

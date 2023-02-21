@@ -1,7 +1,12 @@
-#include "../include/movie.h"
+#include "../include/trajectorygraphic.h"
 
-Movie Movie::LoadTrajectory(const std::string& filename) {
-    Movie movie;
+/*
+Function that loads an xyz file with molecular trajectory.
+*/
+TrajectoryGraphic TrajectoryGraphic::Load(const std::string& filename) {
+
+    // Create the graphiv trajectory object
+    TrajectoryGraphic trajectory;
 
     // Open a file, create buffer and clear previous molecule.
     std::ifstream file(filename); std::string line;
@@ -12,7 +17,7 @@ Movie Movie::LoadTrajectory(const std::string& filename) {
     while (std::getline(file, line)) block++;
 
     // Create the vector of geometris and reset the file reader.
-    movie.scenes.resize(block / (length + 2));
+    trajectory.geoms.resize(block / (length + 2));
     file.clear(), file.seekg(0);
 
     // Read the individual geometries.
@@ -25,22 +30,26 @@ Movie Movie::LoadTrajectory(const std::string& filename) {
         }
 
         // Load a geometry to a molecule class.
-        movie.scenes.at(i) = Scene::LoadMolecule(ss);
+        trajectory.geoms.at(i) = MoleculeGraphic::Load(ss);
     }
 
     // Set the initialization timestamp (for FPS manipulation).
-    movie.timestamp = std::chrono::high_resolution_clock().now();
+    trajectory.timestamp = std::chrono::high_resolution_clock().now();
 
-    return movie;
+    // Return the trajectory
+    return trajectory;
 }
 
-void Movie::render(const Shader& shader) {
-    if (scenes.size()) {
+/*
+Renders the trajectory with the provided shader.
+*/
+void TrajectoryGraphic::render(const Shader& shader) {
+    if (geoms.size()) {
         auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock().now() - timestamp).count();
         if (elapsed > 16) {
-            if (!paused) frame = (frame + (int)(elapsed / 16)) % (int)scenes.size();
+            if (!paused) frame = (frame + (int)(elapsed / 16)) % (int)geoms.size();
             timestamp = std::chrono::high_resolution_clock().now();
         }
-        scenes.at(frame).render(shader);
+        geoms.at(frame).render(shader);
     }
 }

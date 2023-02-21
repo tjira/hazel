@@ -165,15 +165,15 @@ int main(int argc, char** argv) {
     {
         // Initialize meshes
         for (auto& [symbol, object] : ptable) {
-            Scene::meshes[symbol] = Mesh::Icosphere(SUBDIVISIONS, SMOOTH, symbol);
-            Scene::meshes.at(symbol).setColor(object.color);
+            MoleculeGraphic::meshes[symbol] = Mesh::Icosphere(SUBDIVISIONS, SMOOTH, symbol);
+            MoleculeGraphic::meshes.at(symbol).setColor(object.color);
         }
-        Scene::meshes["bond"] = Mesh::Cylinder(SECTORS, SMOOTH, "bond"); 
+        MoleculeGraphic::meshes["bond"] = Mesh::Cylinder(SECTORS, SMOOTH, "bond"); 
 
         // Create scene, shader and GUI
-        Movie movie;
+        TrajectoryGraphic trajectory;
         if (!vm["input"].empty()) {
-            movie = Movie::LoadTrajectory(vm["input"].as<std::string>());
+            trajectory = TrajectoryGraphic::Load(vm["input"].as<std::string>());
         }
         Shader shader(vertex, fragment);
         Gui gui(pointer.window);
@@ -187,12 +187,12 @@ int main(int argc, char** argv) {
             // Set shade variables
             set(shader, pointer.camera, pointer.light);
 
-            // Pause or unpause the movie
-            movie.getPause() = pointer.flags.pause;
+            // Pause or unpause the trajectory
+            trajectory.getPause() = pointer.flags.pause;
 
             // Render mesh and GUI
-            movie.render(shader);
-            gui.render(movie);
+            trajectory.render(shader);
+            gui.render(trajectory);
             
             // Swap buffers and poll events
             glfwSwapBuffers(pointer.window);
@@ -201,5 +201,5 @@ int main(int argc, char** argv) {
     }
 
     // Clean up generated meshes and terminate GLFW
-    Scene::meshes.clear(); glfwTerminate();
+    MoleculeGraphic::meshes.clear(); glfwTerminate();
 }

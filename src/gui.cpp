@@ -13,7 +13,7 @@ Gui::~Gui() {
     ImGui::DestroyContext();
 }
 
-void Gui::render(Movie& movie) {
+void Gui::render(TrajectoryGraphic& trajectory) {
     GLFWPointer* pointer = (GLFWPointer*)glfwGetWindowUserPointer(window);
 
     ImGui_ImplOpenGL3_NewFrame();
@@ -25,12 +25,12 @@ void Gui::render(Movie& movie) {
         static bool smooth = SMOOTH;
 
         auto remeshCylinders = [](int sectors, bool smooth) {
-            Scene::meshes.at("bond") = Mesh::Cylinder(sectors, smooth, "bond"); 
+            MoleculeGraphic::meshes.at("bond") = Mesh::Cylinder(sectors, smooth, "bond"); 
         };
         auto remeshSpheres = [](int subdivisions, bool smooth) {
             for (auto& [symbol, object] : ptable) {
-                Scene::meshes.at(symbol) = Mesh::Icosphere(subdivisions, smooth, symbol);
-                Scene::meshes.at(symbol).setColor(object.color);
+                MoleculeGraphic::meshes.at(symbol) = Mesh::Icosphere(subdivisions, smooth, symbol);
+                MoleculeGraphic::meshes.at(symbol).setColor(object.color);
             }
         };
 
@@ -46,9 +46,9 @@ void Gui::render(Movie& movie) {
         ImGui::SliderFloat("Specular", &pointer->light.specular, 0, 1);
         ImGui::SliderFloat("Shininess", &pointer->light.shininess, 1, 128);
 
-        ImGui::SliderInt("Frame", &movie.getFrame(), 0, movie.size() - 1);
+        ImGui::SliderInt("Frame", &trajectory.getFrame(), 0, trajectory.size() - 1);
         if (ImGui::SliderFloat("Binding Factor", &pointer->bindingFactor, 0.001f, 0.05f)) {
-            for (auto& scene : movie.getScenes()) scene.rebindMolecule(pointer->bindingFactor);
+            for (auto& molecule : trajectory.getGeoms()) molecule.rebind(pointer->bindingFactor);
         }
         ImGui::End();
     }
@@ -80,7 +80,7 @@ void Gui::render(Movie& movie) {
 
     if (ImGuiFileDialog::Instance()->Display("Import Molecule", ImGuiWindowFlags_NoCollapse, { 512, 288 })) {
         if (ImGuiFileDialog::Instance()->IsOk()) {
-            movie = Movie::LoadTrajectory(ImGuiFileDialog::Instance()->GetFilePathName());
+            trajectory = TrajectoryGraphic::Load(ImGuiFileDialog::Instance()->GetFilePathName());
         }
         ImGuiFileDialog::Instance()->Close();
     }

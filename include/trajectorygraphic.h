@@ -1,28 +1,28 @@
 #pragma once
 
-#include "scene.h"
+#include "moleculegraphic.h"
 
-class Movie {
+class TrajectoryGraphic {
 public:
     
     // Constructors
-    Movie() {}
+    TrajectoryGraphic() {}
 
     // Static constructors
-    static Movie LoadTrajectory(const std::string& movie);
+    static TrajectoryGraphic Load(const std::string& movie);
 
     // Getters
-    std::vector<Scene>& getScenes() { return scenes; }
+    std::vector<MoleculeGraphic>& getGeoms() { return geoms; }
     bool& getPause() { return paused; }
     int& getFrame() { return frame; }
-    int size() const { return scenes.size(); }
+    int size() const { return geoms.size(); }
 
     // State functions
     void render(const Shader& shader);
 
 private:
     std::chrono::high_resolution_clock::time_point timestamp;
-    std::vector<Scene> scenes;
+    std::vector<MoleculeGraphic> geoms;
     bool paused = false;
     int frame = 0;
 };
