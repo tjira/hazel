@@ -1,8 +1,8 @@
 INCLUDE := -isystem lib/boost/install/include -isystem lib/eigen -isystem lib/glad/include -isystem lib/glfw/install/include -isystem lib/glm -isystem lib/imgui -isystem lib/libint/install/include
-FLAGS := -std=c++17
+FLAGS := -std=c++17 -MMD -MP
 
 ifeq ($(DEBUG), 1)
-FLAGS += -flarge-source-files -g -MMD -MP -O0 -pedantic -Wall -Wextra
+FLAGS += -flarge-source-files -g -O0 -pedantic -Wall -Wextra
 else
 FLAGS += -fopenmp -O2
 endif
@@ -14,14 +14,14 @@ IMGUI := imgui.o imgui_demo.o imgui_dilog.o imgui_draw.o imgui_glfw.o imgui_open
 HVIEW := hview.o buffer.o gui.o mesh.o movie.o ptable.o scene.o shader.o
 HAZEL := hazel.o hartreefock.o molecule.o ptable.o timer.o
 
-# Include Dependencies =================================================================================================
-
--include $(wildcard .build/*.d)
-
 # Targets ==============================================================================================================
 
 all: .build bin bin/hazel bin/hview
 libs: boost eigen glad glfw glm imgui libint
+
+# Include Dependencies =================================================================================================
+
+-include $(wildcard .build/*.d)
 
 # Link =================================================================================================================
 

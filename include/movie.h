@@ -4,8 +4,14 @@
 
 class Movie {
 public:
+    
+    // Constructors
     Movie() {}
+
+    // Static constructors
     static Movie LoadTrajectory(const std::string& movie);
+
+    // State functions
     void render(const Shader& shader);
 
 private:

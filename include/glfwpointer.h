@@ -1,11 +1,15 @@
 #pragma once
 
+#include "mesh.h"
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <string>
 
 #define WIDTH 1024
 #define HEIGHT 576
+#define SUBDIVISIONS 2
+#define SECTORS 16
+#define SMOOTH 1
 
 struct GLFWPointer {
     std::string title = "Hazel Viewer"; glm::vec2 mouse; GLFWwindow* window;
@@ -14,7 +18,7 @@ struct GLFWPointer {
         glm::mat4 view, proj;
     } camera{};
     struct Flags {
-        bool fullscreen = false, info = false, renderOptions = false;
+        bool fullscreen = false, info = false, options = false;
     } flags{};
     struct Light {
         float ambient = 0.4f, diffuse = 0.2f, specular = 0.4f, shininess = 4.0f;

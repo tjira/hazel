@@ -7,7 +7,11 @@
 
 class Gui {
 public:
+
+    // Constructors and destructors
     Gui(GLFWwindow* window); ~Gui();
+
+    // State functions
     void render(Movie& movie);
 
 private:

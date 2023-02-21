@@ -44,7 +44,7 @@ void keyCallback(GLFWwindow* window, int key, int, int action, int mods) {
                 glfwSetWindowShouldClose(window, GLFW_TRUE);
             }
         }
-        else if (key == GLFW_KEY_F1) pointer->flags.renderOptions = !pointer->flags.renderOptions;
+        else if (key == GLFW_KEY_F1) pointer->flags.options = !pointer->flags.options;
         else if (key == GLFW_KEY_F11) {
             static int xpos0, ypos0, width0, height0;
             int xpos, ypos, width, height;
@@ -122,13 +122,13 @@ int main(int argc, char** argv) {
         throw std::runtime_error("Input file does not exist.");
     }
 
-    // Create GLFW variable struct
-    GLFWPointer pointer; 
-
     // Initialize GLFW and throw error if failed
     if(!glfwInit()) {
         throw std::runtime_error("Error during GLFW initialization.");
     }
+
+    // Create GLFW variable struct
+    GLFWPointer pointer; 
 
     // Pass OpenGL version and other hints
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
@@ -162,6 +162,13 @@ int main(int argc, char** argv) {
     pointer.camera.view = glm::lookAt({ 0.0f, 0.0f, 5.0f }, glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
     {
+        // Initialize meshes
+        for (auto& [symbol, object] : ptable) {
+            Scene::meshes[symbol] = Mesh::Icosphere(SUBDIVISIONS, SMOOTH, symbol);
+            Scene::meshes.at(symbol).setColor(object.color);
+        }
+        Scene::meshes["bond"] = Mesh::Cylinder(SECTORS, SMOOTH, "bond"); 
+
         // Create scene, shader and GUI
         Movie movie;
         if (!vm["input"].empty()) {
@@ -189,6 +196,6 @@ int main(int argc, char** argv) {
         }
     }
 
-    // Clean up GLFW
-    glfwTerminate();
+    // Clean up generated meshes and terminate GLFW
+    Scene::meshes.clear(); glfwTerminate();
 }

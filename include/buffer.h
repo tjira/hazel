@@ -11,17 +11,24 @@ struct Vertex {
 
 class Buffer {
 public:
+
+    // Constructors and destructors
     Buffer(const Buffer& buffer) : data(buffer.getData()) { generate(); };
     Buffer(const std::vector<Vertex>& data) : data(data) { generate(); };
-    Buffer() { generate(); };
-    ~Buffer() { glDeleteVertexArrays(1, &vao), glDeleteBuffers(1, &vbo); };
+    Buffer() { generate(); }; ~Buffer();
+
+    // Operators
     Buffer& operator=(const Buffer& buffer);
-    void bind() const { glBindVertexArray(vao); };
+
+    // Getters
     std::vector<Vertex> getData() const { return data; }
     size_t getSize() const { return data.size(); };
 
+    // State functions
+    void bind() const { glBindVertexArray(vao); };
+
 private:
-    void generate();
-    unsigned int vao, vbo;
     std::vector<Vertex> data;
+    unsigned int vao, vbo;
+    void generate();
 };

@@ -20,8 +20,27 @@ void Gui::render(Movie& scene) {
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
-    if (pointer->flags.renderOptions) {
-        ImGui::Begin("Render Options", &pointer->flags.renderOptions, ImGuiWindowFlags_AlwaysAutoResize);
+    if (pointer->flags.options) {
+        static int subdivisions = SUBDIVISIONS, sectors = SECTORS;
+        static bool smooth = SMOOTH;
+
+        auto remeshCylinders = [](int sectors, bool smooth) {
+            Scene::meshes.at("bond") = Mesh::Cylinder(sectors, smooth, "bond"); 
+        };
+        auto remeshSpheres = [](int subdivisions, bool smooth) {
+            for (auto& [symbol, object] : ptable) {
+                Scene::meshes.at(symbol) = Mesh::Icosphere(subdivisions, smooth, symbol);
+                Scene::meshes.at(symbol).setColor(object.color);
+            }
+        };
+
+        ImGui::Begin("Options", &pointer->flags.options, ImGuiWindowFlags_AlwaysAutoResize);
+        if (ImGui::Checkbox("Smooth", &smooth)) {
+            remeshSpheres(subdivisions, smooth);
+            remeshCylinders(sectors, smooth);
+        }
+        if (ImGui::SliderInt("Sphere", &subdivisions, 0, 6)) remeshSpheres(subdivisions, smooth);
+        if (ImGui::SliderInt("Cylinder", &sectors, 4, 128)) remeshCylinders(sectors, smooth);
         ImGui::SliderFloat("Ambient", &pointer->light.ambient, 0, 1);
         ImGui::SliderFloat("Diffuse", &pointer->light.diffuse, 0, 1);
         ImGui::SliderFloat("Specular", &pointer->light.specular, 0, 1);

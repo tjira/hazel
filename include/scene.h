@@ -5,15 +5,36 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <fstream>
 #include <sstream>
+#include <unordered_map>
 
 class Scene {
+
+    // Private subclasses
+    struct Object {
+        glm::vec3 getPosition() const {
+            return glm::vec3(model[3]);
+        }
+        std::string name;
+        glm::mat4 model;
+    };
+
 public:
+
+    // Constructors
     Scene() {};
+
+    // Statc constructors
     static Scene LoadMolecule(std::stringstream& file);
-    Mesh& at(int i);
+
+    // Getters
     size_t size() const;
+
+    // State functions
     void render(const Shader& shader, const glm::mat4& transform = glm::mat4(1.0f)) const;
 
+    // Public static variables
+    inline static std::unordered_map<std::string, Mesh> meshes;
+
 private:
-    std::vector<Mesh> objects;
+    std::vector<Object> objects;
 };
