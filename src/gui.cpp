@@ -21,6 +21,7 @@ void Gui::render(Trajectory& trajectory) {
     ImGui::NewFrame();
 
     if (pointer->flags.options) {
+        static float bindingFactor = BINDINGFACTOR, bondSize = BONDSIZE, atomSizeFactor = ATOMSIZEFACTOR;
         static int subdivisions = SUBDIVISIONS, sectors = SECTORS;
         static bool smooth = SMOOTH;
 
@@ -35,21 +36,42 @@ void Gui::render(Trajectory& trajectory) {
         };
 
         ImGui::Begin("Options", &pointer->flags.options, ImGuiWindowFlags_AlwaysAutoResize);
+
         if (ImGui::Checkbox("Smooth", &smooth)) {
             remeshSpheres(subdivisions, smooth);
             remeshCylinders(sectors, smooth);
         }
+
+        ImGui::Separator();
+
         if (ImGui::SliderInt("Sphere", &subdivisions, 0, 6)) remeshSpheres(subdivisions, smooth);
         if (ImGui::SliderInt("Cylinder", &sectors, 4, 128)) remeshCylinders(sectors, smooth);
+        if (ImGui::SliderFloat("Atom Size Factor", &atomSizeFactor, 0.001, 0.02)) {
+            for (auto& molecule : trajectory.getGeoms()) molecule.setAtomSizeFactor(atomSizeFactor);
+        }
+        if (ImGui::SliderFloat("Bond Size", &bondSize, 0.01, 0.2)) {
+            for (auto& molecule : trajectory.getGeoms()) molecule.setBondSize(bondSize);
+        }
+
+        ImGui::Separator();
+        
+        if (ImGui::SliderFloat("Binding Factor", &bindingFactor, 0, 0.05f)) {
+            for (auto& molecule : trajectory.getGeoms()) molecule.rebind(bindingFactor);
+        }
+
+        ImGui::Separator();
+        
         ImGui::SliderFloat("Ambient", &pointer->light.ambient, 0, 1);
         ImGui::SliderFloat("Diffuse", &pointer->light.diffuse, 0, 1);
         ImGui::SliderFloat("Specular", &pointer->light.specular, 0, 1);
         ImGui::SliderFloat("Shininess", &pointer->light.shininess, 1, 128);
 
-        ImGui::SliderInt("Frame", &trajectory.getFrame(), 0, trajectory.size() - 1);
-        if (ImGui::SliderFloat("Binding Factor", &pointer->bindingFactor, 0.001f, 0.05f)) {
-            for (auto& molecule : trajectory.getGeoms()) molecule.rebind(pointer->bindingFactor);
-        }
+        ImGui::Separator();
+
+        ImGui::SliderInt("Frame", &trajectory.getFrame(), 0, trajectory.size() ? trajectory.size() - 1 : 0);
+
+        ImGui::Separator();
+        
         if (ImGui::Button("Center")) {
             trajectory.moveBy(-trajectory.getGeoms().at(trajectory.getFrame()).getCenter());
         }

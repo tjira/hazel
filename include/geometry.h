@@ -34,6 +34,10 @@ public:
     glm::vec3 getCenter() const;
     size_t size() const;
 
+    // Setters
+    void setAtomSizeFactor(float factor);
+    void setBondSize(float size);
+
     // State functions
     void moveBy(const glm::vec3& vector);
     void render(const Shader& shader, const glm::mat4& transform = glm::mat4(1.0f)) const;

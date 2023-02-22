@@ -11,11 +11,12 @@
 #define SECTORS 16
 #define SMOOTH 1
 #define BINDINGFACTOR 0.013
+#define BONDSIZE 0.09
+#define ATOMSIZEFACTOR 0.007
 
 struct GLFWPointer {
     std::string title = "Hazel Viewer"; glm::vec2 mouse; GLFWwindow* window;
     int width = WIDTH, height = HEIGHT, samples = 16, major = 4, minor = 2;
-    float bindingFactor = BINDINGFACTOR;
     struct Camera {
         glm::mat4 view, proj;
     } camera{};

@@ -21,7 +21,7 @@ Geometry Geometry::Load(std::stringstream& file) {
         std::string atom; float x, y, z;
         std::stringstream iss(line);
         iss >> atom >> x >> y >> z;
-        glm::mat4 scale = glm::scale(glm::mat4(1), glm::vec3(0.007f * ptable.at(atom).radius));
+        glm::mat4 scale = glm::scale(glm::mat4(1), glm::vec3(ATOMSIZEFACTOR * ptable.at(atom).radius));
         glm::mat4 translate = glm::translate(glm::mat4(1.0f), glm::vec3(x, y, z));
         molecule.objects.push_back({ translate, glm::mat4(1.0f), scale, atom });
      }
@@ -59,9 +59,12 @@ void Geometry::moveBy(const glm::vec3& vector) {
 Create bonds for atoms based on the binding factor.
 */
 void Geometry::rebind(float factor) {
+    static float bondSize = BONDSIZE;
+
     std::vector<Object> objects;
     for (Object obj : this->objects) {
         if (obj.name != "bond") objects.push_back(obj);
+        else bondSize = obj.scale[0][0];
     }
 
     size_t length = objects.size();
@@ -75,7 +78,7 @@ void Geometry::rebind(float factor) {
                 glm::vec3 vector = objects.at(j).getPosition() - objects.at(i).getPosition();
                 glm::vec3 cross = glm::cross(glm::vec3(0, 1, 0), vector);
                 float angle = atan2f(glm::length(cross), glm::dot(glm::vec3(0, 1, 0), vector));
-                glm::mat4 scale = glm::scale(glm::mat4(1), { 0.09f, glm::length(vector) / 2.0f, 0.09f });
+                glm::mat4 scale = glm::scale(glm::mat4(1), { bondSize, glm::length(vector) / 2.0f, bondSize });
                 glm::mat4 rotate = glm::rotate(glm::mat4(1), angle, glm::normalize(cross));
                 glm::mat4 translate = glm::translate(glm::mat4(1.0f), position);
                 objects.push_back({ translate, rotate, scale, "bond" });
@@ -93,6 +96,28 @@ void Geometry::render(const Shader& shader, const glm::mat4& transform) const {
     for (size_t i = 0; i < objects.size(); i++) {
         if (objects.at(i).name == "bond") meshes.at("bond").render(shader, transform * objects.at(i).getModel());
         else meshes.at(objects.at(i).name).render(shader, transform * objects.at(i).getModel());
+    }
+}
+
+/*
+Returns the number of objects (atoms and bonds).
+*/
+void Geometry::setAtomSizeFactor(float factor) {
+    for (Object& obj : this->objects) {
+        if (obj.name != "bond") {
+            obj.scale = glm::scale(glm::mat4(1), glm::vec3(factor * ptable.at(obj.name).radius));
+        }
+    }
+}
+
+/*
+Sets the bond thickness.
+*/
+void Geometry::setBondSize(float size) {
+    for (Object& obj : this->objects) {
+        if (obj.name == "bond") {
+            obj.scale = glm::scale(glm::mat4(1), { size, obj.scale[1][1], size });
+        }
     }
 }
 
