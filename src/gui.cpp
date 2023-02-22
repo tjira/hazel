@@ -13,7 +13,7 @@ Gui::~Gui() {
     ImGui::DestroyContext();
 }
 
-void Gui::render(TrajectoryGraphic& trajectory) {
+void Gui::render(Trajectory& trajectory) {
     GLFWPointer* pointer = (GLFWPointer*)glfwGetWindowUserPointer(window);
 
     ImGui_ImplOpenGL3_NewFrame();
@@ -25,12 +25,12 @@ void Gui::render(TrajectoryGraphic& trajectory) {
         static bool smooth = SMOOTH;
 
         auto remeshCylinders = [](int sectors, bool smooth) {
-            MoleculeGraphic::meshes.at("bond") = Mesh::Cylinder(sectors, smooth, "bond"); 
+            Geometry::meshes.at("bond") = Mesh::Cylinder(sectors, smooth, "bond"); 
         };
         auto remeshSpheres = [](int subdivisions, bool smooth) {
             for (auto& [symbol, object] : ptable) {
-                MoleculeGraphic::meshes.at(symbol) = Mesh::Icosphere(subdivisions, smooth, symbol);
-                MoleculeGraphic::meshes.at(symbol).setColor(object.color);
+                Geometry::meshes.at(symbol) = Mesh::Icosphere(subdivisions, smooth, symbol);
+                Geometry::meshes.at(symbol).setColor(object.color);
             }
         };
 
@@ -80,7 +80,7 @@ void Gui::render(TrajectoryGraphic& trajectory) {
 
     if (ImGuiFileDialog::Instance()->Display("Import Molecule", ImGuiWindowFlags_NoCollapse, { 512, 288 })) {
         if (ImGuiFileDialog::Instance()->IsOk()) {
-            trajectory = TrajectoryGraphic::Load(ImGuiFileDialog::Instance()->GetFilePathName());
+            trajectory = Trajectory::Load(ImGuiFileDialog::Instance()->GetFilePathName());
         }
         ImGuiFileDialog::Instance()->Close();
     }

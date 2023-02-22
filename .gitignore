@@ -1,9 +1,9 @@
 compile_commands.json
-.build/
 .cache/
 .clangd/
 .makefile/
 .vscode/
 bin/
+build/
 lib/
 out/

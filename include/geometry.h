@@ -8,7 +8,7 @@
 #include <sstream>
 #include <unordered_map>
 
-class MoleculeGraphic {
+class Geometry {
 
     // Private subclasses
     struct Object {
@@ -22,10 +22,10 @@ class MoleculeGraphic {
 public:
 
     // Constructors
-    MoleculeGraphic() {};
+    Geometry() {};
 
     // Statc constructors
-    static MoleculeGraphic Load(std::stringstream& file);
+    static Geometry Load(std::stringstream& file);
 
     // Getters
     size_t size() const;

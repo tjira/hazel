@@ -165,15 +165,15 @@ int main(int argc, char** argv) {
     {
         // Initialize meshes
         for (auto& [symbol, object] : ptable) {
-            MoleculeGraphic::meshes[symbol] = Mesh::Icosphere(SUBDIVISIONS, SMOOTH, symbol);
-            MoleculeGraphic::meshes.at(symbol).setColor(object.color);
+            Geometry::meshes[symbol] = Mesh::Icosphere(SUBDIVISIONS, SMOOTH, symbol);
+            Geometry::meshes.at(symbol).setColor(object.color);
         }
-        MoleculeGraphic::meshes["bond"] = Mesh::Cylinder(SECTORS, SMOOTH, "bond"); 
+        Geometry::meshes["bond"] = Mesh::Cylinder(SECTORS, SMOOTH, "bond"); 
 
         // Create scene, shader and GUI
-        TrajectoryGraphic trajectory;
+        Trajectory trajectory;
         if (!vm["input"].empty()) {
-            trajectory = TrajectoryGraphic::Load(vm["input"].as<std::string>());
+            trajectory = Trajectory::Load(vm["input"].as<std::string>());
         }
         Shader shader(vertex, fragment);
         Gui gui(pointer.window);
@@ -201,5 +201,5 @@ int main(int argc, char** argv) {
     }
 
     // Clean up generated meshes and terminate GLFW
-    MoleculeGraphic::meshes.clear(); glfwTerminate();
+    Geometry::meshes.clear(); glfwTerminate();
 }

@@ -1,8 +1,8 @@
-#include "../include/moleculegraphic.h"
+#include "../include/geometry.h"
 
-MoleculeGraphic MoleculeGraphic::Load(std::stringstream& file) {
+Geometry Geometry::Load(std::stringstream& file) {
     // Open file and declare variables
-    MoleculeGraphic molecule; int length;
+    Geometry molecule; int length;
     std::string line, name;
 
     // Extract length and name.
@@ -28,7 +28,7 @@ MoleculeGraphic MoleculeGraphic::Load(std::stringstream& file) {
     return molecule;
 }
 
-void MoleculeGraphic::rebind(float factor) {
+void Geometry::rebind(float factor) {
     std::vector<Object> objects;
     for (Object obj : this->objects) {
         if (obj.name != "bond") objects.push_back(obj);
@@ -54,13 +54,13 @@ void MoleculeGraphic::rebind(float factor) {
     this->objects = objects;
 };
 
-void MoleculeGraphic::render(const Shader& shader, const glm::mat4& transform) const {
+void Geometry::render(const Shader& shader, const glm::mat4& transform) const {
     for (size_t i = 0; i < objects.size(); i++) {
         if (objects.at(i).name == "bond") meshes.at("bond").render(shader, transform * objects.at(i).model);
         else meshes.at(objects.at(i).name).render(shader, transform * objects.at(i).model);
     }
 }
 
-size_t MoleculeGraphic::size() const {
+size_t Geometry::size() const {
     return objects.size();
 }

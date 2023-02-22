@@ -1,12 +1,12 @@
-#include "../include/trajectorygraphic.h"
+#include "../include/trajectory.h"
 
 /*
 Function that loads an xyz file with molecular trajectory.
 */
-TrajectoryGraphic TrajectoryGraphic::Load(const std::string& filename) {
+Trajectory Trajectory::Load(const std::string& filename) {
 
     // Create the graphiv trajectory object
-    TrajectoryGraphic trajectory;
+    Trajectory trajectory;
 
     // Open a file, create buffer and clear previous molecule.
     std::ifstream file(filename); std::string line;
@@ -30,7 +30,7 @@ TrajectoryGraphic TrajectoryGraphic::Load(const std::string& filename) {
         }
 
         // Load a geometry to a molecule class.
-        trajectory.geoms.at(i) = MoleculeGraphic::Load(ss);
+        trajectory.geoms.at(i) = Geometry::Load(ss);
     }
 
     // Set the initialization timestamp (for FPS manipulation).
@@ -43,7 +43,7 @@ TrajectoryGraphic TrajectoryGraphic::Load(const std::string& filename) {
 /*
 Renders the trajectory with the provided shader.
 */
-void TrajectoryGraphic::render(const Shader& shader) {
+void Trajectory::render(const Shader& shader) {
     if (geoms.size()) {
         auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock().now() - timestamp).count();
         if (elapsed > 16) {

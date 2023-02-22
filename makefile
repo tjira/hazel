@@ -11,32 +11,32 @@ FLAGS += -DIMGUI_DEFINE_MATH_OPERATORS -DGPPFLAGS="$(FLAGS)"
 # Object Files ==========================================================================================================
 
 IMGUI := imgui.o imgui_demo.o imgui_dilog.o imgui_draw.o imgui_glfw.o imgui_opengl.o imgui_tables.o imgui_widgets.o
-HVIEW := buffer.o gui.o mesh.o moleculegraphic.o ptable.o shader.o trajectorygraphic.o
+HVIEW := buffer.o geometry.o gui.o mesh.o ptable.o shader.o trajectory.o
 HAZEL := hartreefock.o molecule.o timer.o
 
 # Targets ===============================================================================================================
 
-all: .build bin bin/hazel bin/hview
+all: bin build bin/hazel bin/hview
 libs: boost eigen glad glfw glm imgui libint
 
 # Include Dependencies ==================================================================================================
 
--include $(wildcard .build/*.d)
+-include $(wildcard build/*.d)
 
 # Link ==================================================================================================================
 
-bin/hazel: $(addprefix .build/, hazel.o $(HAZEL))
+bin/hazel: $(addprefix build/, hazel.o $(HAZEL))
 	g++ $(FLAGS) $(INCLUDE) -o $@ $^ lib/boost/install/lib/libboost_program_options.a lib/libint/install/lib/libint2.a
 
-bin/hview: $(addprefix .build/, hview.o glad.o $(HVIEW) $(IMGUI))
+bin/hview: $(addprefix build/, hview.o glad.o $(HVIEW) $(IMGUI))
 	g++ $(FLAGS) $(INCLUDE) -o $@ $^ lib/boost/install/lib/libboost_program_options.a lib/glfw/install/lib/libglfw3.a -ldl
 
 # Project Files =========================================================================================================
 
-.build/hazel.o .build/hview.o: .build/%.o: %.cpp
+build/hazel.o build/hview.o: build/%.o: %.cpp
 	g++ $(FLAGS) $(INCLUDE) -c -o $@ $<
 
-$(addprefix .build/, $(HAZEL) $(HVIEW)): .build/%.o: src/%.cpp
+$(addprefix build/, $(HAZEL) $(HVIEW)): build/%.o: src/%.cpp
 	g++ $(FLAGS) $(INCLUDE) -c -o $@ $<
 
 # Libraries =============================================================================================================
@@ -68,41 +68,40 @@ imgui:
 
 libint:
 	git clone --depth 1 https://github.com/evaleev/libint.git lib/libint
-	cd lib/libint && ./autogen.sh && cd -
-	cd lib/libint && ./configure CPPFLAGS="-I$$PWD/../eigen" --prefix="$$PWD/install" --with-boost="$$PWD/../boost/install" --with-cxxgen-optflags="-O3" && cd -
+	cd lib/libint && ./autogen.sh && ./configure CPPFLAGS="-I$$PWD/../eigen" --prefix="$$PWD/install" --with-boost="$$PWD/../boost/install" --with-cxxgen-optflags="-O3" && cd -
 	cd lib/libint && make && make install && cd -
 
-.build/glad.o: lib/glad/src/gl.c
+build/glad.o: lib/glad/src/gl.c
 	g++ $(FLAGS) $(INCLUDE) -c -o $@ $<
 
-.build/imgui.o: lib/imgui/imgui.cpp
+build/imgui.o: lib/imgui/imgui.cpp
 	g++ $(FLAGS) $(INCLUDE) -c -o $@ $<
 
-.build/imgui_demo.o: lib/imgui/imgui_demo.cpp
+build/imgui_demo.o: lib/imgui/imgui_demo.cpp
 	g++ $(FLAGS) $(INCLUDE) -c -o $@ $<
 
-.build/imgui_dilog.o: lib/imgui/dialog/ImGuiFileDialog.cpp
+build/imgui_dilog.o: lib/imgui/dialog/ImGuiFileDialog.cpp
 	g++ $(FLAGS) $(INCLUDE) -c -o $@ $<
 
-.build/imgui_draw.o: lib/imgui/imgui_draw.cpp
+build/imgui_draw.o: lib/imgui/imgui_draw.cpp
 	g++ $(FLAGS) $(INCLUDE) -c -o $@ $<
 
-.build/imgui_glfw.o: lib/imgui/imgui_impl_glfw.cpp
+build/imgui_glfw.o: lib/imgui/imgui_impl_glfw.cpp
 	g++ $(FLAGS) $(INCLUDE) -c -o $@ $<
 
-.build/imgui_opengl.o: lib/imgui/imgui_impl_opengl3.cpp
+build/imgui_opengl.o: lib/imgui/imgui_impl_opengl3.cpp
 	g++ $(FLAGS) $(INCLUDE) -c -o $@ $<
 
-.build/imgui_tables.o: lib/imgui/imgui_tables.cpp
+build/imgui_tables.o: lib/imgui/imgui_tables.cpp
 	g++ $(FLAGS) $(INCLUDE) -c -o $@ $<
 
-.build/imgui_widgets.o: lib/imgui/imgui_widgets.cpp
+build/imgui_widgets.o: lib/imgui/imgui_widgets.cpp
 	g++ $(FLAGS) $(INCLUDE) -c -o $@ $<
 
 # Miscellaneous =========================================================================================================
 
-.build bin:
+bin build:
 	@mkdir -p $@
 
 clean:
-	rm -rf .build .cache .clangd .makefile .vscode bin lib
+	rm -rf build .cache .clangd .makefile .vscode bin lib

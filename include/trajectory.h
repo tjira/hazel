@@ -1,18 +1,18 @@
 #pragma once
 
-#include "moleculegraphic.h"
+#include "geometry.h"
 
-class TrajectoryGraphic {
+class Trajectory {
 public:
     
     // Constructors
-    TrajectoryGraphic() {}
+    Trajectory() {}
 
     // Static constructors
-    static TrajectoryGraphic Load(const std::string& movie);
+    static Trajectory Load(const std::string& movie);
 
     // Getters
-    std::vector<MoleculeGraphic>& getGeoms() { return geoms; }
+    std::vector<Geometry>& getGeoms() { return geoms; }
     bool& getPause() { return paused; }
     int& getFrame() { return frame; }
     int size() const { return geoms.size(); }
@@ -22,7 +22,7 @@ public:
 
 private:
     std::chrono::high_resolution_clock::time_point timestamp;
-    std::vector<MoleculeGraphic> geoms;
+    std::vector<Geometry> geoms;
     bool paused = false;
     int frame = 0;
 };
