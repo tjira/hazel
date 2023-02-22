@@ -184,13 +184,13 @@ int main(int argc, char** argv) {
             // Clear the color and depth buffer
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-            // Set shade variables
+            // Set shader variables
             set(shader, pointer.camera, pointer.light);
 
             // Pause or unpause the trajectory
             trajectory.getPause() = pointer.flags.pause;
 
-            // Render mesh and GUI
+            // Render the mesh and GUI
             trajectory.render(shader);
             gui.render(trajectory);
             

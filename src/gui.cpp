@@ -50,6 +50,9 @@ void Gui::render(Trajectory& trajectory) {
         if (ImGui::SliderFloat("Binding Factor", &pointer->bindingFactor, 0.001f, 0.05f)) {
             for (auto& molecule : trajectory.getGeoms()) molecule.rebind(pointer->bindingFactor);
         }
+        if (ImGui::Button("Center")) {
+            trajectory.moveBy(-trajectory.getGeoms().at(trajectory.getFrame()).getCenter());
+        }
         ImGui::End();
     }
 

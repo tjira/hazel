@@ -36,8 +36,18 @@ Trajectory Trajectory::Load(const std::string& filename) {
     // Set the initialization timestamp (for FPS manipulation).
     trajectory.timestamp = std::chrono::high_resolution_clock().now();
 
+    // Center the trajectory
+    trajectory.moveBy(-trajectory.geoms.at(0).getCenter());
+
     // Return the trajectory
     return trajectory;
+}
+
+/*
+Move the trajectory by some vector.
+*/
+void Trajectory::moveBy(const glm::vec3& vector) {
+    for (Geometry& geom : geoms) geom.moveBy(vector);
 }
 
 /*

@@ -18,6 +18,7 @@ public:
     int size() const { return geoms.size(); }
 
     // State functions
+    void moveBy(const glm::vec3& vector);
     void render(const Shader& shader);
 
 private:
