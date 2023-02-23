@@ -69,6 +69,7 @@ void Gui::render(Trajectory& trajectory) {
         ImGui::Separator();
 
         ImGui::SliderInt("Frame", &trajectory.getFrame(), 0, trajectory.size() ? trajectory.size() - 1 : 0);
+        ImGui::SliderFloat("Timeout", &trajectory.getWait(), 0.001, 32);
 
         ImGui::Separator();
         

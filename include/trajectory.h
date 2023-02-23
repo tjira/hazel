@@ -15,6 +15,7 @@ public:
     std::vector<Geometry>& getGeoms() { return geoms; }
     bool& getPause() { return paused; }
     int& getFrame() { return frame; }
+    float& getWait() { return wait; }
     int size() const { return geoms.size(); }
 
     // State functions
@@ -25,5 +26,6 @@ private:
     std::chrono::high_resolution_clock::time_point timestamp;
     std::vector<Geometry> geoms;
     bool paused = false;
+    float wait = 16.0;
     int frame = 0;
 };

@@ -56,8 +56,8 @@ Renders the trajectory with the provided shader.
 void Trajectory::render(const Shader& shader) {
     if (geoms.size()) {
         auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock().now() - timestamp).count();
-        if (elapsed > 16) {
-            if (!paused) frame = (frame + (int)(elapsed / 16)) % (int)geoms.size();
+        if (elapsed > wait) {
+            if (!paused && wait > 0) frame = (frame + (int)(elapsed / wait)) % (int)geoms.size();
             timestamp = std::chrono::high_resolution_clock().now();
         }
         geoms.at(frame).render(shader);
