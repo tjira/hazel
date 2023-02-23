@@ -10,6 +10,7 @@ std::unordered_map<std::string, Atom> ptable = {
     {  "C", { .radius = 067.0f, .covalent = 075.0f, .color = { 144.0f / 255.0f, 144.0f / 255.0f, 144.0f / 255.0f }, .mass = 012.0110 } },
     {  "N", { .radius = 056.0f, .covalent = 071.0f, .color = { 048.0f / 255.0f, 080.0f / 255.0f, 248.0f / 255.0f }, .mass = 014.0067 } },
     {  "O", { .radius = 048.0f, .covalent = 063.0f, .color = { 255.0f / 255.0f, 013.0f / 255.0f, 013.0f / 255.0f }, .mass = 015.9994 } },
+    { "Ne", { .radius = 038.0f, .covalent = 067.0f, .color = { 179.0f / 255.0f, 227.0f / 255.0f, 245.0f / 255.0f }, .mass = 020.1797 } },
     {  "P", { .radius = 098.0f, .covalent = 111.0f, .color = { 255.0f / 255.0f, 128.0f / 255.0f, 000.0f / 255.0f }, .mass = 030.9738 } },
     {  "S", { .radius = 088.0f, .covalent = 103.0f, .color = { 255.0f / 255.0f, 255.0f / 255.0f, 048.0f / 255.0f }, .mass = 032.0650 } },
     { "Xe", { .radius = 108.0f, .covalent = 131.0f, .color = { 066.0f / 255.0f, 158.0f / 255.0f, 176.0f / 255.0f }, .mass = 131.2930 } },
