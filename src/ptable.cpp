@@ -5,6 +5,7 @@
 // https://sciencenotes.org/wp-content/uploads/2019/07/CPK-JmolPeriodicTable.pdf
 std::unordered_map<std::string, Atom> ptable = {
     {  "H", { .radius = 053.0f, .covalent = 032.0f, .color = { 255.0f / 255.0f, 255.0f / 255.0f, 255.0f / 255.0f }, .mass = 001.0078 } },
+    { "He", { .radius = 031.0f, .covalent = 046.0f, .color = { 217.0f / 255.0f, 255.0f / 255.0f, 255.0f / 255.0f }, .mass = 004.0026 } },
     { "Li", { .radius = 167.0f, .covalent = 133.0f, .color = { 204.0f / 255.0f, 128.0f / 255.0f, 255.0f / 255.0f }, .mass = 006.9410 } },
     { "Be", { .radius = 112.0f, .covalent = 102.0f, .color = { 194.0f / 255.0f, 255.0f / 255.0f, 000.0f / 255.0f }, .mass = 009.0122 } },
     {  "C", { .radius = 067.0f, .covalent = 075.0f, .color = { 144.0f / 255.0f, 144.0f / 255.0f, 144.0f / 255.0f }, .mass = 012.0110 } },
