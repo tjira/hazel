@@ -9,8 +9,11 @@ typedef HartreeFockResult Result;
 HartreeFock::HartreeFock(Options opt) : opt(opt) {
     // print method specification
     std::cout << "HARTREE-FOCK" << std::endl;
-    std::cout << boost::format("MAXITER: %i, THRESH: %.2e, DIIS: [ENABLED: %i, START: %i, KEEP: %i, DAMP: %.2f]") % opt.maxiter
-    % opt.thresh % opt.diis.enabled % opt.diis.start % opt.diis.keep % opt.diis.damp << std::endl << std::endl;
+    std::cout << boost::format("MAXITER: %i, THRESH: %.2e") % opt.maxiter % opt.thresh;
+    if (opt.diis.enabled) {
+        std::cout << boost::format(", DIIS: [START: %i, KEEP: %i, DAMP: %.2f]") % opt.diis.start % opt.diis.keep % opt.diis.damp;
+    }
+    std::cout << std::endl << std::endl;
 }
 
 HartreeFock::Result HartreeFock::scf(const Molecule& molecule) const {

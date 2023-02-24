@@ -11,6 +11,19 @@
 namespace po = boost::program_options;
 namespace js = boost::json;
 
+js::value fill(js::value value) {
+    if (!value.at("method").as_object().if_contains("diis")) {
+        value.at("method").as_object().insert(std::pair<std::string, js::object>("diis", {}));
+    }
+    value.at("method").as_object().insert(std::pair<std::string, int>("maxiter", 100));
+    value.at("method").as_object().insert(std::pair<std::string, double>("thresh", 1e-8));
+    value.at("method").at("diis").as_object().insert(std::pair<std::string, bool>("enabled", true));
+    value.at("method").at("diis").as_object().insert(std::pair<std::string, double>("damp", 0.0));
+    value.at("method").at("diis").as_object().insert(std::pair<std::string, int>("start", 3));
+    value.at("method").at("diis").as_object().insert(std::pair<std::string, int>("keep", 5));
+    return value;
+}
+
 int main(int argc, char** argv) {
     // initialize the argument parser and container for the arguments
     po::options_description desc("options");
@@ -39,7 +52,7 @@ int main(int argc, char** argv) {
     }
     std::ifstream file(vm["input"].as<std::string>());
     std::stringstream buffer; buffer << file.rdbuf();
-    js::value input = js::parse(buffer.str());
+    js::value input = fill(js::parse(buffer.str()));
 
     // print the initial info and input
     std::cout << "HAZEL\nCOMPILE FLAGS: " << STRINGIFY(GPPFLAGS) << "\n" << std::endl;

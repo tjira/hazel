@@ -2,14 +2,6 @@
     "molecule" : "../molecule/xyz/water.xyz",
     "basis" : "STO-3G",
     "method" : {
-        "name" : "HF",
-        "maxiter" : 100,
-        "thresh" : 1e-8,
-        "diis": {
-            "enabled" : true,
-            "start" : 3,
-            "keep" : 5,
-            "damp" : 0
-        }
+        "name" : "HF"
     }
 }
