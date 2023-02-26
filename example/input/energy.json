@@ -1,5 +1,5 @@
 {
-    "molecule" : "../molecule/xyz/water.xyz",
+    "system" : "../molecule/xyz/water.xyz",
     "basis" : "STO-3G",
     "method" : {
         "name" : "HF"

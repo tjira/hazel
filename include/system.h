@@ -1,16 +1,18 @@
 #pragma once
 
 #include "forward.h"
+#include "particle.h"
 #include "ptable.h"
 #include <Eigen/Eigen>
 #include <libint2.hpp>
 
-class Molecule {
+class System {
 public:
     // constructor
-    Molecule(std::string filename, std::string basis);
+    System(std::string filename, std::string basis = "6-31G");
 
     // getters
+    std::vector<Particle> getParticles() const;
     libint2::Atom getAtom(int i) const;
     double getNuclearRepulsion() const;
     int getElectronCount() const;

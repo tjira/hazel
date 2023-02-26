@@ -17,3 +17,10 @@ std::unordered_map<std::string, Atom> ptable = {
     { "Xe", { .radius = 108.0f, .covalent = 131.0f, .color = { 066.0f / 255.0f, 158.0f / 255.0f, 176.0f / 255.0f }, .mass = 131.2930 } },
     { "El", { .radius = 020.0f, .covalent = 020.0f, .color = { 066.0f / 255.0f, 158.0f / 255.0f, 176.0f / 255.0f }, .mass = 000.0000 } }
 };
+
+std::unordered_map<int, std::string> an2sm = {
+    { 1, "H" },
+    { 6, "C" },
+    { 7, "N" },
+    { 8, "O" }
+};

@@ -8,11 +8,15 @@ FLAGS += -fopenmp -O2
 endif
 FLAGS += -DIMGUI_DEFINE_MATH_OPERATORS -DGPPFLAGS="$(FLAGS)"
 
+# Functions =============================================================================================================
+
+uniq = $(if $1,$(firstword $1) $(call uniq,$(filter-out $(firstword $1),$1)))
+
 # Object Files ==========================================================================================================
 
 IMGUI := imgui.o imgui_demo.o imgui_dilog.o imgui_draw.o imgui_glfw.o imgui_opengl.o imgui_tables.o imgui_widgets.o
+HAZEL := hartreefock.o moleculardynamics.o particle.o ptable.o system.o timer.o
 HVIEW := buffer.o geometry.o gui.o mesh.o ptable.o shader.o trajectory.o
-HAZEL := hartreefock.o molecule.o timer.o
 
 # Targets ===============================================================================================================
 
@@ -36,7 +40,7 @@ bin/hview: $(addprefix build/, hview.o glad.o $(HVIEW) $(IMGUI))
 build/hazel.o build/hview.o: build/%.o: %.cpp
 	g++ $(FLAGS) $(INCLUDE) -c -o $@ $<
 
-$(addprefix build/, $(HAZEL) $(HVIEW)): build/%.o: src/%.cpp
+$(call uniq, $(addprefix build/, $(HAZEL) $(HVIEW))): build/%.o: src/%.cpp
 	g++ $(FLAGS) $(INCLUDE) -c -o $@ $<
 
 # Libraries =============================================================================================================

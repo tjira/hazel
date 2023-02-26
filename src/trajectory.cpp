@@ -8,7 +8,7 @@ Trajectory Trajectory::Load(const std::string& filename) {
     // Create the graphiv trajectory object
     Trajectory trajectory;
 
-    // Open a file, create buffer and clear previous molecule.
+    // Open a file and create buffer
     std::ifstream file(filename); std::string line;
     std::getline(file, line);
 

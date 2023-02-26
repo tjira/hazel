@@ -1,7 +1,8 @@
 #include "include/hartreefock.h"
-#include "include/molecule.h"
+#include "include/moleculardynamics.h"
 #include <boost/json/src.hpp>
 #include <boost/format.hpp>
+#include <boost/json/value_to.hpp>
 #include <boost/program_options.hpp>
 #include <filesystem>
 
@@ -15,6 +16,7 @@ js::value fill(js::value value) {
     if (!value.at("method").as_object().if_contains("diis")) {
         value.at("method").as_object().insert(std::pair<std::string, js::object>("diis", {}));
     }
+    value.at("method").as_object().insert(std::pair<std::string, const char*>("output-trajectory", "trajectory.xyz"));
     value.at("method").as_object().insert(std::pair<std::string, int>("maxiter", 100));
     value.at("method").as_object().insert(std::pair<std::string, double>("thresh", 1e-8));
     value.at("method").at("diis").as_object().insert(std::pair<std::string, bool>("enabled", true));
@@ -56,7 +58,7 @@ int main(int argc, char** argv) {
 
     // print the initial info and input
     std::cout << "HAZEL\nCOMPILE FLAGS: " << STRINGIFY(GPPFLAGS) << "\n" << std::endl;
-    std::cout << "INPUT\n" << buffer.str() << "\n" << std::endl;
+    std::cout << "INPUT\n" << buffer.str() << std::endl;
 
     // set number of threads
     libint2::nthreads = vm["nthreads"].as<int>();
@@ -66,65 +68,90 @@ int main(int argc, char** argv) {
 
     // extract strings from the JSON input
     std::string path = std::filesystem::absolute(vm["input"].as<std::string>()).parent_path();
-    std::string molfile = js::value_to<std::string>(input.at("molecule"));
-    std::string basis = js::value_to<std::string>(input.at("basis"));
-    
-    // initialize Hartree-Fock options
-    HartreeFockOptions opt = {
-        js::value_to<double>(input.at("method").at("thresh")),
-        js::value_to<int>(input.at("method").at("maxiter")),
-        {
-            js::value_to<int>(input.at("method").at("diis").at("start")),
-            js::value_to<int>(input.at("method").at("diis").at("keep")),
-            js::value_to<bool>(input.at("method").at("diis").at("enabled")),
-            js::value_to<double>(input.at("method").at("diis").at("damp"))
+    std::string sysfile = js::value_to<std::string>(input.at("system"));
+
+    // if Hartree-Fock
+    if (js::value_to<std::string>(input.at("method").at("name")) == "HF") {
+        std::string basis = js::value_to<std::string>(input.at("basis"));
+
+        // initialize Hartree-Fock options
+        HartreeFockOptions opt = {
+            js::value_to<double>(input.at("method").at("thresh")),
+            js::value_to<int>(input.at("method").at("maxiter")),
+            {
+                js::value_to<int>(input.at("method").at("diis").at("start")),
+                js::value_to<int>(input.at("method").at("diis").at("keep")),
+                js::value_to<bool>(input.at("method").at("diis").at("enabled")),
+                js::value_to<double>(input.at("method").at("diis").at("damp"))
+            }
+        };
+
+        // start the timer
+        auto start = Timer::now();
+
+        // initialize the libint library 
+        libint2::initialize();
+
+        // initialize the system
+        if (!std::filesystem::exists(path + "/" + sysfile)) {
+            throw std::runtime_error("System file does not exist.");
         }
-    };
+        System system(path + "/" + sysfile, basis);
 
-    // start the timer
-    auto start = Timer::now();
+        // print the system specification
+        std::cout << boost::format("MOLECULE\nATOMS: %i, ELECTRONS: %i, BASIS: %i\n") % system.getAtomCount() % system.getElectronCount() % basis << std::endl;
 
-    // initialize the libint library 
-    libint2::initialize();
+        // initialize HF
+        HartreeFock hfock(opt);
 
-    // initialize the molecule
-    if (!std::filesystem::exists(path + "/" + molfile)) {
-        throw std::runtime_error("Molecule file does not exist.");
+        // perform the SCF cycle
+        auto result = hfock.scf(system);
+
+        // perform the mulliken analysis
+        auto mulliken = system.mulliken(result.D);
+
+        // print orbital energies
+        std::cout << "ORBITAL ENERGIES AND OCCUPATION\nITER OCC        E [Eh]                E [eV]\n";
+        for (int i = 0; i < result.eps.rows(); i++) {
+            std::cout << boost::format("%4i %3.1f %20.14f %22.14f\n") % i % ((i + 1) <= result.nocc ? 2.0 : 0.0) % result.eps(i) % (result.eps(i) * EH2EV);
+        }
+        std::cout << std::endl;
+
+        // print the mulliken charges
+        std::cout << "MULLIKEN CHARGES\nAN     Q\n";
+        for (int i = 0; i < system.getAtomCount(); i++) {
+            std::cout << boost::format("%2i %9.6f\n") % system.getAtom(i).atomic_number % mulliken.q(i);
+        }
+        std::cout << "\nSUM OF MULLIKEN CHARGES: " << boost::format("%.6f\n") % mulliken.q.sum() << std::endl;
+
+        // print final energy
+        std::cout << boost::format("FINAL SINGLE POINT ENERGY: %.14f Eh\n") % result.E << std::endl;
+
+        // print elapsed time
+        std::cout << boost::format("DONE IN %s") % Timer::format(Timer::elapsed(start)) << std::endl;
+
+        // finalize the libint library 
+        libint2::finalize();
+    } else if (js::value_to<std::string>(input.at("method").at("name")) == "MD") {
+        MolecularDynamicsOptions opt {
+            js::value_to<double>(input.at("method").at("timestep")),
+            js::value_to<int>(input.at("method").at("steps"))
+        };
+
+        // start the timer
+        auto start = Timer::now();
+
+        // initialize the system
+        if (!std::filesystem::exists(path + "/" + sysfile)) {
+            throw std::runtime_error("System file does not exist.");
+        }
+        System system(path + "/" + sysfile);
+
+        MolecularDynamics mdyn(opt);
+
+        MolecularDynamicsResult result = mdyn.run(system.getParticles(), path + "/" + js::value_to<std::string>(input.at("method").at("output-trajectory")));
+
+        // print elapsed time
+        std::cout << boost::format("DONE IN %s") % Timer::format(Timer::elapsed(start)) << std::endl;
     }
-    Molecule molecule(path + "/" + molfile, basis);
-
-    // print the molecule specification
-    std::cout << boost::format("MOLECULE\nATOMS: %i, ELECTRONS: %i, BASIS: %i\n") % molecule.getAtomCount() % molecule.getElectronCount() % basis << std::endl;
-
-    // initialize HF
-    HartreeFock hfock(opt);
-
-    // perform the SCF cycle
-    auto result = hfock.scf(molecule);
-
-    // perform the mulliken analysis
-    auto mulliken = molecule.mulliken(result.D);
-
-    // print orbital energies
-    std::cout << "ORBITAL ENERGIES AND OCCUPATION\nITER OCC        E [Eh]                E [eV]\n";
-    for (int i = 0; i < result.eps.rows(); i++) {
-        std::cout << boost::format("%4i %3.1f %20.14f %22.14f\n") % i % ((i + 1) <= result.nocc ? 2.0 : 0.0) % result.eps(i) % (result.eps(i) * EH2EV);
-    }
-    std::cout << std::endl;
-
-    // print the mulliken charges
-    std::cout << "MULLIKEN CHARGES\nAN     Q\n";
-    for (int i = 0; i < molecule.getAtomCount(); i++) {
-        std::cout << boost::format("%2i %9.6f\n") % molecule.getAtom(i).atomic_number % mulliken.q(i);
-    }
-    std::cout << "\nSUM OF MULLIKEN CHARGES: " << boost::format("%.6f\n") % mulliken.q.sum() << std::endl;
-
-    // print final energy
-    std::cout << boost::format("FINAL SINGLE POINT ENERGY: %.14f Eh\n") % result.E << std::endl;
-
-    // print elapsed time
-    std::cout << boost::format("DONE IN %s") % Timer::format(Timer::elapsed(start)) << std::endl;
-
-    // finalize the libint library 
-    libint2::finalize();
 }

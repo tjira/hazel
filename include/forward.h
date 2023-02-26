@@ -5,6 +5,7 @@
 
 #define EH2EV 27.211324570273
 
+class MolecularDynamics;
 class HartreeFock;
 class Molecule;
 
@@ -32,6 +33,15 @@ struct HartreeFockResult {
         std::array<long, 2> guess;
         std::vector<long> iters;
     } times;
+};
+
+struct MolecularDynamicsOptions {
+    double timestep;
+    int steps;
+};
+
+struct MolecularDynamicsResult {
+
 };
 
 struct MullikenResult {

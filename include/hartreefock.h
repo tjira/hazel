@@ -1,6 +1,6 @@
 #pragma once
 
-#include "molecule.h"
+#include "system.h"
 #include "timer.h"
 
 class HartreeFock {
@@ -8,7 +8,7 @@ class HartreeFock {
     typedef HartreeFockResult Result;
 public:
     HartreeFock(Options opt);
-    Result scf(const Molecule& molecule) const;
+    Result scf(const System& system) const;
 
 private:
     Options opt;

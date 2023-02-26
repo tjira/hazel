@@ -11,3 +11,4 @@ struct Atom {
 };
 
 extern std::unordered_map<std::string, Atom> ptable;
+extern std::unordered_map<int, std::string> an2sm;

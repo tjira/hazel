@@ -1,4 +1,4 @@
-#include "../include/molecule.h"
+#include "../include/system.h"
 
 namespace libint2 {
     int threadID() {
@@ -10,23 +10,23 @@ namespace libint2 {
     }
 }
 
-Molecule::Molecule(std::string filename, std::string basis) : filename(filename), setname(basis) {
+System::System(std::string filename, std::string basis) : filename(filename), setname(basis) {
     std::ifstream file(filename); atoms = libint2::read_dotxyz(file), shells = libint2::BasisSet(basis, atoms, true);
 }
 
-libint2::Atom Molecule::getAtom(int i) const {
+libint2::Atom System::getAtom(int i) const {
     return atoms.at(i);
 }
 
-int Molecule::getAtomCount() const {
+int System::getAtomCount() const {
     return atoms.size();
 }
 
-int Molecule::getElectronCount() const {
+int System::getElectronCount() const {
     return std::accumulate(atoms.begin(), atoms.end(), 0, [](int e, const auto& a) { return e + a.atomic_number; });
 }
 
-double Molecule::getNuclearRepulsion() const {
+double System::getNuclearRepulsion() const {
     auto value = 0.0;
     for (size_t i = 0; i < atoms.size(); i++) {
         for (size_t j = i + 1; j < atoms.size(); j++) {
@@ -37,7 +37,15 @@ double Molecule::getNuclearRepulsion() const {
     return value;
 }
 
-Eigen::MatrixXd Molecule::integral(libint2::Operator op, Eigen::MatrixXd D) const {
+std::vector<Particle> System::getParticles() const {
+    std::vector<Particle> particles;
+    for (const libint2::Atom& atom : atoms) {
+        particles.emplace_back(Eigen::Vector3d{ atom.x, atom.y, atom.z }, an2sm.at(atom.atomic_number));
+    }
+    return particles;
+}
+
+Eigen::MatrixXd System::integral(libint2::Operator op, Eigen::MatrixXd D) const {
     libint2::Engine engine(op, shells.max_nprim(), shells.max_l());
     if (op == libint2::Operator::nuclear) {
         engine.set_params(libint2::make_point_charges(atoms));
@@ -48,7 +56,7 @@ Eigen::MatrixXd Molecule::integral(libint2::Operator op, Eigen::MatrixXd D) cons
 }
 
 // algorithm from: https://www.cup.uni-muenchen.de/ch/compchem/pop/mull1.html
-MullikenResult Molecule::mulliken(Eigen::MatrixXd D) const {
+MullikenResult System::mulliken(Eigen::MatrixXd D) const {
     Eigen::MatrixXd S = integral(libint2::Operator::overlap, D);
     Eigen::VectorXd q = Eigen::VectorXd::Zero(atoms.size());
     Eigen::MatrixXd DS = D.cwiseProduct(S);
@@ -64,7 +72,7 @@ MullikenResult Molecule::mulliken(Eigen::MatrixXd D) const {
     return { DS, q };
 }
 
-Eigen::MatrixXd Molecule::integralDouble(libint2::Engine engine, Eigen::MatrixXd D) const {
+Eigen::MatrixXd System::integralDouble(libint2::Engine engine, Eigen::MatrixXd D) const {
     Eigen::MatrixXd matrix = Eigen::MatrixXd::Zero(shells.nbf(), shells.nbf());
     std::vector<Eigen::MatrixXd> matrices(libint2::nthreads, matrix);
     std::vector<libint2::Engine> engines(libint2::nthreads, engine);
@@ -102,7 +110,7 @@ Eigen::MatrixXd Molecule::integralDouble(libint2::Engine engine, Eigen::MatrixXd
     return 0.5 * (matrix + matrix.transpose());
 };
 
-Eigen::MatrixXd Molecule::integralSingle(libint2::Engine engine) const {
+Eigen::MatrixXd System::integralSingle(libint2::Engine engine) const {
     Eigen::MatrixXd matrix = Eigen::MatrixXd::Zero(shells.nbf(), shells.nbf());
     std::vector<libint2::Engine> engines(libint2::nthreads, engine);
     #if defined(_OPENMP)

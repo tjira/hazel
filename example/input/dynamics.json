@@ -1,0 +1,8 @@
+{
+    "system" : "../molecule/xyz/water.xyz",
+    "method" : {
+        "name" : "MD",
+        "timestep" : 0.001,
+        "steps" : 50000
+    }
+}

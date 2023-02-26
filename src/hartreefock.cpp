@@ -1,5 +1,4 @@
 #include "../include/hartreefock.h"
-#include "../include/molecule.h"
 #include <boost/format.hpp>
 #include <libint2/diis.h>
 
@@ -16,7 +15,7 @@ HartreeFock::HartreeFock(Options opt) : opt(opt) {
     std::cout << std::endl << std::endl;
 }
 
-HartreeFock::Result HartreeFock::scf(const Molecule& molecule) const {
+HartreeFock::Result HartreeFock::scf(const System& system) const {
     // print initial info
     std::cout << "SCF CYCLE" << std::endl;
     std::cout << "ITER        E [Eh]           dE       dD        TIME" << std::endl;
@@ -26,17 +25,17 @@ HartreeFock::Result HartreeFock::scf(const Molecule& molecule) const {
 
     // calculate the necessary integrals
     auto start = Timer::now();
-    Eigen::MatrixXd T = molecule.integral(libint2::Operator::kinetic);
+    Eigen::MatrixXd T = system.integral(libint2::Operator::kinetic);
     times->ints["T"]= Timer::elapsed(start), start = Timer::now();
-    Eigen::MatrixXd V = molecule.integral(libint2::Operator::nuclear);
+    Eigen::MatrixXd V = system.integral(libint2::Operator::nuclear);
     times->ints["V"]= Timer::elapsed(start), start = Timer::now();
-    Eigen::MatrixXd S = molecule.integral(libint2::Operator::overlap);
+    Eigen::MatrixXd S = system.integral(libint2::Operator::overlap);
     times->ints["S"]= Timer::elapsed(start), start = Timer::now();
-    double Vnn = molecule.getNuclearRepulsion(); Eigen::MatrixXd H = T + V;
+    double Vnn = system.getNuclearRepulsion(); Eigen::MatrixXd H = T + V;
 
     // save the integrals to the result container
     result.T = T, result.V = V, result.S = S, result.Vnn = Vnn;
-    result.nocc = molecule.getElectronCount() / 2;
+    result.nocc = system.getElectronCount() / 2;
 
     // quess the initial density
     start = Timer::now();
@@ -57,7 +56,7 @@ HartreeFock::Result HartreeFock::scf(const Molecule& molecule) const {
     // start the SCF cycle
     for (result.i = 1; result.i <= opt.maxiter; result.i++) {
         // compute the Fock matrix
-        result.F = H + 0.5 * molecule.integral(libint2::Operator::coulomb, D);
+        result.F = H + 0.5 * system.integral(libint2::Operator::coulomb, D);
 
         // compute error and extrapolate the Fock matrix
         Eigen::MatrixXd e = S * D * result.F - result.F * D * S, Fold = result.F;
