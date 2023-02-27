@@ -1,9 +1,6 @@
 #pragma once
 
-#include "forward.h"
 #include "particle.h"
-#include "ptable.h"
-#include <Eigen/Eigen>
 #include <libint2.hpp>
 
 class System {

@@ -1,6 +1,4 @@
 #include "../include/hartreefock.h"
-#include <boost/format.hpp>
-#include <libint2/diis.h>
 
 typedef HartreeFockOptions Options;
 typedef HartreeFockResult Result;

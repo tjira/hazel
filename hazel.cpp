@@ -1,90 +1,67 @@
 #include "include/hartreefock.h"
 #include "include/moleculardynamics.h"
-#include <boost/json/src.hpp>
+#include <argparse/argparse.hpp>
 #include <boost/format.hpp>
-#include <boost/json/value_to.hpp>
-#include <boost/program_options.hpp>
 #include <filesystem>
 
 #define STRINGIFY(X) STRING(X)
 #define STRING(X) #X
 
-namespace po = boost::program_options;
-namespace js = boost::json;
-
-js::value fill(js::value value) {
-    if (!value.at("method").as_object().if_contains("diis")) {
-        value.at("method").as_object().insert(std::pair<std::string, js::object>("diis", {}));
-    }
-    value.at("method").as_object().insert(std::pair<std::string, const char*>("output-trajectory", "trajectory.xyz"));
-    value.at("method").as_object().insert(std::pair<std::string, int>("maxiter", 100));
-    value.at("method").as_object().insert(std::pair<std::string, double>("thresh", 1e-8));
-    value.at("method").at("diis").as_object().insert(std::pair<std::string, bool>("enabled", true));
-    value.at("method").at("diis").as_object().insert(std::pair<std::string, double>("damp", 0.0));
-    value.at("method").at("diis").as_object().insert(std::pair<std::string, int>("start", 3));
-    value.at("method").at("diis").as_object().insert(std::pair<std::string, int>("keep", 5));
-    return value;
+json patch(json input) {
+    std::string method = input.at("method").at("name");
+    if (method == "HF") Defaults::hfopt.merge_patch(input.at("method")), input.at("method") = Defaults::hfopt;
+    if (method == "MD") Defaults::mdopt.merge_patch(input.at("method")), input.at("method") = Defaults::mdopt;
+    return input;
 }
 
 int main(int argc, char** argv) {
     // initialize the argument parser and container for the arguments
-    po::options_description desc("options");
-    po::positional_options_description pos;
-    po::variables_map vm;
+    argparse::ArgumentParser program("Hazel", "1.0", argparse::default_arguments::none);
 
     // add options to the parser
-    desc.add_options()
-        ("input", po::value<std::string>(), "input file")
-        ("nthreads,n", po::value<int>()->default_value(1), "number of threads to use")
-        ("version,v", "print version string")
-        ("help,h", "produce help message")
-    ;pos.add("input", 1);
+    program.add_argument("input").help("Hazel input file.");
+    program.add_argument("-h").help("Display this help message and exit.").default_value(false).implicit_value(true);
+    program.add_argument("-n").help("Number of threads to use.").default_value(1).scan<'i', int>();
 
     // extract the variables from the command line
-    po::store(po::command_line_parser(argc, argv).options(desc).positional(pos).run(), vm); po::notify(vm);
+    try {
+        program.parse_args(argc, argv);
+    } catch (const std::runtime_error &error) {
+        std::cerr << error.what() << std::endl << std::endl << program; return EXIT_FAILURE;
+    }
 
     // print help if the help flag was provided
-    if (vm.count("help")) {
-        std::cout << desc << std::endl; return EXIT_SUCCESS;
+    if (program.get<bool>("-h")) {
+        std::cout << program.help().str(); return EXIT_SUCCESS;
     }
 
     // open the provided JSON input
-    if (!std::filesystem::exists(vm["input"].as<std::string>())) {
+    if (!std::filesystem::exists(program.get<std::string>("input"))) {
         throw std::runtime_error("Input file does not exist.");
     }
-    std::ifstream file(vm["input"].as<std::string>());
-    std::stringstream buffer; buffer << file.rdbuf();
-    js::value input = fill(js::parse(buffer.str()));
+    json input = patch(json::parse(std::ifstream(program.get<std::string>("input"))));
 
     // print the initial info and input
     std::cout << "HAZEL\nCOMPILE FLAGS: " << STRINGIFY(GPPFLAGS) << "\n" << std::endl;
-    std::cout << "INPUT\n" << buffer.str() << std::endl;
+    std::cout << "INPUT\n" << input.dump(4) << "\n" << std::endl;
 
     // set number of threads
-    libint2::nthreads = vm["nthreads"].as<int>();
+    libint2::nthreads = program.get<int>("n");
     #if defined(_OPENMP)
     omp_set_num_threads(libint2::nthreads);
     #endif
 
     // extract strings from the JSON input
-    std::string path = std::filesystem::absolute(vm["input"].as<std::string>()).parent_path();
-    std::string sysfile = js::value_to<std::string>(input.at("system"));
+    std::string path = std::filesystem::absolute(program.get<std::string>("input")).parent_path();
+    std::string sysfile = input.at("system").get<std::string>();
 
     // if Hartree-Fock
-    if (js::value_to<std::string>(input.at("method").at("name")) == "HF") {
-        std::string basis = js::value_to<std::string>(input.at("basis"));
+    if (input.at("method").at("name").get<std::string>() == "HF") {
+        std::string basis = input.at("basis").get<std::string>();
 
         // initialize Hartree-Fock options
-        HartreeFockOptions opt = {
-            js::value_to<double>(input.at("method").at("thresh")),
-            js::value_to<int>(input.at("method").at("maxiter")),
-            {
-                js::value_to<int>(input.at("method").at("diis").at("start")),
-                js::value_to<int>(input.at("method").at("diis").at("keep")),
-                js::value_to<bool>(input.at("method").at("diis").at("enabled")),
-                js::value_to<double>(input.at("method").at("diis").at("damp"))
-            }
-        };
+        HartreeFockOptions opt = input.at("method").get<HartreeFockOptions>();
+        opt.diis = input.at("method").at("diis").get<HartreeFockOptions::DIIS>();
 
         // start the timer
         auto start = Timer::now();
@@ -132,11 +109,8 @@ int main(int argc, char** argv) {
 
         // finalize the libint library 
         libint2::finalize();
-    } else if (js::value_to<std::string>(input.at("method").at("name")) == "MD") {
-        MolecularDynamicsOptions opt {
-            js::value_to<double>(input.at("method").at("timestep")),
-            js::value_to<int>(input.at("method").at("steps"))
-        };
+    } else if (input.at("method").at("name").get<std::string>() == "MD") {
+        MolecularDynamicsOptions opt = input.at("method").get<MolecularDynamicsOptions>();
 
         // start the timer
         auto start = Timer::now();
@@ -147,9 +121,11 @@ int main(int argc, char** argv) {
         }
         System system(path + "/" + sysfile);
 
-        MolecularDynamics mdyn(opt);
+        Potential* pot;
+        LennardJones lj(1, 1); pot = &lj;
+        MolecularDynamics mdyn(*pot, opt);
 
-        MolecularDynamicsResult result = mdyn.run(system.getParticles(), path + "/" + js::value_to<std::string>(input.at("method").at("output-trajectory")));
+        MolecularDynamicsResult result = mdyn.run(system.getParticles(), path + "/" + input.at("method").at("output-trajectory").get<std::string>());
 
         // print elapsed time
         std::cout << boost::format("DONE IN %s") % Timer::format(Timer::elapsed(start)) << std::endl;

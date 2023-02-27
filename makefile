@@ -1,5 +1,7 @@
-INCLUDE := -isystem lib/boost/install/include -isystem lib/eigen -isystem lib/glad/include -isystem lib/glfw/install/include -isystem lib/glm -isystem lib/imgui -isystem lib/libint/install/include
+INCLUDE := lib/argparse/include lib/eigen lib/glad/include lib/format/include lib/glfw/install/include lib/glm lib/imgui lib/json/single_include lib/libint/install/include
 FLAGS := -std=c++17 -MMD -MP
+
+# Variable Modifications ===============================================================================================
 
 ifeq ($(DEBUG), 1)
 FLAGS += -flarge-source-files -g -O0 -pedantic -Wall -Wextra
@@ -7,6 +9,7 @@ else
 FLAGS += -fopenmp -O2
 endif
 FLAGS += -DIMGUI_DEFINE_MATH_OPERATORS -DGPPFLAGS="$(FLAGS)"
+INCLUDE := $(addprefix -isystem , $(INCLUDE))
 
 # Functions =============================================================================================================
 
@@ -15,13 +18,13 @@ uniq = $(if $1,$(firstword $1) $(call uniq,$(filter-out $(firstword $1),$1)))
 # Object Files ==========================================================================================================
 
 IMGUI := imgui.o imgui_demo.o imgui_dilog.o imgui_draw.o imgui_glfw.o imgui_opengl.o imgui_tables.o imgui_widgets.o
-HAZEL := hartreefock.o moleculardynamics.o particle.o ptable.o system.o timer.o
+HAZEL := hartreefock.o moleculardynamics.o particle.o potential.o ptable.o system.o timer.o
 HVIEW := buffer.o geometry.o gui.o mesh.o ptable.o shader.o trajectory.o
 
 # Targets ===============================================================================================================
 
 all: bin build bin/hazel bin/hview
-libs: boost eigen glad glfw glm imgui libint
+libs: argparse eigen format glad glfw glm imgui json libint
 
 # Include Dependencies ==================================================================================================
 
@@ -30,10 +33,10 @@ libs: boost eigen glad glfw glm imgui libint
 # Link ==================================================================================================================
 
 bin/hazel: $(addprefix build/, hazel.o $(HAZEL))
-	g++ $(FLAGS) $(INCLUDE) -o $@ $^ lib/boost/install/lib/libboost_program_options.a lib/libint/install/lib/libint2.a
+	g++ $(FLAGS) $(INCLUDE) -o $@ $^ lib/libint/install/lib/libint2.a
 
 bin/hview: $(addprefix build/, hview.o glad.o $(HVIEW) $(IMGUI))
-	g++ $(FLAGS) $(INCLUDE) -o $@ $^ lib/boost/install/lib/libboost_program_options.a lib/glfw/install/lib/libglfw3.a -ldl
+	g++ $(FLAGS) $(INCLUDE) -o $@ $^ lib/glfw/install/lib/libglfw3.a -ldl
 
 # Project Files =========================================================================================================
 
@@ -45,13 +48,14 @@ $(call uniq, $(addprefix build/, $(HAZEL) $(HVIEW))): build/%.o: src/%.cpp
 
 # Libraries =============================================================================================================
 
-boost:
-	git clone --recursive --depth 1 https://github.com/boostorg/boost.git lib/boost
-	cd lib/boost && ./bootstrap.sh --prefix="$$PWD/install" --with-libraries=json,program_options && cd -
-	cd lib/boost && ./b2 install && cd -
+argparse:
+	git clone --depth 1 https://github.com/p-ranav/argparse.git lib/argparse
 
 eigen:
 	git clone --depth 1 https://gitlab.com/libeigen/eigen.git lib/eigen
+
+format:
+	git clone --depth 1 https://github.com/boostorg/format.git lib/format
 
 glad:
 	wget -q "https://gen.glad.sh"$$(curl https://gen.glad.sh/generate -s -X POST --data-raw 'generator=c&api=gl%3D4.2&profile=gl%3Dcore&options=LOADER' | grep -o "\".*\"" | tail -n 1 | tr -d '""')"/glad.zip"
@@ -69,6 +73,9 @@ imgui:
 	git clone --depth 1 https://github.com/ocornut/imgui.git lib/imgui
 	git clone --branch Lib_Only --depth 1 https://github.com/aiekick/ImGuiFileDialog.git lib/imgui/dialog
 	cp lib/imgui/backends/imgui_impl_glfw* lib/imgui/backends/imgui_impl_opengl3* lib/imgui/
+
+json:
+	git clone --depth 1 https://github.com/nlohmann/json.git lib/json
 
 libint:
 	git clone --depth 1 https://github.com/evaleev/libint.git lib/libint

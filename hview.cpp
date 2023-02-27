@@ -1,7 +1,5 @@
 #include "include/gui.h"
-#include <boost/program_options.hpp>
-
-namespace po = boost::program_options;
+#include <argparse/argparse.hpp>
 
 std::string vertex = R"(
 #version 420 core
@@ -99,28 +97,23 @@ void set(const Shader& shader, const GLFWPointer::Camera& camera, const GLFWPoin
 
 int main(int argc, char** argv) {
     // initialize the argument parser and container for the arguments
-    po::options_description desc("options");
-    po::positional_options_description pos;
-    po::variables_map vm;
+    argparse::ArgumentParser program("HView", "1.0", argparse::default_arguments::none);
 
     // add options to the parser
-    desc.add_options()
-        ("input", po::value<std::string>(), "input file")
-        ("version,v", "print version string")
-        ("help,h", "produce help message")
-    ;pos.add("input", 1);
+    program.add_argument("input").help("HView input file.").default_value(std::string(""));
+    program.add_argument("-h").help("Display this help message and exit.").default_value(false).implicit_value(true);
+    program.add_argument("-n").help("Number of threads to use.").default_value(1).scan<'i', int>();
 
     // extract the variables from the command line
-    po::store(po::command_line_parser(argc, argv).options(desc).positional(pos).run(), vm); po::notify(vm);
-
-    // print help if the help flag was provided
-    if (vm.count("help")) {
-        std::cout << desc << std::endl; return EXIT_SUCCESS;
+    try {
+        program.parse_args(argc, argv);
+    } catch (const std::runtime_error &error) {
+        std::cerr << error.what() << std::endl << std::endl << program; return EXIT_FAILURE;
     }
 
-    // open the provided input
-    if (!vm["input"].empty() && !std::filesystem::exists(vm["input"].as<std::string>())) {
-        throw std::runtime_error("Input file does not exist.");
+    // print help if the help flag was provided
+    if (program.get<bool>("-h")) {
+        std::cout << program.help().str(); return EXIT_SUCCESS;
     }
 
     // Initialize GLFW and throw error if failed
@@ -172,8 +165,8 @@ int main(int argc, char** argv) {
 
         // Create scene, shader and GUI
         Trajectory trajectory;
-        if (!vm["input"].empty()) {
-            trajectory = Trajectory::Load(vm["input"].as<std::string>());
+        if (!program.get<std::string>("input").empty()) {
+            trajectory = Trajectory::Load(program.get<std::string>("input"));
         }
         Shader shader(vertex, fragment);
         Gui gui(pointer.window);
