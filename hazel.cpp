@@ -1,7 +1,6 @@
 #include "include/hartreefock.h"
 #include "include/moleculardynamics.h"
 #include <argparse/argparse.hpp>
-#include <boost/format.hpp>
 #include <filesystem>
 
 #define STRINGIFY(X) STRING(X)
@@ -120,10 +119,11 @@ int main(int argc, char** argv) {
             throw std::runtime_error("System file does not exist.");
         }
         System system(path + "/" + sysfile);
+        
+        auto pairIn = input.at("method").at("potential").at("pair").at("coefs").get<std::vector<PotentialCoefficients>>();
+        PotentialArray pair(input.at("method").at("potential").at("pair").at("name").get<std::string>(), pairIn);
 
-        Potential* pot;
-        LennardJones lj(1, 1); pot = &lj;
-        MolecularDynamics mdyn(*pot, opt);
+        MolecularDynamics mdyn(ForceField(pair), opt);
 
         MolecularDynamicsResult result = mdyn.run(system.getParticles(), path + "/" + input.at("method").at("output-trajectory").get<std::string>());
 

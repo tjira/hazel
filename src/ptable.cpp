@@ -24,3 +24,10 @@ std::unordered_map<int, std::string> an2sm = {
     { 7, "N" },
     { 8, "O" }
 };
+
+std::unordered_map<std::string, int> sm2an = {
+    { "H", 1 },
+    { "C", 6 },
+    { "N", 7 },
+    { "O", 8 }
+};
