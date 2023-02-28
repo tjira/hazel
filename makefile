@@ -1,4 +1,4 @@
-INCLUDE := lib/argparse/include lib/eigen lib/glad/include lib/format/include lib/glfw/install/include lib/glm lib/imgui lib/json/single_include lib/libint/install/include
+INCLUDE := lib/argparse/include lib/boost lib/eigen lib/glad/include lib/glfw/install/include lib/glm lib/imgui lib/json/single_include lib/libint/install/include
 FLAGS := -std=c++17 -MMD -MP
 
 # Variable Modifications ===============================================================================================
@@ -24,7 +24,7 @@ HVIEW := buffer.o geometry.o gui.o mesh.o ptable.o shader.o trajectory.o
 # Targets ===============================================================================================================
 
 all: bin build bin/hazel bin/hview
-libs: argparse eigen format glad glfw glm imgui json libint
+libs: argparse boost eigen glad glfw glm imgui json libint
 
 # Include Dependencies ==================================================================================================
 
@@ -51,11 +51,12 @@ $(call uniq, $(addprefix build/, $(HAZEL) $(HVIEW))): build/%.o: src/%.cpp
 argparse:
 	git clone --depth 1 https://github.com/p-ranav/argparse.git lib/argparse
 
+boost:
+	git clone --recursive --depth 1 https://github.com/boostorg/boost.git lib/boost
+	cd lib/boost && ./bootstrap.sh && ./b2 headers && cd -
+
 eigen:
 	git clone --depth 1 https://gitlab.com/libeigen/eigen.git lib/eigen
-
-format:
-	git clone --depth 1 https://github.com/boostorg/format.git lib/format
 
 glad:
 	wget -q "https://gen.glad.sh"$$(curl https://gen.glad.sh/generate -s -X POST --data-raw 'generator=c&api=gl%3D4.2&profile=gl%3Dcore&options=LOADER' | grep -o "\".*\"" | tail -n 1 | tr -d '""')"/glad.zip"
