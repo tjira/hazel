@@ -56,6 +56,7 @@ int main(int argc, char** argv) {
 
     // if Hartree-Fock
     if (input.at("method").at("name").get<std::string>() == "HF") {
+        // initialize basis set string
         std::string basis = input.at("basis").get<std::string>();
 
         // initialize Hartree-Fock options
@@ -108,7 +109,9 @@ int main(int argc, char** argv) {
 
         // finalize the libint library 
         libint2::finalize();
+
     } else if (input.at("method").at("name").get<std::string>() == "MD") {
+        // initialize MD options
         MolecularDynamicsOptions opt = input.at("method").get<MolecularDynamicsOptions>();
 
         // start the timer
@@ -120,11 +123,14 @@ int main(int argc, char** argv) {
         }
         System system(path + "/" + sysfile);
         
+        // initialize the pair potential
         auto pairIn = input.at("method").at("potential").at("pair").at("coefs").get<std::vector<PotentialCoefficients>>();
-        PotentialArray pair(input.at("method").at("potential").at("pair").at("name").get<std::string>(), pairIn);
+        std::string pairName = input.at("method").at("potential").at("pair").at("name").get<std::string>();
 
-        MolecularDynamics mdyn(ForceField(pair), opt);
+        // initialize the molecular dynamics object
+        MolecularDynamics mdyn(ForceField(pairName, pairIn, system), opt);
 
+        // perform the molecular dynamics
         MolecularDynamicsResult result = mdyn.run(system.getParticles(), path + "/" + input.at("method").at("output-trajectory").get<std::string>());
 
         // print elapsed time

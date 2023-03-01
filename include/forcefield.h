@@ -1,13 +1,14 @@
 #pragma once
 
 #include "potential.h"
+#include "system.h"
 
 class ForceField {
 public:
-    ForceField(PotentialArray pair) : pair(pair) {}
+    ForceField(std::string name, std::vector<PotentialCoefficients> coefs, System system);
     Eigen::Vector3d F(const std::vector<Particle>& particles, int i) const;
     double U(const std::vector<Particle>& particles) const;
 
 private:
-    PotentialArray pair;
+    std::vector<std::vector<std::shared_ptr<Potential>>> pair;
 };
