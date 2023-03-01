@@ -24,6 +24,6 @@ public:
     Eigen::Vector3d F(const Particle& a, const Particle& b) const;
     double U(const Particle& a, const Particle& b) const;
 
-private:
     double epsilon, sigma;
+private:
 };

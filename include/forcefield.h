@@ -2,6 +2,14 @@
 
 #include "potential.h"
 #include "system.h"
+#include <unordered_map>
+
+struct htuple {
+    template <class T1, class T2>
+    size_t operator()(const std::tuple<T1, T2>& t) const {
+        return std::get<0>(t) ^ std::get<1>(t);
+    }
+};
 
 class ForceField {
 public:
@@ -10,5 +18,5 @@ public:
     double U(const std::vector<Particle>& particles) const;
 
 private:
-    std::vector<std::vector<std::shared_ptr<Potential>>> pair, bond;
+    std::unordered_map<std::tuple<int, int>, std::shared_ptr<Potential>, htuple> pair, bond;
 };
