@@ -56,11 +56,17 @@ struct MullikenResult {
     Eigen::VectorXd q;
 };
 
-struct PotentialCoefficients {
-    std::vector<double> coefs;
-    std::vector<int> atoms;
+struct PotentialOptions {
+    struct PotentialCoefficients {
+        std::vector<double> coefs;
+        std::vector<int> atoms;
+    };
+    std::vector<PotentialCoefficients> config;
+    std::string name;
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PotentialCoefficients, atoms, coefs);
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PotentialOptions::PotentialCoefficients, atoms, coefs);
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PotentialOptions, config, name);
+
 
 namespace Defaults {
     static json hfopt = R"({

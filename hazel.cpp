@@ -124,11 +124,11 @@ int main(int argc, char** argv) {
         System system(path + "/" + sysfile);
         
         // initialize the pair potential
-        auto pairIn = input.at("method").at("potential").at("pair").at("coefs").get<std::vector<PotentialCoefficients>>();
-        std::string pairName = input.at("method").at("potential").at("pair").at("name").get<std::string>();
+        auto pairOpt = input.at("method").at("potential").at("pair").get<PotentialOptions>();
+        auto bondOpt = input.at("method").at("potential").at("bond").get<PotentialOptions>();
 
         // initialize the molecular dynamics object
-        MolecularDynamics mdyn(ForceField(pairName, pairIn, system), opt);
+        MolecularDynamics mdyn(ForceField(pairOpt, bondOpt, system), opt);
 
         // perform the molecular dynamics
         MolecularDynamicsResult result = mdyn.run(system.getParticles(), path + "/" + input.at("method").at("output-trajectory").get<std::string>());
