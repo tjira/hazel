@@ -3,11 +3,9 @@
 ForceField::ForceField(std::string name, std::vector<PotentialCoefficients> entries, System system) {
     pair.resize(system.getAtomCount()); for (auto& row : pair) for (size_t i = 0; i < pair.size(); i++) row.emplace_back(new Potential);
     for (int i = 0; i < system.getAtomCount(); i++) {
-        for (int j = 0; j <= i; j++) {
+        for (int j = 0; j < system.getAtomCount(); j++) {
             for (auto entry : entries) {
-                bool e12 = entry.atoms.at(0) == system.getAtom(i).atomic_number && entry.atoms.at(1) == system.getAtom(j).atomic_number;
-                bool e21 = entry.atoms.at(1) == system.getAtom(i).atomic_number && entry.atoms.at(0) == system.getAtom(j).atomic_number;
-                if (e12 || e21) {
+                if (entry.atoms.at(0) == system.getAtom(i).atomic_number && entry.atoms.at(1) == system.getAtom(j).atomic_number) {
                     pair.at(i).at(j).reset(new LennardJones(entry.coefs.at(0), entry.coefs.at(1)));
                     pair.at(j).at(i).reset(new LennardJones(entry.coefs.at(0), entry.coefs.at(1)));
                 }
