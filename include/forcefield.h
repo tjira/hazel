@@ -13,7 +13,7 @@ struct htuple {
 
 class ForceField {
 public:
-    ForceField(PotentialOptions pairOpt, PotentialOptions bondOpt, System system);
+    ForceField(PotentialOptions pairOpt, PotentialOptions bondOpt);
     Eigen::Vector3d F(const std::vector<Particle>& particles, int i) const;
     double U(const std::vector<Particle>& particles) const;
 

@@ -1,21 +1,13 @@
 #include "../include/forcefield.h"
 
-ForceField::ForceField(PotentialOptions pairOpt, PotentialOptions bondOpt, System system) {
-    for (int i = 0; i < system.getAtomCount(); i++) {
-        for (int j = 0; j < system.getAtomCount(); j++) {
-            for (auto entry : pairOpt.config) {
-                if (entry.atoms.at(0) == i + 1 && entry.atoms.at(1) == j + 1) {
-                    pair[{ i, j }].reset(new LennardJones(entry.coefs.at(0), entry.coefs.at(1)));
-                    pair[{ j, i }].reset(new LennardJones(entry.coefs.at(0), entry.coefs.at(1)));
-                }
-            }
-            for (auto entry : bondOpt.config) {
-                if (entry.atoms.at(0) == i + 1 && entry.atoms.at(1) == j + 1) {
-                    bond[{ i, j }].reset(new BondHarmonic(entry.coefs.at(0), entry.coefs.at(1)));
-                    bond[{ j, i }].reset(new BondHarmonic(entry.coefs.at(0), entry.coefs.at(1)));
-                }
-            }
-        }
+ForceField::ForceField(PotentialOptions pairOpt, PotentialOptions bondOpt) {
+    for (auto entry : pairOpt.config) {
+        pair[{ entry.atoms.at(0) - 1, entry.atoms.at(1) - 1 }].reset(new LennardJones(entry.coefs.at(0), entry.coefs.at(1)));
+        pair[{ entry.atoms.at(1) - 1, entry.atoms.at(0) - 1 }].reset(new LennardJones(entry.coefs.at(0), entry.coefs.at(1)));
+    }
+    for (auto entry : bondOpt.config) {
+        bond[{ entry.atoms.at(0) - 1, entry.atoms.at(1) - 1 }].reset(new BondHarmonic(entry.coefs.at(0), entry.coefs.at(1)));
+        bond[{ entry.atoms.at(1) - 1, entry.atoms.at(0) - 1 }].reset(new BondHarmonic(entry.coefs.at(0), entry.coefs.at(1)));
     }
 }
 

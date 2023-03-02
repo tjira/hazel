@@ -128,7 +128,7 @@ int main(int argc, char** argv) {
         auto bondOpt = input.at("method").at("potential").at("bond").get<PotentialOptions>();
 
         // initialize the molecular dynamics object
-        MolecularDynamics mdyn(ForceField(pairOpt, bondOpt, system), opt);
+        MolecularDynamics mdyn(ForceField(pairOpt, bondOpt), opt);
 
         // perform the molecular dynamics
         MolecularDynamicsResult result = mdyn.run(system.getParticles(), path + "/" + input.at("method").at("output-trajectory").get<std::string>());
