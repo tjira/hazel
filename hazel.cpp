@@ -126,9 +126,10 @@ int main(int argc, char** argv) {
         // initialize the pair potential
         auto pairOpt = input.at("method").at("potential").at("pair").get<PotentialOptions>();
         auto bondOpt = input.at("method").at("potential").at("bond").get<PotentialOptions>();
+        auto angleOpt = input.at("method").at("potential").at("angle").get<PotentialOptions>();
 
         // initialize the molecular dynamics object
-        MolecularDynamics mdyn(ForceField(pairOpt, bondOpt), opt);
+        MolecularDynamics mdyn(ForceField(pairOpt, bondOpt, angleOpt), opt);
 
         // perform the molecular dynamics
         MolecularDynamicsResult result = mdyn.run(system.getParticles(), path + "/" + input.at("method").at("output-trajectory").get<std::string>());
