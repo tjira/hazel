@@ -11,7 +11,7 @@ void write(std::ofstream file, std::vector<Particle> particles, int i) {
     }
 }
 
-MolecularDynamics::MolecularDynamics(const ForceField& field, Options opt) : field(field), opt(opt) {
+MolecularDynamics::MolecularDynamics(Options opt) : opt(opt) {
     // print method specification
     std::cout << "MOLECULAR DYNAMICS" << std::endl;
     std::cout << boost::format("TIMESTEP: %.4f, STEPS: %i") % opt.timestep % opt.steps;
