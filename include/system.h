@@ -1,31 +1,31 @@
 #pragma once
 
-#include "particle.h"
+#include "logger.h"
+#include "timer.h"
+#include <boost/format.hpp>
 #include <libint2.hpp>
+
+struct MullikenResult {
+    Eigen::MatrixXd DS;
+    Eigen::VectorXd q;
+};
 
 class System {
 public:
     // constructor
-    System(std::string filename, std::string basis = "6-31G");
+    System(std::string filename, std::string basis);
 
     // getters
-    std::vector<Particle> getParticles() const;
-    libint2::Atom getAtom(int i) const;
-    double getNuclearRepulsion() const;
-    int getElectronCount() const;
-    int getAtomCount() const;
+    std::vector<libint2::Atom> getAtoms() const { return atoms; };
 
     // computers
-    Eigen::MatrixXd integral(libint2::Operator op, Eigen::MatrixXd D = {}) const;
+    Eigen::MatrixXd integralSingle(libint2::Operator op) const;
+    Eigen::MatrixXd integralCoulomb(Eigen::MatrixXd D) const;
     MullikenResult mulliken(Eigen::MatrixXd D) const;
+    void move(Eigen::MatrixXd dir);
 
 private:
-    // private integral coumputers
-    Eigen::MatrixXd integralDouble(libint2::Engine engine, Eigen::MatrixXd D) const;
-    Eigen::MatrixXd integralSingle(libint2::Engine engine) const;
-
-    // private variables
     std::vector<libint2::Atom> atoms;
-    std::string filename, setname;
     libint2::BasisSet shells;
+    std::string basis;
 };

@@ -1,19 +1,14 @@
 #include "include/hartreefock.h"
-#include "include/moleculardynamics.h"
+#include "include/defaults.h"
 #include <argparse/argparse.hpp>
-#include <filesystem>
 
-#define STRINGIFY(X) STRING(X)
-#define STRING(X) #X
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(HartreeFock::Options::PRINT, kinetic, oneelec, overlap, density, orben);
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(HartreeFock::Options::MDYN, timestep, steps, output);
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(HartreeFock::Options::GRAD, increment, nthread);
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(HartreeFock::Options::DIIS, start, keep, damp);
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(HartreeFock::Options, thresh, maxiter, diis, engrad, print, mulliken);
 
-json patch(json input) {
-    std::string method = input.at("method").at("name");
-    if (method == "HF") Defaults::hfopt.merge_patch(input.at("method")), input.at("method") = Defaults::hfopt;
-    if (method == "MD") Defaults::mdopt.merge_patch(input.at("method")), input.at("method") = Defaults::mdopt;
-    return input;
-}
-
-int main(int argc, char** argv) {
+json parse(int argc, char** argv) {
     // initialize the argument parser and container for the arguments
     argparse::ArgumentParser program("Hazel", "1.0", argparse::default_arguments::none);
 
@@ -26,110 +21,107 @@ int main(int argc, char** argv) {
     try {
         program.parse_args(argc, argv);
     } catch (const std::runtime_error &error) {
-        std::cerr << error.what() << std::endl << std::endl << program; return EXIT_FAILURE;
+        std::cerr << error.what() << std::endl << std::endl << program; exit(EXIT_FAILURE);
     }
 
     // print help if the help flag was provided
     if (program.get<bool>("-h")) {
-        std::cout << program.help().str(); return EXIT_SUCCESS;
+        std::cout << program.help().str(); exit(EXIT_SUCCESS);
     }
 
-    // open the provided JSON input
+    // check if the input file exists
     if (!std::filesystem::exists(program.get<std::string>("input"))) {
         throw std::runtime_error("Input file does not exist.");
     }
-    json input = patch(json::parse(std::ifstream(program.get<std::string>("input"))));
-
-    // print the initial info and input
-    std::cout << "HAZEL\nCOMPILE FLAGS: " << STRINGIFY(GPPFLAGS) << "\n" << std::endl;
-    std::cout << "INPUT\n" << input.dump(4) << "\n" << std::endl;
 
     // set number of threads
-    libint2::nthreads = program.get<int>("n");
     #if defined(_OPENMP)
-    omp_set_num_threads(libint2::nthreads);
+    omp_set_num_threads(program.get<int>("n"));
     #endif
 
-    // extract strings from the JSON input
-    std::string path = std::filesystem::absolute(program.get<std::string>("input")).parent_path();
-    std::string sysfile = input.at("system").get<std::string>();
+    // create the input object
+    json input = json::parse(std::ifstream(program.get<std::string>("input")));
+
+    // change ralative path of the provided system to absolute
+    input.at("system") = std::filesystem::absolute(program.get<std::string>("input")).parent_path().string() + "/" + input.at("system").get<std::string>();
+
+    // return the input
+    return input;
+}
+
+json patch(json input) {
+    if (input.at("method").at("name") == "HF") Defaults::hfopt.merge_patch(input.at("method")), input.at("method") = Defaults::hfopt;
+    if (input.contains("dynamics")) Defaults::mdopt.merge_patch(input.at("dynamics")), input.at("dynamics") = Defaults::mdopt;
+    return input;
+}
+
+int main(int argc, char** argv) {
+    // parse the command line arguments and create a logger
+    json input = parse(argc, argv);
+
+    // print the initial info and input
+    Logger::Log(false, "HAZEL\nCOMPILE FLAGS: %s\n\nINPUT\n%s", STRINGIFY(GPPFLAGS), patch(input).dump(4));
+
+    // initialize the system
+    std::string basis = input.at("basis").get<std::string>();
+    if (!std::filesystem::exists(input.at("system").get<std::string>())) {
+        throw std::runtime_error("System file does not exist.");
+    }
+    System system(input.at("system").get<std::string>(), basis);
+
+    // print the system specification
+    Logger::Log(false, "\nMOLECULE\nATOMS: %i, ELECTRONS: %i, BASIS: %i", system.getAtoms().size(), NELECTRONS(system), basis);
+
+    // initialize the libint library nd start the timer
+    libint2::initialize(); auto start = Timer::now();
 
     // if Hartree-Fock
-    if (input.at("method").at("name").get<std::string>() == "HF") {
-        // initialize basis set string
-        std::string basis = input.at("basis").get<std::string>();
+    if (!input.contains("dynamics")) {
 
         // initialize Hartree-Fock options
-        HartreeFockOptions opt = input.at("method").get<HartreeFockOptions>();
-        opt.diis = input.at("method").at("diis").get<HartreeFockOptions::DIIS>();
+        HartreeFock::Options opt = patch(input).at("method").get<HartreeFock::Options>();
+        bool diis = input.at("method").contains("diis");
 
-        // start the timer
-        auto start = Timer::now();
+        // initialize HF and perform the SCF cycle
+        HartreeFock hfock(opt); auto result = hfock.scf(system, { .diis = diis, .silent = false });
 
-        // initialize the libint library 
-        libint2::initialize();
+        // calculate and print the energy gradient if requested
+        if (input.at("method").contains("engrad")) HartreeFock(opt).gradient(system, { .diis = diis, .silent = false });
 
-        // initialize the system
-        if (!std::filesystem::exists(path + "/" + sysfile)) {
-            throw std::runtime_error("System file does not exist.");
+        // perform the mulliken analysis if requested
+        if (patch(input).at("method").at("mulliken")) {
+            auto mulliken = system.mulliken(result.D);
+            Logger::Log(false, "\nMULLIKEN CHARGES\n%=2s %=9s", "SM", "Q");
+            for (size_t i = 0; i < system.getAtoms().size(); i++) {
+                Logger::Log(false, "%2s %9.6f", an2sm.at(system.getAtoms().at(i).atomic_number), mulliken.q(i));
+            }
+            Logger::Log(false, "SUM OF MULLIKEN CHARGES: %.6f", mulliken.q.sum());
         }
-        System system(path + "/" + sysfile, basis);
 
-        // print the system specification
-        std::cout << boost::format("MOLECULE\nATOMS: %i, ELECTRONS: %i, BASIS: %i\n") % system.getAtomCount() % system.getElectronCount() % basis << std::endl;
+        // print final energy and elapsed time
+        Logger::Log(false, "\nFINAL SINGLE POINT ENERGY: %.14f Eh", result.E);
+        Logger::Log(false, "\nDONE IN %s", Timer::format(Timer::elapsed(start)));
 
-        // initialize HF
+    } else {
+
+        // initialize Hartree-Fock and MD options
+        HartreeFock::Options opt = patch(input).at("method").get<HartreeFock::Options>();
+        opt.dyn = patch(input).at("dynamics").get<HartreeFock::Options::MDYN>();
+        bool diis = input.at("method").contains("diis");
+
+        // edit output trajectory path to absolute
+        opt.dyn.output = std::filesystem::absolute(argv[1]).parent_path().string() + "/" + opt.dyn.output;
+
+        // initialize the Hartree Fock object
         HartreeFock hfock(opt);
 
-        // perform the SCF cycle
-        auto result = hfock.scf(system);
-
-        // perform the mulliken analysis
-        auto mulliken = system.mulliken(result.D);
-
-        // print orbital energies
-        std::cout << "ORBITAL ENERGIES AND OCCUPATION\nITER OCC        E [Eh]                E [eV]\n";
-        for (int i = 0; i < result.eps.rows(); i++) {
-            std::cout << boost::format("%4i %3.1f %20.14f %22.14f\n") % i % ((i + 1) <= result.nocc ? 2.0 : 0.0) % result.eps(i) % (result.eps(i) * EH2EV);
-        }
-        std::cout << std::endl;
-
-        // print the mulliken charges
-        std::cout << "MULLIKEN CHARGES\nAN     Q\n";
-        for (int i = 0; i < system.getAtomCount(); i++) {
-            std::cout << boost::format("%2i %9.6f\n") % system.getAtom(i).atomic_number % mulliken.q(i);
-        }
-        std::cout << "\nSUM OF MULLIKEN CHARGES: " << boost::format("%.6f\n") % mulliken.q.sum() << std::endl;
-
-        // print final energy
-        std::cout << boost::format("FINAL SINGLE POINT ENERGY: %.14f Eh\n") % result.E << std::endl;
-
-        // print elapsed time
-        std::cout << boost::format("DONE IN %s") % Timer::format(Timer::elapsed(start)) << std::endl;
-
-        // finalize the libint library 
-        libint2::finalize();
-
-    } else if (input.at("method").at("name").get<std::string>() == "MD") {
-        // initialize MD options
-        MolecularDynamicsOptions opt = input.at("method").get<MolecularDynamicsOptions>();
-
-        // start the timer
-        auto start = Timer::now();
-
-        // initialize the system
-        if (!std::filesystem::exists(path + "/" + sysfile)) {
-            throw std::runtime_error("System file does not exist.");
-        }
-        System system(path + "/" + sysfile);
-
-        // initialize the molecular dynamics object
-        MolecularDynamics mdyn(opt);
-
         // perform the molecular dynamics
-        MolecularDynamicsResult result = mdyn.run(system.getParticles(), path + "/" + input.at("method").at("output-trajectory").get<std::string>());
+        auto result = hfock.dynamics(system, {});
 
         // print elapsed time
-        std::cout << boost::format("DONE IN %s") % Timer::format(Timer::elapsed(start)) << std::endl;
+        Logger::Log(false, "\nDONE IN %s", Timer::format(Timer::elapsed(start)));
     }
+
+    // finalize the libint library 
+    libint2::finalize();
 }

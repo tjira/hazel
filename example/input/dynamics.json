@@ -1,8 +1,12 @@
 {
     "system" : "../molecule/xyz/water.xyz",
+    "basis" : "STO-3G",
+    "dynamics" : {
+        "timestep" : 0.5,
+        "steps" : 10000
+    },
     "method" : {
-        "name" : "MD",
-        "timestep" : 0.001,
-        "steps" : 50000
+        "name" : "HF",
+        "diis" : {}
     }
 }
