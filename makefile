@@ -18,7 +18,7 @@ uniq = $(if $1,$(firstword $1) $(call uniq,$(filter-out $(firstword $1),$1)))
 # Object Files ==========================================================================================================
 
 IMGUI := imgui.o imgui_demo.o imgui_dilog.o imgui_draw.o imgui_glfw.o imgui_opengl.o imgui_tables.o imgui_widgets.o
-HAZEL := hartreefock.o moleculardynamics.o particle.o ptable.o system.o timer.o
+HAZEL := hartreefock.o libint.o logger.o ptable.o system.o timer.o
 HVIEW := buffer.o geometry.o gui.o mesh.o ptable.o shader.o trajectory.o
 
 # Targets ===============================================================================================================
@@ -80,7 +80,8 @@ json:
 
 libint:
 	git clone --depth 1 https://github.com/evaleev/libint.git lib/libint
-	cd lib/libint && ./autogen.sh && ./configure CPPFLAGS="-I$$PWD/../eigen" --prefix="$$PWD/install" --with-boost="$$PWD/../boost/install" --with-cxxgen-optflags="-O3" && cd -
+	cd lib/libint && ./autogen.sh && sed -i '63d;65,67d' include/libint2/cgshell_ordering.h && cd -
+	cd lib/libint && ./configure CXX=g++ CPPFLAGS="-I$$PWD/../eigen" --prefix="$$PWD/install" --with-boost="$$PWD/../boost/install" --with-cxxgen-optflags="-O3" --with-cartgauss-ordering=orca && cd -
 	cd lib/libint && make && make install && cd -
 
 build/glad.o: lib/glad/src/gl.c

@@ -6,3 +6,8 @@ It consists of the *hazel* executable which is used to perform calculations and 
 ## Features
 
 * Hartree-Fock
+
+## Compilation
+
+## Examples
+

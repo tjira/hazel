@@ -1,63 +1,17 @@
-#include "../include/system.h"
+#include "../include/hartreefock.h"
+#include <Eigen/src/Core/Matrix.h>
+#include <libint2/atom.h>
+#include <valarray>
 
-namespace libint2 {
-    int threadID() {
-        #if defined(_OPENMP)
-        return omp_get_thread_num();
-        #else
-        return 0;
-        #endif
-    }
-}
-
-System::System(std::string filename, std::string basis) : filename(filename), setname(basis) {
+System::System(std::string filename, std::string basis) : basis(basis) {
     std::ifstream file(filename); atoms = libint2::read_dotxyz(file), shells = libint2::BasisSet(basis, atoms, true);
+    /* std::copy(shells.begin(), shells.end(), std::ostream_iterator<libint2::Shell>(std::cout, "\n")); */
 }
 
-libint2::Atom System::getAtom(int i) const {
-    return atoms.at(i);
-}
-
-int System::getAtomCount() const {
-    return atoms.size();
-}
-
-int System::getElectronCount() const {
-    return std::accumulate(atoms.begin(), atoms.end(), 0, [](int e, const auto& a) { return e + a.atomic_number; });
-}
-
-double System::getNuclearRepulsion() const {
-    auto value = 0.0;
-    for (size_t i = 0; i < atoms.size(); i++) {
-        for (size_t j = i + 1; j < atoms.size(); j++) {
-            double x = atoms.at(i).x - atoms.at(j).x, y = atoms.at(i).y - atoms.at(j).y, z = atoms.at(i).z - atoms.at(j).z;
-            value += atoms.at(i).atomic_number * atoms.at(j).atomic_number / Eigen::Vector3d(x, y, z).norm();
-        }
-    }
-    return value;
-}
-
-std::vector<Particle> System::getParticles() const {
-    std::vector<Particle> particles;
-    for (const libint2::Atom& atom : atoms) {
-        particles.emplace_back(Eigen::Vector3d{ atom.x, atom.y, atom.z }, an2sm.at(atom.atomic_number));
-    }
-    return particles;
-}
-
-Eigen::MatrixXd System::integral(libint2::Operator op, Eigen::MatrixXd D) const {
-    libint2::Engine engine(op, shells.max_nprim(), shells.max_l());
-    if (op == libint2::Operator::nuclear) {
-        engine.set_params(libint2::make_point_charges(atoms));
-    } else if (op == libint2::Operator::coulomb) {
-        return integralDouble(engine, D);
-    }
-    return integralSingle(engine);
-}
 
 // algorithm from: https://www.cup.uni-muenchen.de/ch/compchem/pop/mull1.html
 MullikenResult System::mulliken(Eigen::MatrixXd D) const {
-    Eigen::MatrixXd S = integral(libint2::Operator::overlap, D);
+    Eigen::MatrixXd S = integralSingle(libint2::Operator::overlap);
     Eigen::VectorXd q = Eigen::VectorXd::Zero(atoms.size());
     Eigen::MatrixXd DS = D.cwiseProduct(S);
     for (size_t i = 0, j = 0; i < shells.size(); i++) {
@@ -72,19 +26,18 @@ MullikenResult System::mulliken(Eigen::MatrixXd D) const {
     return { DS, q };
 }
 
-Eigen::MatrixXd System::integralDouble(libint2::Engine engine, Eigen::MatrixXd D) const {
+/*
+Computes Drs * (2 * (pq|rs) - (pr|sq))).
+*/
+Eigen::MatrixXd System::integralCoulomb(Eigen::MatrixXd D) const {
+    libint2::Engine engine(libint2::Operator::coulomb, shells.max_nprim(), shells.max_l());
     Eigen::MatrixXd matrix = Eigen::MatrixXd::Zero(shells.nbf(), shells.nbf());
-    std::vector<Eigen::MatrixXd> matrices(libint2::nthreads, matrix);
-    std::vector<libint2::Engine> engines(libint2::nthreads, engine);
-    #if defined(_OPENMP)
-    #pragma omp parallel for default(none) num_threads(libint2::nthreads) shared(D, engines, matrices)
-    #endif
-    for(size_t i = 0; i < shells.size(); i++) { int id = libint2::threadID();
-        const auto& result = engines.at(id).results(); auto sh2bf = shells.shell2bf();
+    for(size_t i = 0; i < shells.size(); i++) {
+        const auto& result = engine.results(); auto sh2bf = shells.shell2bf();
         for(size_t j = 0; j <= i; j++) {
             for(size_t k = 0; k <= i; k++) {
                 for(size_t l = 0; l <= (i == k ? j : k); l++) {
-                    engines.at(id).compute(shells[i], shells[j], shells[k], shells[l]); if (result[0] == nullptr) continue;
+                    engine.compute(shells[i], shells[j], shells[k], shells[l]); if (result[0] == nullptr) continue;
                     double degeneracy = (i == j ? 1 : 2) * (k == l ? 1 : 2) * (i == k ? (j == l ? 1 : 2) : 2);
                     for(size_t m = 0, q = 0; m < shells[i].size(); m++) {
                         for(size_t n = 0; n < shells[j].size(); n++) {
@@ -92,12 +45,12 @@ Eigen::MatrixXd System::integralDouble(libint2::Engine engine, Eigen::MatrixXd D
                                 for(size_t p = 0; p < shells[l].size(); p++, q++) {
                                     size_t bf1 = m + sh2bf[i], bf2 = n + sh2bf[j];
                                     size_t bf3 = o + sh2bf[k], bf4 = p + sh2bf[l];
-                                    matrices.at(id)(bf1, bf3) -= 0.25 * D(bf2, bf4) * result[0][q] * degeneracy;
-                                    matrices.at(id)(bf2, bf4) -= 0.25 * D(bf1, bf3) * result[0][q] * degeneracy;
-                                    matrices.at(id)(bf1, bf4) -= 0.25 * D(bf2, bf3) * result[0][q] * degeneracy;
-                                    matrices.at(id)(bf2, bf3) -= 0.25 * D(bf1, bf4) * result[0][q] * degeneracy;
-                                    matrices.at(id)(bf1, bf2) += D(bf3, bf4) * result[0][q] * degeneracy;
-                                    matrices.at(id)(bf3, bf4) += D(bf1, bf2) * result[0][q] * degeneracy;
+                                    matrix(bf1, bf3) -= 0.25 * D(bf2, bf4) * result[0][q] * degeneracy;
+                                    matrix(bf2, bf4) -= 0.25 * D(bf1, bf3) * result[0][q] * degeneracy;
+                                    matrix(bf1, bf4) -= 0.25 * D(bf2, bf3) * result[0][q] * degeneracy;
+                                    matrix(bf2, bf3) -= 0.25 * D(bf1, bf4) * result[0][q] * degeneracy;
+                                    matrix(bf1, bf2) += D(bf3, bf4) * result[0][q] * degeneracy;
+                                    matrix(bf3, bf4) += D(bf1, bf2) * result[0][q] * degeneracy;
                                 }
                             }
                         }
@@ -106,20 +59,19 @@ Eigen::MatrixXd System::integralDouble(libint2::Engine engine, Eigen::MatrixXd D
             }
         }
     }
-    for (const auto& M : matrices) matrix += M;
     return 0.5 * (matrix + matrix.transpose());
 };
 
-Eigen::MatrixXd System::integralSingle(libint2::Engine engine) const {
+Eigen::MatrixXd System::integralSingle(libint2::Operator op) const {
     Eigen::MatrixXd matrix = Eigen::MatrixXd::Zero(shells.nbf(), shells.nbf());
-    std::vector<libint2::Engine> engines(libint2::nthreads, engine);
-    #if defined(_OPENMP)
-    #pragma omp parallel for default(none) num_threads(libint2::nthreads) shared(engines, matrix)
-    #endif
-    for (size_t i = 0; i < shells.size(); i++) { int id = libint2::threadID();
-        const auto& result = engines.at(id).results(); auto sh2bf = shells.shell2bf();
+    libint2::Engine engine(op, shells.max_nprim(), shells.max_l());
+    if (op == libint2::Operator::nuclear) {
+        engine.set_params(libint2::make_point_charges(atoms));
+    }
+    for (size_t i = 0; i < shells.size(); i++) {
+        const auto& result = engine.results(); auto sh2bf = shells.shell2bf();
         for (size_t j = 0; j <= i; j++) {
-            engines.at(id).compute(shells[j], shells[i]); if (result[0] == nullptr) continue;
+            engine.compute(shells[j], shells[i]); if (result[0] == nullptr) continue;
             Eigen::Map<const Eigen::MatrixXd> buffer(result[0], shells[i].size(), shells[j].size());
             matrix.block(sh2bf[i], sh2bf[j], shells[i].size(), shells[j].size()) = buffer;
             if (i != j) {
@@ -129,3 +81,12 @@ Eigen::MatrixXd System::integralSingle(libint2::Engine engine) const {
     }
     return matrix;
 };
+
+void System::move(Eigen::MatrixXd dir) {
+    for (size_t i = 0; i < atoms.size(); i++) {
+        atoms.at(i).x += dir(i, 0);
+        atoms.at(i).y += dir(i, 1);
+        atoms.at(i).z += dir(i, 2);
+    }
+    shells = libint2::BasisSet(basis, atoms, true);
+}

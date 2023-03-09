@@ -1,0 +1,27 @@
+{
+    "system" : "../molecule/xyz/water.xyz",
+    "basis" : "STO-3G",
+    "method" : {
+        "name" : "HF",
+        "maxiter" : 100,
+        "thresh" : 1e-8,
+        "diis" : {
+            "start" : 3,
+            "keep" : 5,
+            "damp" : 0
+        },
+        "engrad" : {
+            "numerical" : true,
+            "increment" : 0.005,
+            "nthread" : 4
+        },
+        "mulliken" : true,
+        "print" : {
+            "kinetic" : true,
+            "oneelec" : true,
+            "overlap" : true,
+            "density" : true,
+            "orben" : true
+        }
+    }
+}
