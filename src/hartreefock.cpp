@@ -108,7 +108,7 @@ HartreeFock::HFResult HartreeFock::scf(System system, Flags flags) const {
     Eigen::MatrixXd T = system.integralSingle(libint2::Operator::kinetic);
     Eigen::MatrixXd V = system.integralSingle(libint2::Operator::nuclear);
     Eigen::MatrixXd S = system.integralSingle(libint2::Operator::overlap);
-    double Vnn = NUCREP(system); Eigen::MatrixXd H = T + V;
+    double Vnn = NUCREPALL(system); Eigen::MatrixXd H = T + V;
 
     // print the matrices if requested
     Logger::Log(flags.silent || !opt.print.overlap, "\nOVERLAP MATRIX");

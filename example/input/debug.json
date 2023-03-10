@@ -24,5 +24,11 @@
             "orben" : true,
             "mos" : true
         }
+    },
+    "print" : {
+        "input" : true,
+        "system" : true,
+        "time" : true,
+        "molecule" : true
     }
 }

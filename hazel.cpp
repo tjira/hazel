@@ -1,6 +1,7 @@
 #include "include/hartreefock.h"
 #include "include/defaults.h"
 #include <argparse/argparse.hpp>
+#include <boost/algorithm/string.hpp>
 
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(HartreeFock::Options::PRINT, kinetic, oneelec, overlap, density, orben, mos);
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(HartreeFock::Options::MDYN, timestep, steps, output);
@@ -15,7 +16,6 @@ json parse(int argc, char** argv) {
     // add options to the parser
     program.add_argument("input").help("Hazel input file.");
     program.add_argument("-h").help("Display this help message and exit.").default_value(false).implicit_value(true);
-    program.add_argument("-n").help("Number of threads to use.").default_value(1).scan<'i', int>();
 
     // extract the variables from the command line
     try {
@@ -34,16 +34,8 @@ json parse(int argc, char** argv) {
         throw std::runtime_error("Input file does not exist.");
     }
 
-    // set number of threads
-    #if defined(_OPENMP)
-    omp_set_num_threads(program.get<int>("n"));
-    #endif
-
     // create the input object
     json input = json::parse(std::ifstream(program.get<std::string>("input")));
-
-    // change ralative path of the provided system to absolute
-    input.at("system") = std::filesystem::absolute(program.get<std::string>("input")).parent_path().string() + "/" + input.at("system").get<std::string>();
 
     // return the input
     return input;
@@ -52,25 +44,32 @@ json parse(int argc, char** argv) {
 json patch(json input) {
     if (input.at("method").at("name") == "HF") Defaults::hfopt.merge_patch(input.at("method")), input.at("method") = Defaults::hfopt;
     if (input.contains("dynamics")) Defaults::mdopt.merge_patch(input.at("dynamics")), input.at("dynamics") = Defaults::mdopt;
-    return input;
+    if (input.contains("print")) Defaults::print.merge_patch(input.at("print"));
+    input["print"] = Defaults::print; return input;
 }
 
 int main(int argc, char** argv) {
     // parse the command line arguments and create a logger
     json input = parse(argc, argv);
 
-    // print the initial info and input
-    Logger::Log(false, "HAZEL\nCOMPILE FLAGS: %s\n\nINPUT\n%s", STRINGIFY(GPPFLAGS), patch(input).dump(4));
+    // print the initial info
+    Logger::Log(false, "HAZEL\nCOMPILE FLAGS: %s", STRINGIFY(GPPFLAGS));
+
+    // print the input if requested
+    Logger::Log(!patch(input).at("print").at("input"), "\nINPUT\n%s", input.dump(4));
 
     // initialize the system
     std::string basis = input.at("basis").get<std::string>();
-    if (!std::filesystem::exists(input.at("system").get<std::string>())) {
+    if (!std::filesystem::exists(PABSOLUTE(input.at("system").get<std::string>()))) {
         throw std::runtime_error("System file does not exist.");
     }
-    System system(input.at("system").get<std::string>(), basis);
+    System system(PABSOLUTE(input.at("system").get<std::string>()), basis);
+
+    // print the system
+    Logger::Log(!patch(input).at("print").at("system"), "\nSYSTEM FILE\n%s", FCONTENTS(PABSOLUTE(input.at("system").get<std::string>())));
 
     // print the system specification
-    Logger::Log(false, "\nMOLECULE\nATOMS: %i, ELECTRONS: %i, BASIS: %i", system.getAtoms().size(), NELECTRONS(system), basis);
+    Logger::Log(!patch(input).at("print").at("molecule"), "\nMOLECULE\nATOMS: %i, ELECTRONS: %i, BASIS: %i", system.getAtoms().size(), NELECTRONS(system), basis);
 
     // initialize the libint library nd start the timer
     libint2::initialize(); auto start = Timer::now();
@@ -100,7 +99,7 @@ int main(int argc, char** argv) {
 
         // print final energy and elapsed time
         Logger::Log(false, "\nFINAL SINGLE POINT ENERGY: %.14f Eh", result.E);
-        Logger::Log(false, "\nDONE IN %s", Timer::format(Timer::elapsed(start)));
+        Logger::Log(!patch(input).at("print").at("time"), "\nDONE IN %s", Timer::format(Timer::elapsed(start)));
 
     } else {
 
@@ -110,16 +109,16 @@ int main(int argc, char** argv) {
         bool diis = input.at("method").contains("diis");
 
         // edit output trajectory path to absolute
-        opt.dyn.output = std::filesystem::absolute(argv[1]).parent_path().string() + "/" + opt.dyn.output;
+        opt.dyn.output = PABSOLUTE(opt.dyn.output);
 
         // initialize the Hartree Fock object
         HartreeFock hfock(opt);
 
         // perform the molecular dynamics
-        auto result = hfock.dynamics(system, {});
+        auto result = hfock.dynamics(system, { .diis = diis });
 
         // print elapsed time
-        Logger::Log(false, "\nDONE IN %s", Timer::format(Timer::elapsed(start)));
+        Logger::Log(!patch(input).at("print").at("time"), "\nDONE IN %s", Timer::format(Timer::elapsed(start)));
     }
 
     // finalize the libint library 

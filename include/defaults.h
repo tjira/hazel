@@ -31,4 +31,10 @@ namespace Defaults {
     static json mdopt = R"({
         "output" : "trajectory.xyz"
     })"_json;
+    static json print = R"({
+        "input" : true,
+        "system" : true,
+        "time" : true,
+        "molecule" : true
+    })"_json;
 }
