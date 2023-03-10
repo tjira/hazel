@@ -9,7 +9,7 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(HartreeFock::Options::GRAD, increment, nthrea
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(HartreeFock::Options::DIIS, start, keep, damp);
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(HartreeFock::Options, thresh, maxiter, diis, engrad, print, mulliken);
 
-json parse(int argc, char** argv) {
+std::tuple<json, argparse::ArgumentParser> parse(int argc, char** argv) {
     // initialize the argument parser and container for the arguments
     argparse::ArgumentParser program("Hazel", "1.0", argparse::default_arguments::none);
 
@@ -38,7 +38,7 @@ json parse(int argc, char** argv) {
     json input = json::parse(std::ifstream(program.get<std::string>("input")));
 
     // return the input
-    return input;
+    return { input, program };
 }
 
 json patch(json input) {
@@ -50,7 +50,7 @@ json patch(json input) {
 
 int main(int argc, char** argv) {
     // parse the command line arguments and create a logger
-    json input = parse(argc, argv);
+    auto [input, program] = parse(argc, argv);
 
     // print the initial info
     Logger::Log(false, "HAZEL\nCOMPILE FLAGS: %s", STRINGIFY(GPPFLAGS));
