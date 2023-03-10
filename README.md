@@ -22,12 +22,7 @@ Below are all the important features of *Hazel* divided into categories.
 
 ## Compilation
 
-Before compiling the software you will need some additional libraries. All the necessary libraries can be downloaded and set up with the following command.
-
-```bash
-make libs
-```
-
+Before compiling the software you will need some additional libraries. All the necessary libraries can be downloaded and set up with the `make libs` command.
 The proces can take up to an hour mainly since it needs to compile the *libint* library. After the libraries are installed you can compile the software simply by running `make`.
 The *bin* folder will be created along with all the executables.
 
