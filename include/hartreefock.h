@@ -23,7 +23,7 @@ public:
         }; MDYN dyn;
         struct PRINT {
             bool kinetic, oneelec, overlap, density;
-            bool orben;
+            bool orben, mos;
         }; PRINT print;
         double thresh; int maxiter;
         bool mulliken;

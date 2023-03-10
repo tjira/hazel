@@ -6,7 +6,6 @@ using json = nlohmann::json;
 
 namespace Defaults {
     static json hfopt = R"({
-        "name" : "HF",
         "maxiter" : 100,
         "thresh" : 1e-8,
         "diis" : {
@@ -25,12 +24,11 @@ namespace Defaults {
             "oneelec" : false,
             "overlap" : false,
             "orben" : false,
-            "density" : false
+            "density" : false,
+            "mos" : false
         }
     })"_json;
     static json mdopt = R"({
-        "timestep" : 0.001,
-        "steps" : 10000,
         "output" : "trajectory.xyz"
     })"_json;
 }

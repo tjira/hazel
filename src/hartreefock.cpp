@@ -153,7 +153,7 @@ HartreeFock::HFResult HartreeFock::scf(System system, Flags flags) const {
         Eigen::MatrixXd Dold = D, Fold = F; double Eold = E;
 
         // solve the Roothan equations and compute the density matrix from the result
-        Eigen::GeneralizedSelfAdjointEigenSolver<Eigen::MatrixXd> solver(F, S);
+        solver = Eigen::GeneralizedSelfAdjointEigenSolver<Eigen::MatrixXd>(F, S);
         C = solver.eigenvectors().leftCols(nocc), eps = solver.eigenvalues();
 
         // calculate the density matrix and energy
@@ -169,15 +169,20 @@ HartreeFock::HFResult HartreeFock::scf(System system, Flags flags) const {
         if (dE < opt.thresh && dD < opt.thresh) break;
         else if (i == opt.maxiter) std::cerr << "Algorithm did not converge." << std::endl;
     }
-
-    // print the density matrix if requested
-    Logger::Log(flags.silent || !opt.print.density, "\nDENSITY MATRIX");
-    Logger::Log(flags.silent || !opt.print.density, D);
     
+    // print the orbital energies if requested
     Logger::Log(flags.silent || !opt.print.orben, "\nORBITAL ENERGIES AND OCCUPATION\n%=4s %=3s %=20s %=22s", "ITER", "OCC", "E [Eh]", "E [eV]");
     for (int i = 0; i < eps.rows(); i++) {
         Logger::Log(flags.silent || !opt.print.orben, "%4i %3.1f %20.14f %22.14f",  i, (i + 1) <= nocc ? 2.0 : 0.0, eps(i), eps(i) * EH2EV);
     }
+
+    // print the orbital coefficients matrix if requested
+    Logger::Log(flags.silent || !opt.print.density, "\nORBITAL COEFFICIENTS MATRIX");
+    Logger::Log(flags.silent || !opt.print.density, -solver.eigenvectors());
+
+    // print the density matrix if requested
+    Logger::Log(flags.silent || !opt.print.density, "\nDENSITY MATRIX");
+    Logger::Log(flags.silent || !opt.print.density, D);
 
     // return the results
     return { C, D, eps, E };

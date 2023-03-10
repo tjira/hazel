@@ -21,7 +21,8 @@
             "oneelec" : true,
             "overlap" : true,
             "density" : true,
-            "orben" : true
+            "orben" : true,
+            "mos" : true
         }
     }
 }

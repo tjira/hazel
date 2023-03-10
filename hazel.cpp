@@ -2,7 +2,7 @@
 #include "include/defaults.h"
 #include <argparse/argparse.hpp>
 
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(HartreeFock::Options::PRINT, kinetic, oneelec, overlap, density, orben);
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(HartreeFock::Options::PRINT, kinetic, oneelec, overlap, density, orben, mos);
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(HartreeFock::Options::MDYN, timestep, steps, output);
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(HartreeFock::Options::GRAD, increment, nthread);
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(HartreeFock::Options::DIIS, start, keep, damp);

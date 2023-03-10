@@ -8,6 +8,7 @@ Print[P_OneElec] 1
 Print[P_Overlap] 1
 Print[P_KinEn] 1
 Print[P_Density] 1
+Print[P_MOs] 1
 "
 
 cp xyz/* .
