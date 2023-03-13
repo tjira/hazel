@@ -1,7 +1,7 @@
 #pragma once
 
 #include <boost/algorithm/string.hpp>
-#include <Eigen/Eigen>
+#include <unsupported/Eigen/CXX11/Tensor>
 
 #define EH2EV 27.211324570273
 #define WIDTH 104
@@ -15,3 +15,4 @@
 typedef Eigen::Vector3d Vec3;
 typedef Eigen::VectorXd Vec;
 typedef Eigen::MatrixXd Mat;
+typedef Eigen::Tensor<double, 4> Ten4;

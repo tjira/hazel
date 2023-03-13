@@ -1,4 +1,5 @@
 #include "../include/hartreefock.h"
+#include <libint2/tensor.h>
 
 System::System(std::string filename, std::string basis) : basis(basis) {
     if (!std::filesystem::exists(filename)) throw std::runtime_error("System file does not exist.");
@@ -30,14 +31,14 @@ Computes Drs * (2 * (pq|rs) - (pr|sq))).
 */
 Mat System::integralCoulomb(Mat D) const {
     libint2::Engine engine(libint2::Operator::coulomb, shells.max_nprim(), shells.max_l());
+    const auto& result = engine.results(); auto sh2bf = shells.shell2bf();
     Mat matrix = Mat::Zero(shells.nbf(), shells.nbf());
     for(size_t i = 0; i < shells.size(); i++) {
-        const auto& result = engine.results(); auto sh2bf = shells.shell2bf();
         for(size_t j = 0; j <= i; j++) {
             for(size_t k = 0; k <= i; k++) {
                 for(size_t l = 0; l <= (i == k ? j : k); l++) {
                     engine.compute(shells[i], shells[j], shells[k], shells[l]); if (result[0] == nullptr) continue;
-                    double degeneracy = (i == j ? 1 : 2) * (k == l ? 1 : 2) * (i == k ? (j == l ? 1 : 2) : 2);
+                    int degeneracy = (i == j ? 1 : 2) * (k == l ? 1 : 2) * (i == k ? (j == l ? 1 : 2) : 2);
                     for(size_t m = 0, q = 0; m < shells[i].size(); m++) {
                         for(size_t n = 0; n < shells[j].size(); n++) {
                             for(size_t o = 0; o < shells[k].size(); o++) {
@@ -62,8 +63,8 @@ Mat System::integralCoulomb(Mat D) const {
 };
 
 Mat System::integralSingle(libint2::Operator op) const {
-    Mat matrix = Mat::Zero(shells.nbf(), shells.nbf());
     libint2::Engine engine(op, shells.max_nprim(), shells.max_l());
+    Mat matrix = Mat::Zero(shells.nbf(), shells.nbf());
     if (op == libint2::Operator::nuclear) {
         engine.set_params(libint2::make_point_charges(atoms));
     }
