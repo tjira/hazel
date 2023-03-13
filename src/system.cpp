@@ -1,9 +1,7 @@
 #include "../include/hartreefock.h"
 
 System::System(std::string filename, std::string basis) : basis(basis) {
-    if (!std::filesystem::exists(filename)) {
-        throw std::runtime_error("System file does not exist.");
-    }
+    if (!std::filesystem::exists(filename)) throw std::runtime_error("System file does not exist.");
     std::ifstream file(filename); atoms = libint2::read_dotxyz(file), shells = libint2::BasisSet(basis, atoms, true);
     electrons = std::accumulate(atoms.begin(), atoms.end(), 0, [](int e,auto a) { return e + a.atomic_number; });
     /* std::copy(shells.begin(), shells.end(), std::ostream_iterator<libint2::Shell>(std::cout, "\n")); */

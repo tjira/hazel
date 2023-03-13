@@ -7,7 +7,7 @@
 
 struct Logger {
     template <class... Args> static void Log(bool silent, std::string fmt, Args... args);
-    static void Log(bool silent, Eigen::MatrixXd matrix, std::string fmt = "%20.14f");
+    static void Log(bool silent, Eigen::MatrixXd matrix);
 };
 
 template <class... Args>
