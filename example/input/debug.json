@@ -13,13 +13,17 @@
         "engrad" : {
             "numerical" : true,
             "increment" : 0.005,
-            "nthread" : 4
+            "nthread" : 4,
+            "print" : {
+                "iter" : true
+            }
         },
         "mulliken" : true,
         "print" : {
             "kinetic" : true,
             "oneelec" : true,
             "overlap" : true,
+            "iter" : true,
             "density" : true,
             "orben" : true,
             "mos" : true

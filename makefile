@@ -1,5 +1,5 @@
 INCLUDE := lib/argparse/include lib/boost lib/eigen lib/glad/include lib/glfw/install/include lib/glm lib/imgui lib/json/single_include lib/libint/install/include
-FLAGS := -std=c++17 -MMD -MP
+FLAGS := -std=c++20 -MMD -MP
 
 # Variable Modifications ===============================================================================================
 
@@ -18,7 +18,7 @@ uniq = $(if $1,$(firstword $1) $(call uniq,$(filter-out $(firstword $1),$1)))
 # Object Files ==========================================================================================================
 
 IMGUI := imgui.o imgui_demo.o imgui_dilog.o imgui_draw.o imgui_glfw.o imgui_opengl.o imgui_tables.o imgui_widgets.o
-HAZEL := hartreefock.o libint.o logger.o ptable.o system.o timer.o
+HAZEL := hartreefock.o logger.o ptable.o system.o timer.o
 HVIEW := buffer.o geometry.o gui.o mesh.o ptable.o shader.o trajectory.o
 
 # Targets ===============================================================================================================

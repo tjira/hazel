@@ -16,7 +16,10 @@ namespace Defaults {
         "engrad" : {
             "numerical" : true,
             "increment" : 0.005,
-            "nthread" : 4
+            "nthread" : 4,
+            "print" : {
+                "iter" : true
+            }
         },
         "mulliken" : false,
         "print" : {
@@ -24,6 +27,7 @@ namespace Defaults {
             "oneelec" : false,
             "overlap" : false,
             "orben" : false,
+            "iter" : true,
             "density" : false,
             "mos" : false
         }

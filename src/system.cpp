@@ -1,19 +1,37 @@
 #include "../include/hartreefock.h"
-#include <Eigen/src/Core/Matrix.h>
-#include <libint2/atom.h>
-#include <valarray>
 
 System::System(std::string filename, std::string basis) : basis(basis) {
+    if (!std::filesystem::exists(filename)) {
+        throw std::runtime_error("System file does not exist.");
+    }
     std::ifstream file(filename); atoms = libint2::read_dotxyz(file), shells = libint2::BasisSet(basis, atoms, true);
+    electrons = std::accumulate(atoms.begin(), atoms.end(), 0, [](int e,auto a) { return e + a.atomic_number; });
     /* std::copy(shells.begin(), shells.end(), std::ostream_iterator<libint2::Shell>(std::cout, "\n")); */
 }
 
+System::System(System system, Mat q) : basis(system.basis), electrons(system.electrons) {
+    for (size_t i = 0; i < system.atoms.size(); i++) {
+        system.atoms.at(i) = { system.getAtom(i).atomic_number, q(i, 0), q(i, 1), q(i, 2) };
+    }
+    atoms = system.atoms, shells = libint2::BasisSet(basis, atoms, true);
+}
+
+double System::getRepulsion() const {
+    double repulsion = 0.0;
+    for (size_t i = 0; i < getSize(); i++) {
+        for (size_t j = i + 1; j < getSize(); j++) {
+            libint2::Atom a = getAtom(i), b = getAtom(j); Vec3 vec(a.x - b.x, a.y - b.y, a.z - b.z);
+            repulsion += a.atomic_number * b.atomic_number / vec.norm();
+        }
+    }
+    return repulsion;
+}
 
 // algorithm from: https://www.cup.uni-muenchen.de/ch/compchem/pop/mull1.html
-MullikenResult System::mulliken(Eigen::MatrixXd D) const {
-    Eigen::MatrixXd S = integralSingle(libint2::Operator::overlap);
-    Eigen::VectorXd q = Eigen::VectorXd::Zero(atoms.size());
-    Eigen::MatrixXd DS = D.cwiseProduct(S);
+MullikenResult System::mulliken(Mat D) const {
+    Mat S = integralSingle(libint2::Operator::overlap);
+    Vec q = Vec::Zero(atoms.size());
+    Mat DS = D.cwiseProduct(S);
     for (size_t i = 0, j = 0; i < shells.size(); i++) {
         for (size_t k = 0; k < shells.at(i).size(); k++) {
             q(shells.shell2atom(atoms).at(i)) -= DS.colwise().sum()(j + k);
@@ -29,9 +47,9 @@ MullikenResult System::mulliken(Eigen::MatrixXd D) const {
 /*
 Computes Drs * (2 * (pq|rs) - (pr|sq))).
 */
-Eigen::MatrixXd System::integralCoulomb(Eigen::MatrixXd D) const {
+Mat System::integralCoulomb(Mat D) const {
     libint2::Engine engine(libint2::Operator::coulomb, shells.max_nprim(), shells.max_l());
-    Eigen::MatrixXd matrix = Eigen::MatrixXd::Zero(shells.nbf(), shells.nbf());
+    Mat matrix = Mat::Zero(shells.nbf(), shells.nbf());
     for(size_t i = 0; i < shells.size(); i++) {
         const auto& result = engine.results(); auto sh2bf = shells.shell2bf();
         for(size_t j = 0; j <= i; j++) {
@@ -62,8 +80,8 @@ Eigen::MatrixXd System::integralCoulomb(Eigen::MatrixXd D) const {
     return 0.5 * (matrix + matrix.transpose());
 };
 
-Eigen::MatrixXd System::integralSingle(libint2::Operator op) const {
-    Eigen::MatrixXd matrix = Eigen::MatrixXd::Zero(shells.nbf(), shells.nbf());
+Mat System::integralSingle(libint2::Operator op) const {
+    Mat matrix = Mat::Zero(shells.nbf(), shells.nbf());
     libint2::Engine engine(op, shells.max_nprim(), shells.max_l());
     if (op == libint2::Operator::nuclear) {
         engine.set_params(libint2::make_point_charges(atoms));
@@ -72,7 +90,7 @@ Eigen::MatrixXd System::integralSingle(libint2::Operator op) const {
         const auto& result = engine.results(); auto sh2bf = shells.shell2bf();
         for (size_t j = 0; j <= i; j++) {
             engine.compute(shells[j], shells[i]); if (result[0] == nullptr) continue;
-            Eigen::Map<const Eigen::MatrixXd> buffer(result[0], shells[i].size(), shells[j].size());
+            Eigen::Map<const Mat> buffer(result[0], shells[i].size(), shells[j].size());
             matrix.block(sh2bf[i], sh2bf[j], shells[i].size(), shells[j].size()) = buffer;
             if (i != j) {
                 matrix.block(sh2bf[j], sh2bf[i], shells[j].size(), shells[i].size()) = buffer.transpose();
@@ -82,7 +100,7 @@ Eigen::MatrixXd System::integralSingle(libint2::Operator op) const {
     return matrix;
 };
 
-void System::move(Eigen::MatrixXd dir) {
+void System::move(Mat dir) {
     for (size_t i = 0; i < atoms.size(); i++) {
         atoms.at(i).x += dir(i, 0);
         atoms.at(i).y += dir(i, 1);

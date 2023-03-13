@@ -1,7 +1,5 @@
 #pragma once
 
-#include "define.h"
-#include "libint.h"
 #include "ptable.h"
 #include "system.h"
 
@@ -11,8 +9,12 @@ public:
         struct DIIS {
             int start, keep;
             double damp;
+            bool on;
         }; DIIS diis;
         struct GRAD {
+            struct PRINT {
+                bool iter;
+            }; PRINT print;
             double increment;
             int nthread;
         }; GRAD engrad;
@@ -23,23 +25,20 @@ public:
         }; MDYN dyn;
         struct PRINT {
             bool kinetic, oneelec, overlap, density;
-            bool orben, mos;
+            bool orben, mos, iter;
         }; PRINT print;
         double thresh; int maxiter;
         bool mulliken;
     };
 
 private:
-    struct Flags {
-        bool diis = true, silent = false;
-    };
     struct GDResult {
-        Eigen::MatrixXd G;
+        Mat G;
         double E;
     };
     struct HFResult {
-        Eigen::MatrixXd C, D;
-        Eigen::VectorXd eps;
+        Mat C, D;
+        Vec eps;
         double E;
     };
     struct MDResult {
@@ -48,9 +47,9 @@ private:
 
 public:
     HartreeFock(Options opt) : opt(opt) {};
-    MDResult dynamics(System system, Flags flags) const;
-    GDResult gradient(System system, Flags flags) const;
-    HFResult scf(System system, Flags flags) const;
+    MDResult dynamics(System system, bool silent = false) const;
+    GDResult gradient(System system, bool silent = false) const;
+    HFResult scf(System system, bool silent = false) const;
 
 private:
     const Options opt;

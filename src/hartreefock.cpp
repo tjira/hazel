@@ -8,21 +8,24 @@ static void write(std::ofstream file, System system, int i) {
     }
 }
 
-HartreeFock::MDResult HartreeFock::dynamics(System system, Flags flags) const {
-    // create position, velocity and acceleration matrices
-    Eigen::MatrixXd a = Eigen::MatrixXd::Zero(system.getAtoms().size(), 3);
-    Eigen::MatrixXd q = Eigen::MatrixXd::Zero(system.getAtoms().size(), 3);
-    Eigen::MatrixXd v = 0.05 * Eigen::MatrixXd::Random(system.getAtoms().size(), 3);
+HartreeFock::MDResult HartreeFock::dynamics(System system, bool silent) const {
+    // print the method header
+    Logger::Log(silent, "\nHARTREE-FOCK MOLECULAR DYNAMICS");
+    Logger::Log(silent, "TIMESTEP: %.2e, STEPS: %i", opt.dyn.timestep, opt.dyn.steps);
 
-    // fill the position matrix with the system data
-    for (size_t i = 0; i < system.getAtoms().size(); i++) {
-        q(i, 0) = system.getAtoms().at(i).x; 
-        q(i, 1) = system.getAtoms().at(i).y; 
-        q(i, 2) = system.getAtoms().at(i).z; 
+    // create position, velocity and mass matrices
+    Mat a = Mat::Zero(system.getSize(), 3), q(system.getSize(), 3), m(system.getSize(), 3);
+    Mat v = 0.05 * Mat::Random(system.getAtoms().size(), 3);
+
+    // fill the position and mass matrix
+    for(size_t i = 0; i < system.getSize(); i++) {
+        m.row(i) = [](double m) { return Vec3(m, m, m); }(ptable.at(an2sm.at(system.getAtom(i).atomic_number)).mass);
+        q.row(i) = [](auto a) { return Vec3(a.x, a.y, a.z); }(system.getAtom(i));
     }
 
     // print the header and write the initial geometry to the file
-    Logger::Log(flags.silent, "\nMOLECULAR DYNAMICS ITERATIONS LOOP\n%=8s %=9s %=20s", "ITER", "TIME [fs]", "E [Eh]");
+    Logger::Log(silent, "\nMOLECULAR DYNAMICS ITERATIONS LOOP");
+    Logger::Log(silent, "%=8s %=9s %=20s %=12s", "ITER", "TIME [fs]", "E [Eh]", "TIME");
     write(std::ofstream(opt.dyn.output), system, 0);
 
     // start the MD loop
@@ -32,27 +35,21 @@ HartreeFock::MDResult HartreeFock::dynamics(System system, Flags flags) const {
         auto start = Timer::now();
 
         // create temporary position, velocity and acc matrices
-        Eigen::MatrixXd qp = q, vp = v, ap = a;
+        Mat qp = q, vp = v, ap = a;
     
         // calculate the gradient and energy
-        HartreeFock::GDResult grad = gradient(system, { .diis = flags.diis, .silent = true });
+        HartreeFock::GDResult grad = gradient(system, true);
 
-        // calculate the acceleration
-        for (size_t j = 0; j < system.getAtoms().size(); j++) {
-            a(j, 0) = -grad.G(j, 0) / ptable.at(an2sm.at(system.getAtoms().at(j).atomic_number)).mass;
-            a(j, 1) = -grad.G(j, 1) / ptable.at(an2sm.at(system.getAtoms().at(j).atomic_number)).mass;
-            a(j, 2) = -grad.G(j, 2) / ptable.at(an2sm.at(system.getAtoms().at(j).atomic_number)).mass;
-        }
-
-        // calculate the velocity
+        // perform a Verlet step
+        a = -grad.G.array() / m.array();
         v = vp + 0.5 * (ap + a) * opt.dyn.timestep;
+        q = qp + opt.dyn.timestep * (v + 0.5 * a * opt.dyn.timestep);
 
-        // calculate the difference in position and move the molecule
-        Eigen::MatrixXd dq = opt.dyn.timestep * (v + 0.5 * a * opt.dyn.timestep);
-        system.move(dq), q = q + dq;
+        // update the system
+        system = System(system, q);
     
         // print the iteration data and write the trajectory
-        Logger::Log(flags.silent, "%8i %9.4f %20.14f %s", i + 1, (i + 1) * opt.dyn.timestep, grad.E, Timer::format(Timer::elapsed(start)));
+        Logger::Log(silent, "%8i %9.4f %20.14f %s", i + 1, (i + 1) * opt.dyn.timestep, grad.E, Timer::format(Timer::elapsed(start)));
         write(std::ofstream(opt.dyn.output, std::ios_base::app), system, i + 1);
     }
 
@@ -60,19 +57,25 @@ HartreeFock::MDResult HartreeFock::dynamics(System system, Flags flags) const {
     return {};
 };
 
-HartreeFock::GDResult HartreeFock::gradient(System system, Flags flags) const {
-    // print the header
-    Logger::Log(flags.silent, "\nNUMERICAL GRADIENT ELEMENT EVALUATION LOOP");
-    Logger::Log(flags.silent, "%=7s %=17s %=12s", "ELEMENT", "E [Eh/bohr]", "TIME");
+HartreeFock::GDResult HartreeFock::gradient(System system, bool silent) const {
+    // print the method header
+    Logger::Log(silent, "\nHARTREE-FOCK NUMERICAL GRADIENT COMPUTATION");
+    Logger::Log(silent, "INCREMENT: %.2e, NTHREAD: %i", opt.engrad.increment, opt.engrad.nthread);
+
+    // print the loop header
+    Logger::Log(silent || !opt.engrad.print.iter, "\nHARTREE FOCK NUMERICAL GRADIENT ELEMENT EVALUATION LOOP");
+    Logger::Log(silent || !opt.engrad.print.iter, "%=7s %=17s %=12s", "ELEMENT", "E [Eh/bohr]", "TIME");
 
     // calculate the energy of the current geometry and initialize gradient matrix
-    double E0 = scf(system, { .diis = flags.diis, .silent = true }).E;
-    Eigen::MatrixXd G(system.getAtoms().size(), 3);
+    Mat G(system.getAtoms().size(), 3);
+    double E0 = scf(system, true).E;
 
     // loop over every atom and every coordinate
+    #if defined(_OPENMP)
     #pragma omp parallel for num_threads(opt.engrad.nthread) shared(G)
-    for (int i = 0; i < system.getAtoms().size(); i++) {
-        for (int j = 0; j < 3; j++) {
+    #endif
+    for (size_t i = 0; i < system.getAtoms().size(); i++) {
+        for (size_t j = 0; j < 3; j++) {
 
             // start the timer
             auto start = Timer::now();
@@ -82,59 +85,64 @@ HartreeFock::GDResult HartreeFock::gradient(System system, Flags flags) const {
             System tempSys_plus = system;
 
             // offset the temporary systems
-            Eigen::MatrixXd dir = Eigen::MatrixXd::Zero(system.getAtoms().size(), 3);
+            Mat dir = Mat::Zero(system.getAtoms().size(), 3);
             dir(i, j) = opt.engrad.increment; tempSys_plus.move(dir), tempSys_minus.move(-dir);
             
             // calculate and assign the gradient element
-            double E_minus = scf(tempSys_minus, { .diis = flags.diis, .silent = true }).E;
-            double E_plus = scf(tempSys_plus, { .diis = flags.diis, .silent = true }).E;
+            double E_minus = scf(tempSys_minus, true).E;
+            double E_plus = scf(tempSys_plus, true).E;
             G(i, j) = (E_plus - E_minus) / opt.engrad.increment / 2;
 
             // print the element line
-            Logger::Log(flags.silent, "(%2i, %1i) %17.14f %s", i + 1, j + 1, G(i, j), Timer::format(Timer::elapsed(start)));
+            Logger::Log(silent || !opt.engrad.print.iter, "(%2i, %1i) %17.14f %s", i + 1, j + 1, G(i, j), Timer::format(Timer::elapsed(start)));
         }
     }
 
     // print the gradient
-    Logger::Log(flags.silent, "\nNUCLEAR GRADIENT");
-    Logger::Log(flags.silent, G);
+    Logger::Log(silent, "\nNUCLEAR ENERGY GRADIENT");
+    Logger::Log(silent, G);
 
     // return the results
     return { G, E0 };
 };
 
-HartreeFock::HFResult HartreeFock::scf(System system, Flags flags) const {
+HartreeFock::HFResult HartreeFock::scf(System system, bool silent) const {
     // calculate the necessary integrals
-    Eigen::MatrixXd T = system.integralSingle(libint2::Operator::kinetic);
-    Eigen::MatrixXd V = system.integralSingle(libint2::Operator::nuclear);
-    Eigen::MatrixXd S = system.integralSingle(libint2::Operator::overlap);
-    double Vnn = NUCREPALL(system); Eigen::MatrixXd H = T + V;
+    Mat T = system.integralSingle(libint2::Operator::kinetic);
+    Mat V = system.integralSingle(libint2::Operator::nuclear);
+    Mat S = system.integralSingle(libint2::Operator::overlap);
+    double Vnn = system.getRepulsion(); Mat H = T + V;
 
     // print the matrices if requested
-    Logger::Log(flags.silent || !opt.print.overlap, "\nOVERLAP MATRIX");
-    Logger::Log(flags.silent || !opt.print.overlap, S);
-    Logger::Log(flags.silent || !opt.print.kinetic, "\nKINETIC MATRIX");
-    Logger::Log(flags.silent || !opt.print.kinetic, T);
-    Logger::Log(flags.silent || !opt.print.oneelec, "\nONE-ELECTRON MATRIX");
-    Logger::Log(flags.silent || !opt.print.oneelec, V);
+    Logger::Log(silent || !opt.print.overlap, "\nOVERLAP MATRIX");
+    Logger::Log(silent || !opt.print.overlap, S);
+    Logger::Log(silent || !opt.print.kinetic, "\nKINETIC MATRIX");
+    Logger::Log(silent || !opt.print.kinetic, T);
+    Logger::Log(silent || !opt.print.oneelec, "\nONE-ELECTRON MATRIX");
+    Logger::Log(silent || !opt.print.oneelec, V);
 
     // get the number of occupied orbitals
-    int nocc = NELECTRONS(system) / 2;
+    int nocc = system.getElectrons() / 2;
 
     // solve the eigenproblem for core hamiltonian
-    Eigen::GeneralizedSelfAdjointEigenSolver<Eigen::MatrixXd> solver(H, S);
-    Eigen::MatrixXd C = solver.eigenvectors().leftCols(nocc);
-    Eigen::VectorXd eps = solver.eigenvalues();
+    Eigen::GeneralizedSelfAdjointEigenSolver<Mat> solver(H, S);
+    Mat C = solver.eigenvectors().leftCols(nocc);
+    Vec eps = solver.eigenvalues();
 
     // compute the guess density matrix and energy
-    Eigen::MatrixXd D = 2 * C * C.transpose(); double E = D.cwiseProduct(2 * H).sum() + Vnn;
+    Mat D = 2 * C * C.transpose(); double E = D.cwiseProduct(2 * H).sum() + Vnn;
 
     // initialize the DIIS algorithm
-    libint2::DIIS<Eigen::MatrixXd> diis(opt.diis.start - 1, opt.diis.keep, opt.diis.damp);
+    libint2::DIIS<Mat> diis(opt.diis.start - 1, opt.diis.keep, opt.diis.damp);
 
-    // print the header
-    Logger::Log(flags.silent, "\nHARTREE-FOCK SCF CYCLE");
-    Logger::Log(flags.silent, "%=4s %=20s %=8s %=8s %=12s", "ITER", "E [Eh]", "dE", "dD", "TIME");
+    // print the Hartree-Fock header
+    Logger::Log(silent, "\nHARTREE-FOCK METHOD");
+    if (opt.diis.on) Logger::Log(silent, "MAXITER: %i, THRESH: %.2e, DIIS: [START: %i, KEEP: %i, DAMP: %i]", opt.maxiter, opt.thresh, opt.diis.start, opt.diis.keep, opt.diis.damp);
+    else Logger::Log(silent, "MAXITER: %i, THRESH: %.2e, DIIS: OFF", opt.maxiter, opt.thresh);
+
+    // print the SCF header
+    Logger::Log(silent || !opt.print.iter, "\nHARTREE-FOCK SCF CYCLE");
+    Logger::Log(silent || !opt.print.iter, "%=4s %=20s %=8s %=8s %=12s", "ITER", "E [Eh]", "dE", "dD", "TIME");
 
     // start the SCF cycle
     for (int i = 1; i <= opt.maxiter; i++) {
@@ -142,18 +150,18 @@ HartreeFock::HFResult HartreeFock::scf(System system, Flags flags) const {
         // start the timer
         auto start = Timer::now();
 
-        // compute the Fock matrix
-        Eigen::MatrixXd F = H + 0.5 * system.integralCoulomb(D);
+        // compute the Fock matrix and error
+        Mat F = H + 0.5 * system.integralCoulomb(D);
+        Mat e = S * D * F - F * D * S;
 
         // compute error and extrapolate the Fock matrix
-        Eigen::MatrixXd e = S * D * F - F * D * S;
-        if (flags.diis) diis.extrapolate(F, e);
+        if (opt.diis.on) diis.extrapolate(F, e);
 
         // save results from previous iterations
-        Eigen::MatrixXd Dold = D, Fold = F; double Eold = E;
+        Mat Dold = D, Fold = F; double Eold = E;
 
         // solve the Roothan equations and compute the density matrix from the result
-        solver = Eigen::GeneralizedSelfAdjointEigenSolver<Eigen::MatrixXd>(F, S);
+        solver = Eigen::GeneralizedSelfAdjointEigenSolver<Mat>(F, S);
         C = solver.eigenvectors().leftCols(nocc), eps = solver.eigenvalues();
 
         // calculate the density matrix and energy
@@ -163,26 +171,29 @@ HartreeFock::HFResult HartreeFock::scf(System system, Flags flags) const {
         double dD = std::abs(D.norm() - Dold.norm()), dE = std::abs(E - Eold);
 
         // print the iteration and restart the timer
-        Logger::Log(flags.silent, "%4i %20.14f %.2e %.2e %s",  i, E, dE, dD, Timer::format(Timer::elapsed(start)));
+        Logger::Log(silent || !opt.print.iter, "%4i %20.14f %.2e %.2e %s",  i, E, dE, dD, Timer::format(Timer::elapsed(start)));
 
         // check for convergence
         if (dE < opt.thresh && dD < opt.thresh) break;
         else if (i == opt.maxiter) std::cerr << "Algorithm did not converge." << std::endl;
     }
-    
-    // print the orbital energies if requested
-    Logger::Log(flags.silent || !opt.print.orben, "\nORBITAL ENERGIES AND OCCUPATION\n%=4s %=3s %=20s %=22s", "ITER", "OCC", "E [Eh]", "E [eV]");
-    for (int i = 0; i < eps.rows(); i++) {
-        Logger::Log(flags.silent || !opt.print.orben, "%4i %3.1f %20.14f %22.14f",  i, (i + 1) <= nocc ? 2.0 : 0.0, eps(i), eps(i) * EH2EV);
-    }
 
     // print the orbital coefficients matrix if requested
-    Logger::Log(flags.silent || !opt.print.density, "\nORBITAL COEFFICIENTS MATRIX");
-    Logger::Log(flags.silent || !opt.print.density, -solver.eigenvectors());
+    Logger::Log(silent || !opt.print.mos, "\nORBITAL COEFFICIENTS MATRIX");
+    Logger::Log(silent || !opt.print.mos, -solver.eigenvectors());
 
     // print the density matrix if requested
-    Logger::Log(flags.silent || !opt.print.density, "\nDENSITY MATRIX");
-    Logger::Log(flags.silent || !opt.print.density, D);
+    Logger::Log(silent || !opt.print.density, "\nDENSITY MATRIX");
+    Logger::Log(silent || !opt.print.density, D);
+    
+    // print the orbital energies if requested
+    Logger::Log(silent || !opt.print.orben, "\nORBITAL ENERGIES AND OCCUPATION\n%=4s %=3s %=20s %=22s", "ITER", "OCC", "E [Eh]", "E [eV]");
+    for (int i = 0; i < eps.rows(); i++) {
+        Logger::Log(silent || !opt.print.orben, "%4i %3.1f %20.14f %22.14f",  i, (i + 1) <= nocc ? 2.0 : 0.0, eps(i), eps(i) * EH2EV);
+    }
+
+    // print the final energy
+    Logger::Log(silent, "\nFINAL SINGLE POINT ENERGY: %.14f Eh", E);
 
     // return the results
     return { C, D, eps, E };

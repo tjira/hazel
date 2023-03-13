@@ -1,5 +1,6 @@
 #pragma once
 
+#include "define.h"
 #include <boost/format.hpp>
 #include <Eigen/Eigen>
 #include <iostream>
