@@ -18,6 +18,6 @@ void Logger::Log(bool silent, Eigen::MatrixXd matrix, std::string fmt) {
             else if (matrix.cols() % 5 == 3) Logger::Log(false, format2, matrix(j, 5 * i), matrix(j, 5 * i + 1), matrix(j, 5 * i + 2));
             else if (matrix.cols() % 5 == 4) Logger::Log(false, format2, matrix(j, 5 * i), matrix(j, 5 * i + 1), matrix(j, 5 * i + 2), matrix(j, 5 * i + 3));
         }
-        if (i < matrix.cols() / 5) Logger::Log(false, std::string(WIDTH, '-'));
+        if (i < matrix.cols() / 5) Logger::Log(false, "");
     }
 }

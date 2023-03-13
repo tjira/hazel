@@ -27,23 +27,6 @@ double System::getRepulsion() const {
     return repulsion;
 }
 
-// algorithm from: https://www.cup.uni-muenchen.de/ch/compchem/pop/mull1.html
-MullikenResult System::mulliken(Mat D) const {
-    Mat S = integralSingle(libint2::Operator::overlap);
-    Vec q = Vec::Zero(atoms.size());
-    Mat DS = D.cwiseProduct(S);
-    for (size_t i = 0, j = 0; i < shells.size(); i++) {
-        for (size_t k = 0; k < shells.at(i).size(); k++) {
-            q(shells.shell2atom(atoms).at(i)) -= DS.colwise().sum()(j + k);
-        }
-        j += shells.at(i).size();
-    }
-    for (size_t i = 0; i < atoms.size(); i++) {
-        q(i) += atoms.at(i).atomic_number;
-    }
-    return { DS, q };
-}
-
 /*
 Computes Drs * (2 * (pq|rs) - (pr|sq))).
 */

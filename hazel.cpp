@@ -7,7 +7,7 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(HartreeFock::Options::MDYN, timestep, steps, 
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(HartreeFock::Options::GRAD::PRINT, iter);
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(HartreeFock::Options::GRAD, increment, nthread, print);
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(HartreeFock::Options::DIIS, start, keep, damp);
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(HartreeFock::Options, thresh, maxiter, diis, engrad, print, mulliken);
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(HartreeFock::Options, thresh, maxiter, diis, engrad, print);
 
 std::tuple<json, argparse::ArgumentParser> parse(int argc, char** argv) {
     // initialize the argument parser and container for the arguments
@@ -86,16 +86,6 @@ int main(int argc, char** argv) {
 
     // calculate and print the energy gradient if requested
     if (input.at("method").contains("engrad") || input.contains("dynamics")) HartreeFock(opt).gradient(system, false);
-
-    // perform the mulliken analysis if requested
-    if (patch(input).at("method").at("mulliken")) {
-        auto mulliken = system.mulliken(result.D);
-        Logger::Log(false, "\nMULLIKEN CHARGES\n%=2s %=9s", "SM", "Q");
-        for (size_t i = 0; i < system.getAtoms().size(); i++) {
-            Logger::Log(false, "%2s %9.6f", an2sm.at(system.getAtoms().at(i).atomic_number), mulliken.q(i));
-        }
-        Logger::Log(false, "SUM OF MULLIKEN CHARGES: %.6f", mulliken.q.sum());
-    }
 
     // perform the molecular dynamics if requested
     if (input.contains("dynamics")) hfock.dynamics(system, false);

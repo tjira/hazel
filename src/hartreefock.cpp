@@ -10,8 +10,11 @@ static void write(std::ofstream file, System system, int i) {
 
 HartreeFock::MDResult HartreeFock::dynamics(System system, bool silent) const {
     // print the method header
-    Logger::Log(silent, "\nHARTREE-FOCK MOLECULAR DYNAMICS");
+    Logger::Log(false, std::string(WIDTH, '-'));
+    Logger::Log(silent, "\n" + std::string(WIDTH, '-'));
+    Logger::Log(silent, "HARTREE-FOCK MOLECULAR DYNAMICS");
     Logger::Log(silent, "TIMESTEP: %.2e, STEPS: %i", opt.dyn.timestep, opt.dyn.steps);
+    Logger::Log(false, std::string(WIDTH, '-'));
 
     // create position, velocity and mass matrices
     Mat a = Mat::Zero(system.getSize(), 3), q(system.getSize(), 3), m(system.getSize(), 3);
@@ -59,8 +62,10 @@ HartreeFock::MDResult HartreeFock::dynamics(System system, bool silent) const {
 
 HartreeFock::GDResult HartreeFock::gradient(System system, bool silent) const {
     // print the method header
-    Logger::Log(silent, "\nHARTREE-FOCK NUMERICAL GRADIENT COMPUTATION");
+    Logger::Log(silent, "\n" + std::string(WIDTH, '-'));
+    Logger::Log(silent, "HARTREE-FOCK NUMERICAL GRADIENT COMPUTATION");
     Logger::Log(silent, "INCREMENT: %.2e, NTHREAD: %i", opt.engrad.increment, opt.engrad.nthread);
+    Logger::Log(silent, std::string(WIDTH, '-'));
 
     // print the loop header
     Logger::Log(silent || !opt.engrad.print.iter, "\nHARTREE FOCK NUMERICAL GRADIENT ELEMENT EVALUATION LOOP");
@@ -107,6 +112,13 @@ HartreeFock::GDResult HartreeFock::gradient(System system, bool silent) const {
 };
 
 HartreeFock::HFResult HartreeFock::scf(System system, bool silent) const {
+    // print the Hartree-Fock header
+    Logger::Log(silent, "\n" + std::string(WIDTH, '-'));
+    Logger::Log(silent, "HARTREE-FOCK METHOD");
+    if (opt.diis.on) Logger::Log(silent, "MAXITER: %i, THRESH: %.2e, DIIS: [START: %i, KEEP: %i, DAMP: %i]", opt.maxiter, opt.thresh, opt.diis.start, opt.diis.keep, opt.diis.damp);
+    else Logger::Log(silent, "MAXITER: %i, THRESH: %.2e, DIIS: OFF", opt.maxiter, opt.thresh);
+    Logger::Log(silent, std::string(WIDTH, '-'));
+
     // calculate the necessary integrals
     Mat T = system.integralSingle(libint2::Operator::kinetic);
     Mat V = system.integralSingle(libint2::Operator::nuclear);
@@ -134,11 +146,6 @@ HartreeFock::HFResult HartreeFock::scf(System system, bool silent) const {
 
     // initialize the DIIS algorithm
     libint2::DIIS<Mat> diis(opt.diis.start - 1, opt.diis.keep, opt.diis.damp);
-
-    // print the Hartree-Fock header
-    Logger::Log(silent, "\nHARTREE-FOCK METHOD");
-    if (opt.diis.on) Logger::Log(silent, "MAXITER: %i, THRESH: %.2e, DIIS: [START: %i, KEEP: %i, DAMP: %i]", opt.maxiter, opt.thresh, opt.diis.start, opt.diis.keep, opt.diis.damp);
-    else Logger::Log(silent, "MAXITER: %i, THRESH: %.2e, DIIS: OFF", opt.maxiter, opt.thresh);
 
     // print the SCF header
     Logger::Log(silent || !opt.print.iter, "\nHARTREE-FOCK SCF CYCLE");

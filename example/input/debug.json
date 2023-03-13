@@ -18,7 +18,6 @@
                 "iter" : true
             }
         },
-        "mulliken" : true,
         "print" : {
             "kinetic" : true,
             "oneelec" : true,

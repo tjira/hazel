@@ -28,7 +28,6 @@ public:
     // computers
     Mat integralSingle(libint2::Operator op) const;
     Mat integralCoulomb(Mat D) const;
-    MullikenResult mulliken(Mat D) const;
     void move(Mat dir);
 
 private:

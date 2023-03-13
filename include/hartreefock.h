@@ -28,7 +28,6 @@ public:
             bool orben, mos, iter;
         }; PRINT print;
         double thresh; int maxiter;
-        bool mulliken;
     };
 
 private:
