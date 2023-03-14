@@ -1,10 +1,6 @@
 compile_commands.json
 trajectory.xyz
 .cache/
-.clangd/
-.makefile/
-.vscode/
 bin/
 build/
-lib/
 out/

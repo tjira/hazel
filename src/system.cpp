@@ -1,5 +1,4 @@
 #include "../include/hartreefock.h"
-#include <libint2/tensor.h>
 
 System::System(std::string filename, std::string basis) : basis(basis) {
     if (!std::filesystem::exists(filename)) throw std::runtime_error("System file does not exist.");
@@ -33,6 +32,7 @@ Mat System::integralCoulomb(Mat D) const {
     libint2::Engine engine(libint2::Operator::coulomb, shells.max_nprim(), shells.max_l());
     const auto& result = engine.results(); auto sh2bf = shells.shell2bf();
     Mat matrix = Mat::Zero(shells.nbf(), shells.nbf());
+    /* Ten4 eris = libint2::compute_eri(shells); */
     for(size_t i = 0; i < shells.size(); i++) {
         for(size_t j = 0; j <= i; j++) {
             for(size_t k = 0; k <= i; k++) {

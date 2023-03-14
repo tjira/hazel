@@ -2,6 +2,9 @@
 
 #include <boost/algorithm/string.hpp>
 #include <unsupported/Eigen/CXX11/Tensor>
+#include <filesystem>
+
+#define DATADIR std::filesystem::current_path()
 
 #define EH2EV 27.211324570273
 #define WIDTH 104
