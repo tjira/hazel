@@ -1,0 +1,63 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - '*'
+
+permissions:
+  contents: write
+
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install Packages
+        run: sudo apt install -y libeigen3-dev
+
+      - name: Build Libint
+        run: ./script/libint.sh
+
+      - name: Configure Hazel
+        run: cmake -B build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+
+      - name: Build Hazel
+        run: |
+          export CPLUS_INCLUDE_PATH="$PWD/libint/install/include:$CPLUS_INCLUDE_PATH"
+          export LIBRARY_PATH="$PWD/libint/install/lib:$LIBRARY_PATH"
+          cmake --build build
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          path: |
+            bin/hazel
+
+  release:
+    runs-on: ubuntu-latest
+    needs: [build-linux]
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Download Artifacts
+        uses: actions/download-artifact@v3
+
+      - name: Copy Binaries to Root Folder
+        run: cp artifact/hazel ${{github.workspace}}
+
+      - name: Create Linux Tarball
+        run: tar -czf hazel-linux-amd64.tar.gz hazel
+
+      - name: Release Linux Hazel
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{secrets.GITHUB_TOKEN}}
+          file: hazel-linux-amd64.tar.gz
+          tag: ${{github.ref}}

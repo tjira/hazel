@@ -1,0 +1,22 @@
+title: Quantum Hazel
+email: tom.jira@gmail.com
+github_username: jirat
+
+url: "https://tjira.github.io"
+baseurl: "/hazel"
+
+description: >-
+  Write an awesome description for your new site here. You can edit this
+  line in _config.yml. It will appear in your document head meta (for
+  Google search results) and in your feed.xml site description.
+
+plugins:
+  - jekyll-remote-theme
+
+remote_theme: just-the-docs/just-the-docs
+aux_links:
+  "Quantum Hazel on GitHub":
+    - "//github.com/tjira/hazel"
+callouts:
+  note:
+    color: blue
