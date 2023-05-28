@@ -16,7 +16,7 @@ find_package(Eigen3 REQUIRED)
 find_package(OpenMP REQUIRED)
 
 # add hazel executable
-add_executable(hazel src/integral.cpp src/main.cpp src/matrix.cpp src/roothaan.cpp src/system.cpp src/tensor.cpp src/timer.cpp)
+add_executable(hazel src/distributor.cpp src/eigen.cpp src/integral.cpp src/main.cpp src/roothaan.cpp src/system.cpp src/timer.cpp)
 target_compile_definitions(hazel PRIVATE DATADIR="${PROJECT_SOURCE_DIR}")
 target_link_libraries(hazel Eigen3::Eigen int2.a)
 

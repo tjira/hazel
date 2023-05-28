@@ -1,8 +1,7 @@
 #pragma once
 
-#include "matrix.h"
+#include "eigen.h"
 #include "system.h"
-#include "tensor.h"
 
 namespace Integral {
     // specific integrals
@@ -11,10 +10,19 @@ namespace Integral {
     Matrix Overlap(const System& system);
     Matrix Nuclear(const System& system);
 
+    // specific first derivative integrals
+    Tensor<5> dCoulomb(const System& system);
+    Tensor<3> dKinetic(const System& system);
+    Tensor<3> dOverlap(const System& system);
+    Tensor<3> dNuclear(const System& system);
+
     // general integrals
+    Tensor<5> dDouble(libint2::Engine& engine, const System& system);
+    Tensor<3> dSingle(libint2::Engine& engine, const System& system);
     Tensor<4> Double(libint2::Engine& engine, const System& system);
     Matrix Single(libint2::Engine& engine, const System& system);
 
     // additional calculations
+    Matrix dRepulsion(const System& system);
     double Repulsion(const System& system);
 }
