@@ -27,6 +27,12 @@ Distributor::Distributor(int argc, char** argv) : program("hazel", "0.1", argpar
     if (program.get<bool>("-h")) {
         std::cout << program.help().str(); exit(EXIT_SUCCESS);
     }
+
+    // set the path where to find all the basis functions
+    if (!std::filesystem::is_directory(std::string(DATADIR) + "/basis")) {
+        std::string path = std::filesystem::weakly_canonical(std::filesystem::path(argv[0])).parent_path();
+        setenv("LIBINT_DATA_PATH", path.c_str(), true);
+    }
 }
 
 Distributor::~Distributor() {
