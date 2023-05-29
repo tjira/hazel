@@ -5,9 +5,8 @@
 #include <unsupported/Eigen/MatrixFunctions>
 #include <unsupported/Eigen/CXX11/Tensor>
 
+typedef Eigen::Vector<double, Eigen::Dynamic> Vector; typedef Eigen::IndexPair<int> Pair;
 typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor> Matrix;
-typedef Eigen::Vector<double, Eigen::Dynamic> Vector;
-typedef Eigen::IndexPair<int> Pair;
 
 template <size_t D> using Tensor = Eigen::Tensor<double, D, Eigen::ColMajor>;
 template <size_t D> using Axes = Eigen::array<Eigen::IndexPair<int>, D>;

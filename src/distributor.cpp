@@ -33,11 +33,14 @@ Distributor::Distributor(int argc, char** argv) : program("hazel", "0.1", argpar
         std::string path = std::filesystem::weakly_canonical(std::filesystem::path(argv[0])).parent_path();
         setenv("LIBINT_DATA_PATH", path.c_str(), true);
     }
+    
+    // set cout global flags
+    std::cout << std::fixed << std::setprecision(14);
 }
 
 Distributor::~Distributor() {
     std::cout << "\n" + std::string(104, '-') << std::endl;
-    std::cout << std::format("TOTAL EXECUTION TIME: {:s}", Timer::Format(Timer::Elapsed(start))) << std::endl;
+    std::printf("TOTAL EXECUTION TIME: %s\n", Timer::Format(Timer::Elapsed(start)).c_str());
     std::cout << std::string(104, '-') << std::endl;
 }
 
@@ -52,6 +55,22 @@ void Distributor::run() {
     // load the system file and extract printing options
     std::vector<std::string> print = program.get<std::vector<std::string>>("-p");
     System system(program.get("system"), program.get("-b"), 0, 1);
+
+    // create auxiliary system matrices (coordinate and distance matrix)
+    Matrix coords(system.atoms.size(), 3), dists(system.atoms.size(), system.atoms.size());
+
+    // fill the coordinate and distance matrices
+    for (int i = 0; i < coords.rows(); i++) coords.row(i) = BOHR2A * Eigen::Vector<double, 3>(system.atoms.at(i).x, system.atoms.at(i).y, system.atoms.at(i).z);
+    for (int i = 0; i < coords.rows(); i++) for (int j = 0; j < coords.rows(); j++) dists(i, j) = (coords.row(i) - coords.row(j)).norm();
+
+    // print the system header
+    std::cout << "\n" + std::string(104, '-') + "\nSYSTEM SPECIFICATION\n";
+    std::printf("ATOMS: %d, CHARGE: %d, MULTIPLICITY: %d, ELECTRONS: %d\n", (int)system.atoms.size(), system.charge, system.multi, system.electrons);
+    std::cout << std::string(104, '-') + "\n";
+
+    // print the system coordinates and distance matrix
+    std::cout << "\nSYSTEM COORDINATES\n" << coords << std::endl; 
+    std::cout << "\nDISTANCE MATRIX\n" << dists << std::endl; 
 
     // define the integral matrices and tensors
     Tensor<3> dS, dT, dV; Tensor<5> dJ;
@@ -104,7 +123,7 @@ void Distributor::run() {
 
     // print the RHF method header
     std::cout << "\n" + std::string(104, '-') + "\nRESTRICTED HARTREE-FOCK METHOD\n";
-    std::cout << std::format("MAXITER: {:d}, THRESH: {:.2e}, DIIS: [START: {:d}, KEEP: {:d}]\n", maxiter, thresh, diis.first, diis.second);
+    std::printf("MAXITER: %d, THRESH: %.2e, DIIS: [START: %d, KEEP: %d]\n", maxiter, thresh, diis.first, diis.second);
     std::cout << std::string(104, '-') + "\n\n";
 
     // create the initial guess for the density matrix
@@ -119,8 +138,8 @@ void Distributor::run() {
     if (CONTAINS(print, "EPS")) std::cout << "\nORBITAL ENERGIES\n" << Matrix(eps) << std::endl;
 
     // print the energy
-    std::cout << std::format("\nTOTAL NUCLEAR REPULSION ENERGY: {:.14f}", Integral::Repulsion(system)) << std::endl;
-    std::cout << std::format("FINAL SINGLE POINT ENERGY: {:.14f}", Eel + Integral::Repulsion(system)) << std::endl;
+    std::cout << "\nTOTAL NUCLEAR REPULSION ENERGY: " << Integral::Repulsion(system) << std::endl;
+    std::cout << "FINAL SINGLE POINT ENERGY: " << Eel + Integral::Repulsion(system) << std::endl;
 
     // calculate the nuclear gradient
     if (program.get<bool>("-g")) {

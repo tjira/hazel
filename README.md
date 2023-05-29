@@ -44,9 +44,13 @@ Below are all the important features of Hazel divided into categories.
 
 * Direct Inversion in the Iterative Subspace
 
+### Additional Calculations
+
+* Analytical Gradient for RHF
+
 ## 🛠️ Compilation
 
-The software requires the [libint](https://github.com/evaleev/libint) library. You can compile it yourself following the instructions on the webpage (or better yet execute `./script/libint.sh` from the root directory). Before compilation make sure that you have Eigen libraries installed. You can do that on debian-based distros using the following command.
+The software requires the [libint](https://github.com/evaleev/libint) library. You can compile it yourself following the instructions on the webpage (or better yet execute `./script/libint.sh` from the root directory). Before compilation make sure that you have Eigen library installed. You can do that on debian-based distros using the following command.
 
 ```bash
 sudo apt install libeigen3-dev

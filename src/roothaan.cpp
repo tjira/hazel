@@ -55,7 +55,7 @@ std::tuple<Matrix, Vector, double> Roothaan::scf(const Matrix& H, const Tensor<4
     Tensor<4> ERI = J - 0.5 * J.shuffle(Array<4>{0, 3, 2, 1});
 
     // print the iteration header
-    if (print) std::cout << std::format("ITER {:^20s} {:^8s} {:^8s} {:^12s}", "Eel [Eh]", "|dE|", "|dD|", "TIME") << std::endl;
+    if (print) std::printf("ITER       Eel [Eh]         |dE|     |dD|       TIME    \n");
 
     // perform the scf loop
     for (int i = 1; i <= maxiter; i++) {
@@ -77,7 +77,7 @@ std::tuple<Matrix, Vector, double> Roothaan::scf(const Matrix& H, const Tensor<4
         E = 0.5 * D.cwiseProduct(H + F).sum();
 
         // print the iteration info line
-        if (print) std::cout << std::format("{:4d} {:20.14f} {:.2e} {:.2e} {:12s} {:s}", i, E, std::abs(E - Ep), (D - Dp).norm(), Timer::Format(Timer::Elapsed(start)), i > this->diis.start + 1 ? "DIIS" : "") << std::endl;
+        if (print) std::printf("%4d %20.14f %.2e %.2e %s %s\n", i, E, std::abs(E - Ep), (D - Dp).norm(), Timer::Format(Timer::Elapsed(start)).c_str(), i > this->diis.start + 1 ? "DIIS" : "");
 
         // finish if covergence reached
         if (std::abs(E - Ep) < thresh && (D - Dp).norm() < thresh) break;

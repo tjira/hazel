@@ -2,7 +2,6 @@
 
 #include <libint2/diis.h>
 #include <filesystem>
-#include <format>
 
 struct System {
     System(const std::string& fname, const std::string& basis, int charge, int multi);

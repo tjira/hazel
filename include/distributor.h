@@ -1,5 +1,6 @@
 #pragma once
 
+#include "constant.h"
 #include "integral.h"
 #include "roothaan.h"
 #include "timer.h"

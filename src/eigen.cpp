@@ -7,7 +7,7 @@ std::ostream& Eigen::operator<<(std::ostream& os, const Mat& A) {
         os << i * 5 + 1 << "-" << std::min((int)A.cols(), 5 * i + 5) << "\n";
         for (int j = 0; j < A.rows(); j++) {
             for (int k = 5 * i; k < std::min((int)A.cols(), 5 * i + 5); k++) {
-                os << std::format("{:20.14f} ", A(j, k));
+                os << std::setw(20) << A(j, k) << " ";
             }
             if (j < A.rows() - 1) os << "\n";
         }
