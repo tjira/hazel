@@ -25,3 +25,5 @@ inline Tensor<1> toTensor(Vector A) {return Eigen::TensorMap<Tensor<1>>(A.data()
 
 inline Matrix toMatrix(Tensor<2> A) {return Eigen::Map<Matrix>(A.data(), A.dimension(0), A.dimension(1));}
 inline Vector toVector(Tensor<1> A) {return Eigen::Map<Vector>(A.data(), A.dimension(0));}
+
+#include <iomanip>

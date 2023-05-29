@@ -1,5 +1,7 @@
 #include "distributor.h"
+#include <cctype>
 
+// #define TOLOWER(V) [](auto v) {for (auto& e : v) {std::transform(e.begin(), e.end(), e.begin(), [](auto c){return std::tolower(c);});} return v;}(V)
 #define CONTAINS(V, E) ([](std::vector<std::string> v, std::string e){return std::find(v.begin(), v.end(), e) != v.end();}(V, E))
 #define TIME(W) {Timer::Timepoint start = Timer::Now(); W; std::cout << Timer::Format(Timer::Elapsed(start)) << std::flush;}
 
@@ -50,22 +52,28 @@ void Distributor::run() {
     int maxiter = program.get<int>("-m"); double thresh = program.get<double>("-t");
 
     // print the title
-    std::cout << "HAZEL" << std::endl;
+    std::cout << "QUANTUM HAZEL" << std::endl;
 
     // load the system file and extract printing options
     std::vector<std::string> print = program.get<std::vector<std::string>>("-p");
     System system(program.get("system"), program.get("-b"), 0, 1);
 
-    // create auxiliary system matrices (coordinate and distance matrix)
+    // transform print vector to lowercase and create auxiliary system matrices (coordinate and distance matrix)
+    for (auto& el : print) std::transform(el.begin(), el.end(), el.begin(), [](auto c){return std::tolower(c);});
     Matrix coords(system.atoms.size(), 3), dists(system.atoms.size(), system.atoms.size());
 
     // fill the coordinate and distance matrices
     for (int i = 0; i < coords.rows(); i++) coords.row(i) = BOHR2A * Eigen::Vector<double, 3>(system.atoms.at(i).x, system.atoms.at(i).y, system.atoms.at(i).z);
     for (int i = 0; i < coords.rows(); i++) for (int j = 0; j < coords.rows(); j++) dists(i, j) = (coords.row(i) - coords.row(j)).norm();
 
+    // print the info header
+    std::cout << "\n" + std::string(104, '-') + "\n";
+    std::printf("TIMESTAMP: %s\nCOMPILE FLAGS: %s\n", __TIMESTAMP__, CXXFLAGS);
+    std::cout << std::string(104, '-') + "\n";
+
     // print the system header
     std::cout << "\n" + std::string(104, '-') + "\nSYSTEM SPECIFICATION\n";
-    std::printf("ATOMS: %d, CHARGE: %d, MULTIPLICITY: %d, ELECTRONS: %d\n", (int)system.atoms.size(), system.charge, system.multi, system.electrons);
+    std::printf("ATOMS: %d, CHARGE: %d, MULTIPLICITY: %d, ELECTRONS: %d, BASIS: %s, NBF: %d\n", (int)system.atoms.size(), system.charge, system.multi, system.electrons, program.get("-b").c_str(), (int)system.shells.nbf());
     std::cout << std::string(104, '-') + "\n";
 
     // print the system coordinates and distance matrix
@@ -85,37 +93,37 @@ void Distributor::run() {
 
     // calculate the overlap integral
     std::cout << "\nOVERLAP INTEGRAL: " << std::flush; TIME(S = Integral::Overlap(system))
-    if (CONTAINS(print, "S")) std::cout << "\n" << S << std::endl;
+    if (CONTAINS(print, "s")) std::cout << "\n" << S << std::endl;
 
     // calculate the kinetic integral
     std::cout << "\nKINETIC INTEGRAL: " << std::flush; TIME(T = Integral::Kinetic(system))
-    if (CONTAINS(print, "T")) std::cout << "\n" << T << std::endl;
+    if (CONTAINS(print, "t")) std::cout << "\n" << T << std::endl;
 
     // calculate the nuclear-electron attraction integral
     std::cout << "\nNUCLEAR INTEGRAL: " << std::flush; TIME(V = Integral::Nuclear(system))
-    if (CONTAINS(print, "V")) std::cout << "\n" << V << std::endl;
+    if (CONTAINS(print, "v")) std::cout << "\n" << V << std::endl;
 
     // calculate the electron-electron repulsion integral
     std::cout << "\nCOULOMB INTEGRAL: " << std::flush; TIME(J = Integral::Coulomb(system))
-    if (CONTAINS(print, "J")) {std::cout << "\n" << J;} std::cout << "\n";
+    if (CONTAINS(print, "j")) {std::cout << "\n" << J;} std::cout << "\n";
 
     // if derivatives of the integrals are needed
     if (program.get<bool>("-g")) {
         // calculate the overlap integral
         std::cout << "\nFIRST DERIVATIVE OF OVERLAP INTEGRAL: " << std::flush; TIME(dS = Integral::dOverlap(system))
-        if (CONTAINS(print, "dS")) std::cout << "\n" << dS << std::endl;
+        if (CONTAINS(print, "ds")) std::cout << "\n" << dS << std::endl;
 
         // calculate the kinetic integral
         std::cout << "\nFIRST DERIVATIVE OF KINETIC INTEGRAL: " << std::flush; TIME(dT = Integral::dKinetic(system))
-        if (CONTAINS(print, "dT")) std::cout << "\n" << dT << std::endl;
+        if (CONTAINS(print, "dt")) std::cout << "\n" << dT << std::endl;
 
         // calculate the nuclear-electron attraction integral
         std::cout << "\nFIRST DERIVATIVE OF NUCLEAR INTEGRAL: " << std::flush; TIME(dV = Integral::dNuclear(system))
-        if (CONTAINS(print, "dV")) std::cout << "\n" << dV << std::endl;
+        if (CONTAINS(print, "dv")) std::cout << "\n" << dV << std::endl;
 
         // calculate the electron-electron repulsion integral
         std::cout << "\nFIRST DERIVATIVE OF COULOMB INTEGRAL: " << std::flush; TIME(dJ = Integral::dCoulomb(system))
-        if (CONTAINS(print, "dJ")) {std::cout << "\n" << dJ;} std::cout << "\n";
+        if (CONTAINS(print, "dj")) {std::cout << "\n" << dJ;} std::cout << "\n";
     }
 
     // finalize libint
@@ -133,9 +141,9 @@ void Distributor::run() {
     auto[C, eps, Eel] = Roothaan(system, maxiter, thresh, diis).scf(T + V, J, S, D);
 
     // print the results
-    if (CONTAINS(print, "C")) std::cout << "\nCOEFFICIENT MATRIX\n" << C << std::endl;
-    if (CONTAINS(print, "D")) std::cout << "\nDENSITY MATRIX\n" << D << std::endl;
-    if (CONTAINS(print, "EPS")) std::cout << "\nORBITAL ENERGIES\n" << Matrix(eps) << std::endl;
+    if (CONTAINS(print, "c")) std::cout << "\nCOEFFICIENT MATRIX\n" << C << std::endl;
+    if (CONTAINS(print, "d")) std::cout << "\nDENSITY MATRIX\n" << D << std::endl;
+    if (CONTAINS(print, "eps")) std::cout << "\nORBITAL ENERGIES\n" << Matrix(eps) << std::endl;
 
     // print the energy
     std::cout << "\nTOTAL NUCLEAR REPULSION ENERGY: " << Integral::Repulsion(system) << std::endl;
