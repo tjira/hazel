@@ -1,6 +1,5 @@
 #pragma once
 
-#include "eigen.h"
 #include "system.h"
 
 namespace Integral {
@@ -26,3 +25,8 @@ namespace Integral {
     Matrix dRepulsion(const System& system);
     double Repulsion(const System& system);
 }
+
+struct Integrals {
+    Tensor<3> dT, dS, dV; Tensor<5> dJ;
+    Matrix T, S, V; Tensor<4> J;
+};

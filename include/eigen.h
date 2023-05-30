@@ -2,6 +2,8 @@
 
 #define EIGEN_INITIALIZE_MATRICES_BY_ZERO
 
+#define BOHR2A 0.529177249
+
 #include <unsupported/Eigen/MatrixFunctions>
 #include <unsupported/Eigen/CXX11/Tensor>
 
@@ -26,4 +28,4 @@ inline Tensor<1> toTensor(Vector A) {return Eigen::TensorMap<Tensor<1>>(A.data()
 inline Matrix toMatrix(Tensor<2> A) {return Eigen::Map<Matrix>(A.data(), A.dimension(0), A.dimension(1));}
 inline Vector toVector(Tensor<1> A) {return Eigen::Map<Vector>(A.data(), A.dimension(0));}
 
-#include <iomanip>
+#include <libint2/diis.h>
