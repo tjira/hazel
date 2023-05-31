@@ -88,7 +88,7 @@ Tensor<5> Integral::dDouble(libint2::Engine& engine, const System& system) {
     const auto& result = engine.results();
 
     // create the result tensor
-    Tensor<5> tensor(system.shells.nbf(), system.shells.nbf(), system.shells.nbf(), system.shells.nbf(), 3);
+    Tensor<5> tensor(system.shells.nbf(), system.shells.nbf(), system.shells.nbf(), system.shells.nbf(), 3); tensor.setZero();
 
     // loop over all non-duplicate tensor elements
     for (size_t i = 0; i < system.shells.size(); i++) {
@@ -156,7 +156,7 @@ Tensor<3> Integral::dSingle(libint2::Engine& engine, const System& system) {
 
     // initiaize the result matrix
     int dim = engine.oper() == libint2::Operator::nuclear ? 3 * system.atoms.size() + 6 : 6;
-    Tensor<3> tensor(system.shells.nbf(), system.shells.nbf(), dim);
+    Tensor<3> tensor(system.shells.nbf(), system.shells.nbf(), dim); tensor.setZero();
 
     // loop over all matrix elements
     for (size_t i = 0; i < system.shells.size(); i++) {

@@ -1,8 +1,9 @@
 #pragma once
 
 #define EIGEN_INITIALIZE_MATRICES_BY_ZERO
-
 #define BOHR2A 0.529177249
+
+inline int nthread;
 
 #include <unsupported/Eigen/MatrixFunctions>
 #include <unsupported/Eigen/CXX11/Tensor>

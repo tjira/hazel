@@ -50,7 +50,7 @@ Matrix Roothaan::gradient(const Integrals& ints, const Matrix& C, const Vector& 
 std::tuple<System, Integrals, Matrix, Matrix> Roothaan::optimize(Integrals ints) const {
     // define Densty matrix, perform HF calculation and calculate the analytical gradient
     Matrix D = Matrix::Zero(ints.S.rows(), ints.S.cols()); auto[C, eps, E] = scf(ints, D, false);
-    Matrix G = gradient(ints, C, eps); System optsys = system;
+    Matrix G = gradient(ints, C, eps); System optsys = system; libint2::initialize(); 
 
     // print the header
     std::printf("ITER        E [Eh]         |GRAD|      TIME\n");
@@ -85,8 +85,8 @@ std::tuple<System, Integrals, Matrix, Matrix> Roothaan::optimize(Integrals ints)
         std::printf("%4d %20.14f %.2e %s\n", i, E, G.norm(), Timer::Format(Timer::Elapsed(start)).c_str());
     }
 
-    // return stuff
-    return {optsys, ints, D, G};
+    // finalize libint and return stuff
+    libint2::finalize(); return {optsys, ints, D, G};
 }
 
 std::tuple<Matrix, Vector, double> Roothaan::scf(const Integrals& ints, Matrix& D, bool print) const {

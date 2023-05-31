@@ -6,4 +6,4 @@
 /.cache/
 /build/
 /bin/
-/example/orca
+*.out
