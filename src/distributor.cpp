@@ -63,14 +63,19 @@ void Distributor::run() {
     for (auto& element : print) std::transform(element.begin(), element.end(), element.begin(), [](auto c){return std::tolower(c);});
 
     // print the info header
-    std::cout << "\n" + std::string(104, '-') + "\n";
+    std::cout << "\n" + std::string(104, '-') + "\nGENERAL INFO\n";
+    std::cout << std::string(104, '-') + "\n\n";
+
+    // print the info
     std::printf("TIMESTAMP: %s\nCOMPILE FLAGS: %s\n", __TIMESTAMP__, CXXFLAGS);
-    std::cout << std::string(104, '-') + "\n";
 
     // print the system header
-    std::cout << "\n" + std::string(104, '-') + "\nSYSTEM SPECIFICATION\n";
-    std::printf("ATOMS: %d, CHARGE: %d, MULTIPLICITY: %d, ELECTRONS: %d, BASIS: %s, NBF: %d\n", (int)system.atoms.size(), system.charge, system.multi, system.electrons, program.get("-b").c_str(), (int)system.shells.nbf());
-    std::cout << std::string(104, '-') + "\n";
+    std::cout << "\n" + std::string(104, '-') + "\nSYSTEM SPECIFICATION (" + system.basis + ")\n";
+    std::cout << std::string(104, '-') + "\n\n";
+
+    // print the system settings
+    std::printf("-- ATOMS: %d, ELECTRONS: %d, NBF: %d\n", (int)system.atoms.size(), system.electrons, (int)system.shells.nbf());
+    std::printf("-- CHARGE: %d, MULTIPLICITY: %d\n", system.charge, system.multi);
 
     // print the system coordinates and distance matrix
     std::cout << "\nSYSTEM COORDINATES\n" << system.coords << std::endl; 
@@ -79,7 +84,7 @@ void Distributor::run() {
     // define integral struct and initialize libint
     Integrals ints; libint2::initialize();
 
-    // calculate the integral calculation header
+    // print the integral calculation header
     std::cout << "\n" + std::string(104, '-') + "\nINTEGRAL CALCULATION\n";
     std::cout << std::string(104, '-') << std::endl;
 
@@ -140,8 +145,10 @@ void Distributor::run() {
 
     // print the RHF method header
     std::cout << "\n" + std::string(104, '-') + "\nRESTRICTED HARTREE-FOCK METHOD\n";
-    std::printf("MAXITER: %d, THRESH: %.2e, DIIS: [START: %d, KEEP: %d]\n", maxiter, thresh, diis.first, diis.second);
     std::cout << std::string(104, '-') + "\n\n";
+
+    // print the RHF options
+    std::printf("-- MAXITER: %d, THRESH: %.2e\n-- DIIS: [START: %d, KEEP: %d]\n", maxiter, thresh, diis.first, diis.second);
 
     // perform the Hartree-Fock method and extract the results
     auto[C, eps, E] = Roothaan(system, maxiter, thresh, diis).scf(ints, D);

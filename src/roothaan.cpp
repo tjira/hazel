@@ -53,7 +53,7 @@ std::tuple<System, Integrals, Matrix, Matrix> Roothaan::optimize(Integrals ints)
     Matrix G = gradient(ints, C, eps); System optsys = system;
 
     // print the header
-    std::printf("ITER       E [Eh]         |dG|        TIME    \n");
+    std::printf("ITER        E [Eh]         |GRAD|      TIME\n");
 
     // print the initial state info
     std::printf("%4d %20.14f %.2e %s\n", 0, E, G.norm(), "00:00:00.000");
@@ -98,7 +98,7 @@ std::tuple<Matrix, Vector, double> Roothaan::scf(const Integrals& ints, Matrix& 
     int nocc = system.electrons / 2;
 
     // print the iteration header
-    if (print) std::printf("ITER       Eel [Eh]         |dE|     |dD|       TIME    \n");
+    if (print) std::printf("\nITER       Eel [Eh]         |dE|     |dD|       TIME    \n");
 
     // perform the scf loop
     for (int i = 1; i <= maxiter; i++) {
@@ -125,6 +125,7 @@ std::tuple<Matrix, Vector, double> Roothaan::scf(const Integrals& ints, Matrix& 
 
         // finish if covergence reached
         if (std::abs(E - Ep) < thresh && (D - Dp).norm() < thresh) break;
+        else if (i == maxiter) throw std::runtime_error("Maximum number of iterations in SCF reached.");
     }
 
     // return the results

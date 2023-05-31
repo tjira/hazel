@@ -3,8 +3,8 @@
 System::System(const std::string& fname, const std::string& basis, int charge, int multi) : electrons(0), charge(charge), multi(multi), basis(basis) {
     if (!std::ifstream(fname).good()) throw std::runtime_error("System file does not exist.");
     std::ifstream file(fname); atoms = libint2::read_dotxyz(file); electrons -= charge;
+    coords = Matrix(atoms.size(), 3), dists = Matrix(atoms.size(), atoms.size());
     for (const auto& atom : atoms) electrons += atom.atomic_number;
-    coords = Matrix(atoms.size(), 3), dists = Matrix(coords);
     shells = libint2::BasisSet(basis, atoms, true);
 
     // fill the coordinate matrix
