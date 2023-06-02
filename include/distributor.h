@@ -18,5 +18,6 @@ private:
 
 private:
     argparse::ArgumentParser program, hf, mp2;
+    std::vector<std::string> print;
     Timer::Timepoint start;
 };
