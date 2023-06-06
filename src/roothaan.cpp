@@ -50,7 +50,7 @@ Matrix Roothaan::gradient(const Integrals& ints, const Matrix& C, const Vector& 
 std::tuple<System, Integrals, Matrix, Matrix> Roothaan::optimize(Integrals ints) const {
     // define Densty matrix, perform HF calculation and calculate the analytical gradient
     Matrix D = Matrix::Zero(ints.S.rows(), ints.S.cols()); auto[C, eps, E] = scf(ints, D, false);
-    Matrix G = gradient(ints, C, eps); System optsys = system; libint2::initialize(); 
+    Matrix G = gradient(ints, C, eps); System optsys = system;
 
     // print the header
     std::printf("ITER        E [Eh]         |GRAD|      TIME\n");
@@ -86,7 +86,7 @@ std::tuple<System, Integrals, Matrix, Matrix> Roothaan::optimize(Integrals ints)
     }
 
     // finalize libint and return stuff
-    libint2::finalize(); return {optsys, ints, D, G};
+    return {optsys, ints, D, G};
 }
 
 std::tuple<Matrix, Vector, double> Roothaan::scf(const Integrals& ints, Matrix& D, bool print) const {
@@ -94,7 +94,7 @@ std::tuple<Matrix, Vector, double> Roothaan::scf(const Integrals& ints, Matrix& 
     Tensor<4> ERI = ints.J - 0.5 * ints.J.shuffle(Array<4>{0, 3, 2, 1});
     libint2::DIIS<Matrix> diis(this->diis.start, this->diis.keep);
     Matrix eps(D.rows(), 1), C(D.rows(), D.cols());
-    Matrix H = ints.T + ints.V; double E = 0;
+    Matrix H = ints.T + ints.V, F; double E = 0;
     int nocc = system.electrons / 2;
 
     // print the iteration header
@@ -105,9 +105,12 @@ std::tuple<Matrix, Vector, double> Roothaan::scf(const Integrals& ints, Matrix& 
         // define the contraction axes and start the timer
         Eigen::IndexPair<int> first(2, 0), second(3, 1);
         Timer::Timepoint start = Timer::Now();
+        
+        // calculate the Fock matrix
+        if (ints.J.size()) F = H + toMatrix(ERI.contract(toTensor(D), Axes<2>{first, second}));
+        else F = H + Integral::Coulomb(system, D);
 
-        // calculate the fock matrix and extrapolate it
-        Matrix F = H + toMatrix(ERI.contract(toTensor(D), Axes<2>{first, second}));
+        // exrapolate the fock matrix
         Matrix e = ints.S * D * F - F * D * ints.S;
         if (i > 1) diis.extrapolate(F, e);
 

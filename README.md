@@ -38,7 +38,8 @@ Below are all the important features of Hazel divided into categories.
 
 ### Quantum Mechanical Methods
 
-* Hartree-Fock Method (restricted)
+* Hartree-Fock Method
+* Møller–Plesset Perturbation Theory
 
 ### Convergence Accelerators
 
@@ -46,7 +47,7 @@ Below are all the important features of Hazel divided into categories.
 
 ### Additional Calculations
 
-* Analytical Gradient for RHF
+* Analytical Gradient for HF
 
 ## 🛠️ Compilation
 

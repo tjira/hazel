@@ -3,7 +3,7 @@
 MP::MP(const System& system) : nocc(system.electrons / 2) {}
 
 double MP::mp2(const Tensor<4>& Jmo, const Vector& eps) const {
-    // defin the variable
+    // define the energy
     double Ecorr = 0;
 
     // calculate the correlation energy

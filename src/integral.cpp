@@ -1,4 +1,10 @@
 #include "integral.h"
+#include <numeric>
+
+Matrix Integral::Coulomb(const System& system, const Matrix& D) {
+    libint2::Engine engine(libint2::Operator::coulomb, system.shells.max_nprim(), system.shells.max_l(), 0, 1e-12);
+    return Double(engine, system, D);
+}
 
 Tensor<4> Integral::Coulomb(const System& system) {
     libint2::Engine engine(libint2::Operator::coulomb, system.shells.max_nprim(), system.shells.max_l(), 0, 1e-12);
@@ -40,10 +46,61 @@ Tensor<3> Integral::dOverlap(const System& system) {
     return dSingle(engine, system);
 }
 
+Matrix Integral::Double(libint2::Engine& engine, const System& system, const Matrix& D) {
+    // create a result buffer, matrix and a convinient map
+    std::vector<Matrix> matrices(nthread, Matrix(system.shells.nbf(), system.shells.nbf()));
+    std::vector<libint2::Engine> engines(nthread, engine);
+    auto sh2bf = system.shells.shell2bf();
+
+    // loop over all non-duplicate tensor elements
+    #if defined(_OPENMP)
+    #pragma omp parallel for num_threads(nthread) shared(D, engines, matrices, sh2bf)
+    #endif
+    for (size_t i = 0; i < system.shells.size(); i++) {
+        int tid = omp_get_thread_num();
+        for (size_t j = 0; j <= i; j++) {
+            for (size_t k = 0; k <= i; k++) {
+                for (size_t l = 0; l <= (i == k ? j : k); l++) {
+                    // calculate the integral over current shells and skip if empty and extract indices of the current basis functions
+                    engines.at(tid).compute(system.shells.at(i), system.shells.at(j), system.shells.at(k), system.shells.at(l));
+                    const auto& result = engines.at(tid).results(); if (result[0] == nullptr) continue;
+
+                    // calculate degeneracy and extract basis function indices
+                    double deg = (i == j ? 1.0 : 2.0) * (k == l ? 1.0 : 2.0) * (i == k ? (j == l ? 1.0 : 2.0) : 2.0);
+                    size_t bfi = sh2bf.at(i), bfj = sh2bf.at(j), bfk = sh2bf.at(k), bfl = sh2bf.at(l);
+
+                    // assign the result to the correct position in the tensor using the 8-fold symmetry
+                    for (size_t m = 0, q = 0; m < system.shells.at(i).size(); m++) {
+                        for (size_t n = 0; n < system.shells.at(j).size(); n++) {
+                            for (size_t o = 0; o < system.shells.at(k).size(); o++) {
+                                for (size_t p = 0; p < system.shells.at(l).size(); p++, q++) {
+                                    size_t bf1 = m + bfi, bf2 = n + bfj, bf3 = o + bfk, bf4 = p + bfl;
+                                    matrices.at(tid)(bf1, bf3) -= 0.25 * D(bf2, bf4) * result.at(0)[q] * deg;
+                                    matrices.at(tid)(bf2, bf4) -= 0.25 * D(bf1, bf3) * result.at(0)[q] * deg;
+                                    matrices.at(tid)(bf1, bf4) -= 0.25 * D(bf2, bf3) * result.at(0)[q] * deg;
+                                    matrices.at(tid)(bf2, bf3) -= 0.25 * D(bf1, bf4) * result.at(0)[q] * deg;
+                                    matrices.at(tid)(bf1, bf2) += D(bf3, bf4) * result.at(0)[q] * deg;
+                                    matrices.at(tid)(bf3, bf4) += D(bf1, bf2) * result.at(0)[q] * deg;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // add the thread matrices together
+    Matrix matrix = std::accumulate(matrices.begin(), matrices.end(), Matrix(system.shells.nbf(), system.shells.nbf()));
+
+    // return the resulting matrix
+    return 0.25 * (matrix + matrix.transpose());
+};
+
 Tensor<4> Integral::Double(libint2::Engine& engine, const System& system) {
-    // create a result buffer and matrix and a convinient map
+    // create a result buffer, matrix and a convinient map
     Tensor<4> tensor(system.shells.nbf(), system.shells.nbf(), system.shells.nbf(), system.shells.nbf());
-    const auto& result = engine.results(); std::vector<size_t> sh2bf = system.shells.shell2bf();
+    const auto& result = engine.results(); auto sh2bf = system.shells.shell2bf();
 
     // loop over all non-duplicate tensor elements
     for (size_t i = 0; i < system.shells.size(); i++) {

@@ -1,5 +1,5 @@
 #include "distributor.h"
 
 int main(int argc, char** argv) {
-    Distributor(argc, argv).run();
+    libint2::initialize(); Distributor(argc, argv).run(); libint2::finalize();
 }

@@ -15,6 +15,7 @@ Distributor::Distributor(int argc, char** argv) : program("hazel", "0.1", argpar
     program.add_argument("-h", "--help").help("-- Display this help message and exit.").default_value(false).implicit_value(true);
     program.add_argument("-n", "--nthread").help("-- Number of threads to use.").default_value(1).scan<'i', int>();
     program.add_argument("-p", "--print").help("-- Output printing options.").default_value<std::vector<std::string>>({}).append();
+    program.add_argument("--no-coulomb").help("-- Calculate the coulomb tensor.").default_value(false).implicit_value(true);
 
     // add positional arguments to the HF argument parser
     hf.add_argument("-d", "--diis").help("-- Start iteration and Fock history length for DIIS.").default_value(std::vector<int>{3, 5}).nargs(1, 2).scan<'i', int>();
@@ -68,7 +69,7 @@ Distributor::~Distributor() {
 
 
 void Distributor::run() {
-    // extract the command line options and initialize the system
+    // extract the command line options and 2initialize the system
     System system(program.get("-f"), program.get("-b"), 0, 1);
     print = program.get<std::vector<std::string>>("-p");
 
@@ -90,7 +91,9 @@ void Distributor::run() {
     std::printf("-- ATOMS: %d, ELECTRONS: %d, NBF: %d\n", (int)system.atoms.size(), system.electrons, (int)system.shells.nbf());
     std::printf("-- CHARGE: %d, MULTIPLICITY: %d\n", system.charge, system.multi);
     std::cout << "\nSYSTEM COORDINATES\n" << system.coords << std::endl; 
-    std::cout << "\nDISTANCE MATRIX\n" << system.dists << std::endl; 
+
+    // print the distances if requested
+    if (CONTAINS(print, "dist")) std::cout << "\nDISTANCE MATRIX\n" << system.dists << std::endl; 
 
     // create the initial guess for the density matrix, define the gradient and calculate integrals
     Matrix G = Matrix::Zero(system.atoms.size(), 3), C; Vector eps; Integrals ints = integrals(system);
@@ -195,8 +198,8 @@ void Distributor::run() {
 }
 
 Integrals Distributor::integrals(const System& system) const {
-    // initialize libint
-    Integrals ints; libint2::initialize();
+    // define the struct
+    Integrals ints;
 
     // print the integral calculation header
     std::cout << "\n" + std::string(104, '-') + "\nINTEGRAL CALCULATION\n";
@@ -215,8 +218,8 @@ Integrals Distributor::integrals(const System& system) const {
     if (CONTAINS(print, "v")) std::cout << "\n" << ints.V << std::endl;
 
     // calculate the electron-electron repulsion integral
-    std::cout << "\nCOULOMB INTEGRAL: " << std::flush; TIME(ints.J = Integral::Coulomb(system))
-    if (CONTAINS(print, "j")) {std::cout << "\n" << ints.J;} std::cout << "\n";
+    if (!program.get<bool>("--no-coulomb")) {std::cout << "\nCOULOMB INTEGRAL: " << std::flush; TIME(ints.J = Integral::Coulomb(system))}
+    if (!program.get<bool>("--no-coulomb") && CONTAINS(print, "j")) {std::cout << "\n" << ints.J;} std::cout << "\n";
 
     // if derivatives of the integrals are needed
     if (hf.is_used("-g") || hf.is_used("-o")) {
@@ -237,6 +240,6 @@ Integrals Distributor::integrals(const System& system) const {
         if (CONTAINS(print, "dj")) {std::cout << "\n" << ints.dJ;} std::cout << "\n";
     }
 
-    // finalize libint and return
-    libint2::finalize(); return ints;
+    // return integrals
+    return ints;
 }
