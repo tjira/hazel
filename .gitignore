@@ -1,9 +1,23 @@
+# links
 /compile_commands.json
 /molecule.xyz
+/hazel
+
+# profiling
 /profile.txt
 /gmon.out
-/hazel
-/.cache/
-/build/
 /bin/
+
+# subfolders
+__pycache__/
+.cache/
+build/
+
+# exts
+*.dat
+*.log
 *.out
+*.so
+
+# not psi examples
+!input.dat

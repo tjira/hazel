@@ -1,0 +1,22 @@
+from hazel.integral import integral
+
+molecule water {
+noreorient
+    O -0.04258229224928 -0.01476311599192 -0.01697740475215
+    H  0.65343210274828 -0.51640346349129  0.47582054313492
+    H  0.38535018950100  0.87626657948321 -0.06024313838278
+symmetry C1
+}
+
+set {
+    basis sto-3g
+}
+
+set integral {
+#    kinetic true
+#    nuclear true
+#    overlap true
+#    eri true
+}
+
+integral(water)
