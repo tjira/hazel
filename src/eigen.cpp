@@ -4,7 +4,7 @@ template <size_t D> using Ten = Tensor<D>; typedef Matrix Mat;
 
 std::ostream& Eigen::operator<<(std::ostream& os, const Mat& A) {
     os << "(" << A.rows() << "x" << A.cols() << "): ";
-    for (int i = 0; i < A.cols() / 5 + 1; i++) {
+    for (int i = 0; i < (A.cols() % 5 ? A.cols() / 5 + 1 : A.cols() / 5); i++) {
         os << i * 5 + 1 << "-" << std::min((int)A.cols(), 5 * i + 5) << "\n";
         for (int j = 0; j < A.rows(); j++) {
             for (int k = 5 * i; k < std::min((int)A.cols(), 5 * i + 5); k++) {
@@ -12,7 +12,7 @@ std::ostream& Eigen::operator<<(std::ostream& os, const Mat& A) {
             }
             if (j < A.rows() - 1) os << "\n";
         }
-        if (i < A.cols() / 5) os << "\n";
+        if (i < (A.cols() % 5 ? A.cols() / 5 + 1 : A.cols() / 5) - 1) os << "\n";
     }
     return os;
 }
