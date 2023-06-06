@@ -15,7 +15,7 @@ Distributor::Distributor(int argc, char** argv) : program("hazel", "0.1", argpar
     program.add_argument("-h", "--help").help("-- Display this help message and exit.").default_value(false).implicit_value(true);
     program.add_argument("-n", "--nthread").help("-- Number of threads to use.").default_value(1).scan<'i', int>();
     program.add_argument("-p", "--print").help("-- Output printing options.").default_value<std::vector<std::string>>({}).append();
-    program.add_argument("--no-coulomb").help("-- Calculate the coulomb tensor.").default_value(false).implicit_value(true);
+    program.add_argument("--no-coulomb").help("-- Disable calculation of the coulomb tensor.").default_value(false).implicit_value(true);
 
     // add positional arguments to the HF argument parser
     hf.add_argument("-d", "--diis").help("-- Start iteration and Fock history length for DIIS.").default_value(std::vector<int>{3, 5}).nargs(1, 2).scan<'i', int>();
