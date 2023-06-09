@@ -22,11 +22,26 @@ std::ostream& Eigen::operator<<(std::ostream& os, const Ten<3>& A) {
 }
 
 std::ostream& Eigen::operator<<(std::ostream& os, const Ten<4>& A) {
-    int m = A.dimension(0), n = A.dimension(1), o = A.dimension(2), p = A.dimension(3);
-    os << Mat(Eigen::Map<const Mat>(A.data(), m * o, n * p)); return os;
+    os << Mat(Eigen::Map<const Mat>(A.data(), A.dimension(0) * A.dimension(2), A.dimension(1) * A.dimension(3))); return os;
 }
 
 std::ostream& Eigen::operator<<(std::ostream& os, const Ten<5>& A) {
-    int m = A.dimension(0), n = A.dimension(1), o = A.dimension(2), p = A.dimension(3), q = A.dimension(4);
-    os << Mat(Eigen::Map<const Mat>(A.data(), m * o * q, n * p)); return os;
+    os << Mat(Eigen::Map<const Mat>(A.data(), A.dimension(0) * A.dimension(2) * A.dimension(4), A.dimension(1) * A.dimension(3))); return os;
+}
+
+void Eigen::Write(const std::string& fname, const Mat& A) {
+    // open the output file
+    std::ofstream file(fname);
+
+    // write the matrix
+    for (int i = 0; i < A.rows(); i++) {
+        for (int j = 0; j < A.cols(); j++) {
+            file << std::fixed << std::setprecision(14) << std::setw(20) << A(i, j) << (j < A.cols() - 1 ? " " : "");
+        }
+        file << std::endl;
+    }
+}
+
+void Eigen::Write(const std::string& fname, const Ten<4>& A) {
+    Write(fname, Mat(Eigen::Map<const Mat>(A.data(), A.dimension(0) * A.dimension(2), A.dimension(1) * A.dimension(3))));
 }

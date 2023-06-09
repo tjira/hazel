@@ -16,6 +16,7 @@ build/
 # exts
 *.dat
 *.log
+*.mat
 *.out
 *.so
 

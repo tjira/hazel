@@ -21,6 +21,10 @@ namespace Eigen {
     std::ostream& operator<<(std::ostream& os, const Tensor<double, 3, Eigen::ColMajor>& A);
     std::ostream& operator<<(std::ostream& os, const Tensor<double, 4, Eigen::ColMajor>& A);
     std::ostream& operator<<(std::ostream& os, const Tensor<double, 5, Eigen::ColMajor>& A);
+
+    // custom functions
+    void Write(const std::string& fname, const Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>& A);
+    void Write(const std::string& fname, const Tensor<double, 4, Eigen::ColMajor>& A);
 }
 
 inline Tensor<2> toTensor(Matrix A) {return Eigen::TensorMap<Tensor<2>>(A.data(), A.rows(), A.cols());}

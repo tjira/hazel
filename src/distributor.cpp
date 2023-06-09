@@ -15,6 +15,7 @@ Distributor::Distributor(int argc, char** argv) : program("hazel", "0.1", argpar
     program.add_argument("-h", "--help").help("-- Display this help message and exit.").default_value(false).implicit_value(true);
     program.add_argument("-n", "--nthread").help("-- Number of threads to use.").default_value(1).scan<'i', int>();
     program.add_argument("-p", "--print").help("-- Output printing options.").default_value<std::vector<std::string>>({}).append();
+    program.add_argument("-e", "--export").help("-- Export matrices and tensor to files.").default_value<std::vector<std::string>>({}).append();
     program.add_argument("--no-coulomb").help("-- Disable calculation of the coulomb tensor.").default_value(false).implicit_value(true);
 
     // add positional arguments to the HF argument parser
@@ -32,7 +33,7 @@ Distributor::Distributor(int argc, char** argv) : program("hazel", "0.1", argpar
     mp2.add_argument("-t", "--thresh").help("-- Threshold for conververgence of iterative calculations.").default_value(1e-8).scan<'g', double>();
 
     // add the parsers
-    program.add_subparser(hf); program.add_subparser(mp2);
+    program.add_subparser(hf); hf.add_subparser(mp2);
 
     // parse the arguments
     try {
@@ -46,7 +47,7 @@ Distributor::Distributor(int argc, char** argv) : program("hazel", "0.1", argpar
         std::cout << program.help().str(); exit(EXIT_SUCCESS);
     } else if (program.is_subcommand_used(hf) && hf.get<bool>("-h")) {
         std::cout << hf.help().str(); exit(EXIT_SUCCESS);
-    } else if (program.is_subcommand_used(mp2) && mp2.get<bool>("-h")) {
+    } else if (program.is_subcommand_used(hf) && hf.is_subcommand_used(mp2) && mp2.get<bool>("-h")) {
         std::cout << mp2.help().str(); exit(EXIT_SUCCESS);
     }
 
@@ -69,12 +70,14 @@ Distributor::~Distributor() {
 
 
 void Distributor::run() {
-    // extract the command line options and 2initialize the system
+    // extract the command line options and initialize the system
     System system(program.get("-f"), program.get("-b"), 0, 1);
     print = program.get<std::vector<std::string>>("-p");
+    save = program.get<std::vector<std::string>>("-e");
 
-    // transform the print vector to lowercase
+    // transform the print and save vector to lowercase
     for (auto& element : print) std::transform(element.begin(), element.end(), element.begin(), [](auto c){return std::tolower(c);});
+    for (auto& element : save) std::transform(element.begin(), element.end(), element.begin(), [](auto c){return std::tolower(c);});
 
     // print the title
     std::cout << "QUANTUM HAZEL" << std::endl;
@@ -140,7 +143,7 @@ void Distributor::run() {
     }
 
     // calculate the MP2 correlation
-    if (program.is_subcommand_used("mp2")) {
+    if (program.is_subcommand_used("hf") && hf.is_subcommand_used("mp2")) {
         // extract HF options
         std::pair<int, int> diis = {mp2.get<std::vector<int>>("-d").at(0), mp2.get<std::vector<int>>("-d").at(1)};
         int maxiter = mp2.get<int>("-m"); double thresh = mp2.get<double>("-t");
@@ -208,18 +211,22 @@ Integrals Distributor::integrals(const System& system) const {
     // calculate the overlap integral
     std::cout << "\nOVERLAP INTEGRAL: " << std::flush; TIME(ints.S = Integral::Overlap(system))
     if (CONTAINS(print, "s")) std::cout << "\n" << ints.S << std::endl;
+    if (CONTAINS(save, "s")) Eigen::Write("S.mat", ints.S);
 
     // calculate the kinetic integral
     std::cout << "\nKINETIC INTEGRAL: " << std::flush; TIME(ints.T = Integral::Kinetic(system))
     if (CONTAINS(print, "t")) std::cout << "\n" << ints.T << std::endl;
+    if (CONTAINS(save, "t")) Eigen::Write("T.mat", ints.T);
 
     // calculate the nuclear-electron attraction integral
     std::cout << "\nNUCLEAR INTEGRAL: " << std::flush; TIME(ints.V = Integral::Nuclear(system))
     if (CONTAINS(print, "v")) std::cout << "\n" << ints.V << std::endl;
+    if (CONTAINS(save, "v")) Eigen::Write("V.mat", ints.V);
 
     // calculate the electron-electron repulsion integral
     if (!program.get<bool>("--no-coulomb")) {std::cout << "\nCOULOMB INTEGRAL: " << std::flush; TIME(ints.J = Integral::Coulomb(system))}
     if (!program.get<bool>("--no-coulomb") && CONTAINS(print, "j")) {std::cout << "\n" << ints.J;} std::cout << "\n";
+    if (!program.get<bool>("--no-coulomb") && CONTAINS(save, "j")) Eigen::Write("J.mat", ints.J);
 
     // if derivatives of the integrals are needed
     if (hf.is_used("-g") || hf.is_used("-o")) {
