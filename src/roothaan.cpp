@@ -91,19 +91,22 @@ std::tuple<System, Integrals, Matrix, Matrix> Roothaan::optimize(Integrals ints)
 
 std::tuple<Matrix, Vector, double> Roothaan::scf(const Integrals& ints, Matrix& D, bool print) const {
     // create all the necessary matrices, calculate ERI and initialize DIIS
+    Matrix H = ints.T + ints.V, F, eps(D.rows(), 1), C(D.rows(), D.cols());
     Tensor<4> ERI = ints.J - 0.5 * ints.J.shuffle(Array<4>{0, 3, 2, 1});
     libint2::DIIS<Matrix> diis(this->diis.start, this->diis.keep);
-    Matrix eps(D.rows(), 1), C(D.rows(), D.cols());
-    Matrix H = ints.T + ints.V, F; double E = 0;
-    int nocc = system.electrons / 2;
+    Eigen::IndexPair<int> first(2, 0), second(3, 1);
+    int nocc = system.electrons / 2; double E;
+
+    // calculate the energy from the guess density
+    if (ints.J.size()) F = H + toMatrix(ERI.contract(toTensor(D), Axes<2>{first, second}));
+    else {F = H + Integral::Coulomb(system, D);} E = 0.5 * D.cwiseProduct(H + F).sum();
 
     // print the iteration header
     if (print) std::printf("\nITER       Eel [Eh]         |dE|     |dD|       TIME    \n");
 
     // perform the scf loop
     for (int i = 1; i <= maxiter; i++) {
-        // define the contraction axes and start the timer
-        Eigen::IndexPair<int> first(2, 0), second(3, 1);
+        // start the timer
         Timer::Timepoint start = Timer::Now();
         
         // calculate the Fock matrix
@@ -114,7 +117,7 @@ std::tuple<Matrix, Vector, double> Roothaan::scf(const Integrals& ints, Matrix& 
         Matrix e = ints.S * D * F - F * D * ints.S;
         if (i > 1) diis.extrapolate(F, e);
 
-        // solve the roothan equations
+        // solve the roothan equations and save the previous values
         Eigen::GeneralizedSelfAdjointEigenSolver<Matrix> solver(F, ints.S);
         C = solver.eigenvectors(), eps = solver.eigenvalues();
         Matrix Dp = D; double Ep = E;

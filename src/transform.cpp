@@ -74,3 +74,22 @@ Tensor<4> Transform::Coulomb(const Tensor<4>& J, const Matrix& C) {
     // return the tensor
     return Jmo;
 }
+
+Matrix Transform::Oneelec(const Matrix& A, const Matrix& C) {
+    // declare the transformed matrix
+    Matrix Amo(A.rows(), A.cols());
+
+    // perform the transformation
+    for (int i = 0; i < A.rows(); i++) {
+        for (int j = 0; j < A.cols(); j++) {
+            for (int a = 0; a < Amo.rows(); a++) {
+                for (int b = 0; b < Amo.cols(); b++) {
+                    Amo(i, j) += A(a, b) * C(a, i) * C(b, j);
+                }
+            }
+        }
+    }
+
+    // return the transformed matrix
+    return Amo;
+}

@@ -1,7 +1,6 @@
 #pragma once
 
-#include "integral.h"
-#include "transform.h"
+#include "ci.h"
 #include "mp.h"
 #include "roothaan.h"
 #include "timer.h"
@@ -17,7 +16,7 @@ private:
     Integrals integrals(const System& system) const;
 
 private:
-    argparse::ArgumentParser program, hf, mp2;
-    std::vector<std::string> save, print;
+    argparse::ArgumentParser program, hf, ci, mp2;
+    std::vector<std::string> print, save;
     Timer::Timepoint start;
 };

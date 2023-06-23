@@ -57,7 +57,11 @@ Matrix Integral::Double(libint2::Engine& engine, const System& system, const Mat
     #pragma omp parallel for num_threads(nthread) shared(D, engines, matrices, sh2bf)
     #endif
     for (size_t i = 0; i < system.shells.size(); i++) {
+        #if defined(_OPENMP)
         int tid = omp_get_thread_num();
+        #else
+        int tid = 0;
+        #endif
         for (size_t j = 0; j <= i; j++) {
             for (size_t k = 0; k <= i; k++) {
                 for (size_t l = 0; l <= (i == k ? j : k); l++) {
