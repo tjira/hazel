@@ -91,14 +91,13 @@ void Distributor::run() {
     for (auto& element : save) std::transform(element.begin(), element.end(), element.begin(), [](auto c){return std::tolower(c);});
 
     // print the title
-    std::cout << "QUANTUM HAZEL" << std::endl;
+    std::cout << "QUANTUM HAZEL (" << nthread << " THREAD" << (nthread > 1 ? "S)" : ")") << std::endl;
 
     // print the general info block
     std::cout << "\n" + std::string(104, '-') + "\nGENERAL INFO\n" << std::string(104, '-') + "\n\n";
     std::printf("COMPILATION TIMESTAMP: %s\nEXECUTION TIMESTAMP: %s\n", __TIMESTAMP__, LOCALTIME.c_str());
     std::printf("\nLIBRARIES: EIGEN %d.%d.%d, LIBINT %d.%d.%d", EIGEN_WORLD_VERSION, EIGEN_MAJOR_VERSION, EIGEN_MINOR_VERSION, LIBINT_MAJOR_VERSION, LIBINT_MINOR_VERSION, LIBINT_MICRO_VERSION);
     std::printf("\nCOMPILER VERSION: GCC %d.%d.%d\nCOMPILER FLAGS: %s\n", __GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__, CXXFLAGS);
-    std::printf("\nTHREADS: %d\n", nthread);
 
     // print the system block
     std::cout << "\n" + std::string(104, '-') + "\nSYSTEM SPECIFICATION (" + system.basis + ")\n" << std::string(104, '-') + "\n\n";
