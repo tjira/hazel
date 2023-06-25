@@ -1,5 +1,11 @@
 #include "system.h"
 
+std::unordered_map<int, std::string> an2sm = {
+    {1, "H"},
+    {6, "C"},
+    {8, "O"}
+};
+
 System::System(const std::string& fname, const std::string& basis, int charge, int multi) : electrons(0), charge(charge), multi(multi), basis(basis) {
     if (!std::ifstream(fname).good()) throw std::runtime_error("System file does not exist.");
     std::ifstream file(fname); atoms = libint2::read_dotxyz(file); electrons -= charge;
@@ -20,6 +26,7 @@ System::System(const std::string& fname, const std::string& basis, int charge, i
     }
 }
 
+// Moves the system in the desired direction. The 'dir' variable needs to be in Bohrs.
 void System::move(const Matrix& dir) {
     // shift the atoms
     for (size_t i = 0; i < atoms.size(); i++) {
@@ -36,5 +43,17 @@ void System::move(const Matrix& dir) {
         for (int j = 0; j < coords.rows(); j++) {
             dists(i, j) = (coords.row(i) - coords.row(j)).norm();
         }
+    }
+}
+
+void System::save(const std::string& fname) const {
+    std::ofstream file(fname); file << fname << "\n" << atoms.size();
+    file << std::fixed << std::setprecision(14) << "\n";
+    for (int i = 0; i < coords.rows(); i++) {
+        file << an2sm.at(atoms.at(i).atomic_number) << " "
+              << std::setw(20) << coords(i, 0) << " "
+              << std::setw(20) << coords(i, 1) << " "
+              << std::setw(20) << coords(i, 2) << " "
+              << std::endl;
     }
 }

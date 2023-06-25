@@ -3,7 +3,6 @@
 #include "ci.h"
 #include "mp.h"
 #include "roothaan.h"
-#include "timer.h"
 #include "argparse.hpp"
 #include <filesystem>
 

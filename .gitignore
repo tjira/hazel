@@ -6,12 +6,12 @@
 # profiling
 /profile.txt
 /gmon.out
-/bin/
 
 # subfolders
 __pycache__/
 .cache/
 build/
+bin/
 
 # exts
 *.dat
@@ -19,6 +19,3 @@ build/
 *.mat
 *.out
 *.so
-
-# not psi examples
-!input.dat

@@ -109,11 +109,15 @@ void Distributor::run() {
     if (CONTAINS(print, "dist")) std::cout << "\nDISTANCE MATRIX\n" << system.dists << std::endl; 
 
     // create the initial guess for the density matrix, define the gradient and calculate integrals
-    Matrix G = Matrix::Zero(system.atoms.size(), 3), C; Vector eps; Integrals ints = integrals(system);
-    double E, Ecorr; Tensor<4> JMO; Matrix D = Matrix::Zero(ints.S.rows(), ints.S.cols());
+    Matrix D = Matrix::Zero(system.shells.nbf(), system.shells.nbf());
+    Matrix G = Matrix::Zero(system.atoms.size(), 3), C;
+    Tensor<4> JMO; Vector eps; double E, Ecorr;
 
     // perform the HF calculation
     if (program.is_subcommand_used("hf")) {
+        // calculate the molecular integrals
+        Integrals ints = integrals(system);
+
         // extract HF options
         std::pair<int, int> diis = {hf.get<std::vector<int>>("-d").at(0), hf.get<std::vector<int>>("-d").at(1)};
         auto hfprint = hf.get<std::vector<std::string>>("-p"), hfsave = hf.get<std::vector<std::string>>("-e");
@@ -161,10 +165,6 @@ void Distributor::run() {
 
         // calculate the nuclear gradient
         if (hf.is_used("-g")) {
-            // extract HF options
-            std::pair<int, int> diis = {hf.get<std::vector<int>>("-d").at(0), hf.get<std::vector<int>>("-d").at(1)};
-            int maxiter = hf.get<int>("-m"); double thresh = hf.get<double>("-t");
-
             // print the analytical RHF gradient method header
             std::cout << "\n" + std::string(104, '-') + "\nANALYTICAL GRADIENT FOR RESTRICTED HARTREE-FOCK \n";
             std::cout << std::string(104, '-') + "\n\n";
@@ -232,10 +232,12 @@ void Distributor::run() {
             auto[CIH, CIC, CIE] = CI(system, E - Integral::Repulsion(system)).cid(ints, JMO, C);
             double Ecorr = CIE(0) - E + Integral::Repulsion(system);
 
-            // print and save matrices
+            // print the result matrices
             if (CONTAINS(ciprint, "cih") || CONTAINS(print, "all")) {std::cout << "\n" << CIH << "\n";}
             if (CONTAINS(ciprint, "cic") || CONTAINS(print, "all")) {std::cout << "\n" << CIC << "\n";}
             if (CONTAINS(ciprint, "cie") || CONTAINS(print, "all")) {std::cout << "\n" << CIE << "\n";}
+
+            // save the result matrices
             if (CONTAINS(cisave, "cih") || CONTAINS(save, "all")) Eigen::Write("CIH.mat", CIH);
             if (CONTAINS(cisave, "cic") || CONTAINS(save, "all")) Eigen::Write("CIC.mat", CIC);
             if (CONTAINS(cisave, "cie") || CONTAINS(save, "all")) Eigen::Write("CIE.mat", CIE);
