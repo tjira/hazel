@@ -2,6 +2,7 @@
 
 #define EIGEN_INITIALIZE_MATRICES_BY_ZERO
 #define BOHR2A 0.529177249
+#define A2BOHR 1 / BOHR2A
 
 inline int nthread;
 

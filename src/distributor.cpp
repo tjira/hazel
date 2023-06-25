@@ -11,33 +11,34 @@ Distributor::Distributor(int argc, char** argv) : program("hazel", "0.1", argpar
     ci = argparse::ArgumentParser("ci", "0.1", argparse::default_arguments::none);
 
     // add positional arguments to the main argument parser
+    program.add_argument("-c", "--center").help("-- Center the molecule before doing any calculation.").default_value(false).implicit_value(true);
     program.add_argument("-b", "--basis").help("-- Basis set used to approximate atomic orbitals.").default_value(std::string("STO-3G"));
     program.add_argument("-f", "--file").help("-- Quantum system to use in .xyz file format.").default_value("molecule.xyz");
     program.add_argument("-h", "--help").help("-- Display this help message and exit.").default_value(false).implicit_value(true);
     program.add_argument("-n", "--nthread").help("-- Number of threads to use.").default_value(1).scan<'i', int>();
     program.add_argument("-p", "--print").help("-- Output printing options.").default_value<std::vector<std::string>>({}).append();
-    program.add_argument("-e", "--export").help("-- Export matrices and tensor to files.").default_value<std::vector<std::string>>({}).append();
+    program.add_argument("-e", "--export").help("-- Export matrices and tensors to files.").default_value<std::vector<std::string>>({}).append();
     program.add_argument("--no-coulomb").help("-- Disable calculation of the coulomb tensor.").default_value(false).implicit_value(true);
 
     // add positional arguments to the HF argument parser
     hf.add_argument("-d", "--diis").help("-- Start iteration and Fock history length for DIIS.").default_value(std::vector<int>{3, 5}).nargs(1, 2).scan<'i', int>();
-    hf.add_argument("-e", "--export").help("-- Export matrices and tensor to files.").default_value<std::vector<std::string>>({}).append();
+    hf.add_argument("-e", "--export").help("-- Export matrices and tensors to files.").default_value<std::vector<std::string>>({}).append();
     hf.add_argument("-g", "--gradient").help("-- Enable gradient calculation.").default_value(false).implicit_value(true);
     hf.add_argument("-h", "--help").help("-- Display this help message and exit.").default_value(false).implicit_value(true);
     hf.add_argument("-m", "--maxiter").help("-- Maximum number of iterations to do in iterative calculations.").default_value(100).scan<'i', int>();
     hf.add_argument("-p", "--print").help("-- Output printing options.").default_value<std::vector<std::string>>({}).append();
     hf.add_argument("-o", "--optimize").help("-- Optimize the provided system.").default_value(false).implicit_value(true);
-    hf.add_argument("-t", "--thresh").help("-- Threshold for conververgence of iterative calculations.").default_value(1e-8).scan<'g', double>();
+    hf.add_argument("-t", "--thresh").help("-- Threshold for conververgence.").default_value(1e-8).scan<'g', double>();
 
     // add positional arguments to the MP2 argument parser
     mp2.add_argument("-h", "--help").help("-- Display this help message and exit.").default_value(false).implicit_value(true);
     mp2.add_argument("-p", "--print").help("-- Output printing options.").default_value<std::vector<std::string>>({}).append();
-    mp2.add_argument("-e", "--export").help("-- Export matrices and tensor to files.").default_value<std::vector<std::string>>({}).append();
+    mp2.add_argument("-e", "--export").help("-- Export matrices and tensors to files.").default_value<std::vector<std::string>>({}).append();
 
-    // add positional arguments to the ci argument parser
+    // add positional arguments to the CI argument parser
     ci.add_argument("-h", "--help").help("-- Display this help message and exit.").default_value(false).implicit_value(true);
     ci.add_argument("-p", "--print").help("-- Output printing options.").default_value<std::vector<std::string>>({}).append();
-    ci.add_argument("-e", "--export").help("-- Export matrices and tensor to files.").default_value<std::vector<std::string>>({}).append();
+    ci.add_argument("-e", "--export").help("-- Export matrices and tensors to files.").default_value<std::vector<std::string>>({}).append();
 
     // add the parsers
     program.add_subparser(hf); hf.add_subparser(mp2), hf.add_subparser(ci);
@@ -104,6 +105,12 @@ void Distributor::run() {
     std::printf("-- ATOMS: %d, ELECTRONS: %d, NBF: %d\n", (int)system.atoms.size(), system.electrons, (int)system.shells.nbf());
     std::printf("-- CHARGE: %d, MULTIPLICITY: %d\n", system.charge, system.multi);
     std::cout << "\nSYSTEM COORDINATES\n" << system.coords << std::endl; 
+
+    // center the molecule if requested
+    if (program.get<bool>("--center")) {
+        Matrix dir(system.atoms.size(), 3); dir.rowwise() -= system.coords.colwise().sum() / system.atoms.size();
+        system.move(dir * A2BOHR); std::cout << "\nCENTERED SYSTEM COORDINATES\n" << system.coords << std::endl; 
+    }
 
     // print the distances if requested
     if (CONTAINS(print, "dist")) std::cout << "\nDISTANCE MATRIX\n" << system.dists << std::endl; 
