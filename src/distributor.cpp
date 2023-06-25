@@ -213,9 +213,10 @@ void Distributor::run() {
             // print the gradient and norm
             std::cout << "\nMP2 CORRELATION ENERGY: " << Ecorr << std::endl;
             std::cout << "FINAL MP2 ENERGY: " << E + Ecorr << std::endl;
+        }
 
         // calculate ci correlation
-        } else if (hf.is_subcommand_used("ci")) {
+        if (hf.is_subcommand_used("ci")) {
             // throw an error if no coulomb
             if (program.get<bool>("--no-coulomb")) throw std::runtime_error("I'm sorry, you need the coulomb tensor for the ccsd method.");
 
