@@ -11,9 +11,9 @@ set(CMAKE_CXX_FLAGS_DEBUG "-g -pg -Og -fprofile-arcs -ftest-coverage -Wall -Wext
 set(CMAKE_CXX_FLAGS_RELEASE "-s -O2")
 
 # set the variable that contains the compile flags
-if (${CMAKE_BUILD_TYPE} STREQUAL Debug)
+if (CMAKE_BUILD_TYPE STREQUAL Debug)
     set(CXXFLAGS ${CMAKE_CXX_FLAGS_DEBUG})
-elseif (${CMAKE_BUILD_TYPE} STREQUAL Release)
+elseif (CMAKE_BUILD_TYPE STREQUAL Release)
     set(CXXFLAGS ${CMAKE_CXX_FLAGS_RELEASE})
 endif()
 
@@ -28,6 +28,6 @@ target_compile_definitions(hazel PRIVATE CXXFLAGS="${CXXFLAGS}" DATADIR="${PROJE
 target_link_libraries(hazel Eigen3::Eigen int2.a)
 
 # link OpenMP on build type
-if (OPENMP_FOUND AND ${CMAKE_BUILD_TYPE} STREQUAL Release)
+if (CMAKE_BUILD_TYPE STREQUAL Release AND OPENMP_FOUND)
     target_link_libraries(hazel OpenMP::OpenMP_CXX)
 endif()
