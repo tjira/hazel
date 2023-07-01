@@ -1,19 +1,18 @@
 #pragma once
 
-#include "integral.h"
-#include "timer.h"
+#include "data.h"
 
 class Roothaan {
 public:
-    Roothaan(const System& system, int maxiter, double thresh, const std::pair<int, int>& diis);
-    
-    // solvers
-    std::tuple<Matrix, Vector, double> scf(const Integrals& ints, Matrix& D, bool print = true) const;
-    Matrix gradient(const Integrals& ints, const Matrix& C, const Vector& eps) const;
-    std::tuple<System, Integrals, Matrix, Matrix> optimize(Integrals ints) const;
+    Roothaan(const Data& data) : data(data) {}
+    Data gradient(bool print = true) const;
+    Data optimize(bool print = true) const;
+    Data scf(bool print = true) const;
 
 private:
-    struct {int start, keep;} diis;
-    double thresh; int maxiter;
-    const System system;
+    Data gradientAnalytical(bool print = true) const;
+    Data gradientNumerical(bool print = true) const;
+
+private:
+    const Data data;
 };

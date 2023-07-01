@@ -1,15 +1,12 @@
 #pragma once
 
-#include "system.h"
-
+#include "data.h"
 
 class MP {
 public:
-    MP(const System& system);
-
-    // order methods
-    double mp2(const Tensor<4>& JMO, const Vector& eps) const;
+    MP(const Data& data) : data(data) {}
+    Data mp2(bool print = true) const;
 
 private:
-    int nocc;
+    const Data data;
 };

@@ -3,6 +3,7 @@
 #include "ci.h"
 #include "mp.h"
 #include "roothaan.h"
+#include "transform.h"
 #include "argparse.hpp"
 #include <filesystem>
 

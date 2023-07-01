@@ -3,7 +3,7 @@
 #include "eigen.h"
 
 struct System {
-    System(const std::string& fname, const std::string& basis, int charge, int multi);
+    System() = default; System(const std::string& fname, const std::string& basis, int charge, int multi);
     void move(const Matrix& dir); void save(const std::string& fname) const;
 
     // properties of the system

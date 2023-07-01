@@ -1,17 +1,14 @@
 #pragma once
 
-#include "integral.h"
-#include "system.h"
-#include "transform.h"
-
+#include "data.h"
 
 class CI {
 public:
-    CI(const System& system, double Eel);
+    CI(const Data& data) : data(data) {}
 
     // order methods
-    std::tuple<Matrix, Matrix, Vector> cid(const Integrals& ints, const Tensor<4>& JMO, const Matrix& C) const;
+    Data cid(bool print = true) const;
 
 private:
-    double Eel; int nocc, nbf;
+    const Data data;
 };

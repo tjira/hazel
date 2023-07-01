@@ -104,7 +104,7 @@ Matrix Integral::Double(libint2::Engine& engine, const System& system, const Mat
 Tensor<4> Integral::Double(libint2::Engine& engine, const System& system) {
     // create a result buffer, matrix and a convinient map
     Tensor<4> tensor(system.shells.nbf(), system.shells.nbf(), system.shells.nbf(), system.shells.nbf());
-    const auto& result = engine.results(); auto sh2bf = system.shells.shell2bf();
+    const auto& result = engine.results(); auto sh2bf = system.shells.shell2bf(); tensor.setZero();
 
     // loop over all non-duplicate tensor elements
     for (size_t i = 0; i < system.shells.size(); i++) {
