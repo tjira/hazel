@@ -9,6 +9,7 @@
 
 # subfolders
 __pycache__/
+Testing/
 .cache/
 build/
 bin/

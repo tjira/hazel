@@ -31,3 +31,27 @@ target_link_libraries(hazel Eigen3::Eigen int2.a)
 if (CMAKE_BUILD_TYPE STREQUAL Release AND OPENMP_FOUND)
     target_link_libraries(hazel OpenMP::OpenMP_CXX)
 endif()
+
+# enable testing
+enable_testing()
+
+# get all the test source files and create the source lists
+file(GLOB SRC_ENERGY RELATIVE ${PROJECT_SOURCE_DIR} test/energy_*.cpp)
+create_test_sourcelist(TEST_ENERGY test_energy.cpp ${SRC_ENERGY})
+
+# add executables and set their properties
+add_executable(test_energy EXCLUDE_FROM_ALL src/eigen.cpp src/integral.cpp src/roothaan.cpp src/system.cpp src/timer.cpp ${TEST_ENERGY})
+set_target_properties(test_energy PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin/test)
+target_compile_definitions(test_energy PRIVATE DATADIR="${PROJECT_SOURCE_DIR}")
+target_link_libraries(test_energy Eigen3::Eigen int2.a)
+
+# extract energy test name
+foreach (FILE ${SRC_ENERGY})
+    get_filename_component(TNAME ${FILE} NAME_WE)
+    list(APPEND TESTS_ENERGY test/${TNAME})
+endforeach()
+
+# add energy tests
+foreach (TEST ${TESTS_ENERGY})
+    add_test(NAME ${TEST} COMMAND test_energy ${TEST})
+endforeach()
