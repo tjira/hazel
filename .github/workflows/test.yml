@@ -30,7 +30,7 @@ jobs:
         run: |
           export CPLUS_INCLUDE_PATH="$PWD/libint/install/include:$CPLUS_INCLUDE_PATH"
           export LIBRARY_PATH="$PWD/libint/install/lib:$LIBRARY_PATH"
-          cmake --build test_energy
+          cmake --build build --target test_energy
 
       - name: Run Tests
         working-directory: build
