@@ -27,18 +27,19 @@ Distributor::Distributor(int argc, char** argv) : program("hazel", "0.1", argpar
     hf.add_argument("-h", "--help").help("-- Display this help message and exit.").default_value(false).implicit_value(true);
     hf.add_argument("-m", "--maxiter").help("-- Maximum number of iterations to do in iterative calculations.").default_value(100).scan<'i', int>();
     hf.add_argument("-p", "--print").help("-- Output printing options.").default_value<std::vector<std::string>>({}).append();
-    hf.add_argument("-o", "--optimize").help("-- Optimize the provided system.").default_value(false).implicit_value(true);
-    hf.add_argument("-t", "--thresh").help("-- Threshold for conververgence.").default_value(1e-8).scan<'g', double>();
+    hf.add_argument("-o", "--optimize").help("-- Optimize the provided system.").default_value(1e-8).scan<'g', double>();
+    hf.add_argument("-t", "--thresh").help("-- Threshold for conververgence.").default_value(1e-12).scan<'g', double>();
     hf.add_argument("--numgrad").help("-- Perform the gradient calculation numerically.").default_value(1e-5).scan<'g', double>();
     // hf.add_argument("--numhess").help("-- Perform the frequency calculation numerically.").default_value(1e-5).scan<'g', double>();
 
     // add positional arguments to the MP2 argument parser
     mp2.add_argument("-e", "--export").help("-- Export matrices and tensors to files.").default_value<std::vector<std::string>>({}).append();
     // mp2.add_argument("-f", "--frequency").help("-- Enable frequency calculation.").default_value(false).implicit_value(true);
-    // mp2.add_argument("-g", "--gradient").help("-- Enable gradient calculation.").default_value(false).implicit_value(true);
+    mp2.add_argument("-g", "--gradient").help("-- Enable gradient calculation.").default_value(false).implicit_value(true);
     mp2.add_argument("-h", "--help").help("-- Display this help message and exit.").default_value(false).implicit_value(true);
+    mp2.add_argument("-o", "--optimize").help("-- Optimize the provided system.").default_value(1e-8).scan<'g', double>();
     mp2.add_argument("-p", "--print").help("-- Output printing options.").default_value<std::vector<std::string>>({}).append();
-    // mp2.add_argument("--numgrad").help("-- Perform the gradient calculation numerically.").default_value(1e-5).scan<'g', double>();
+    mp2.add_argument("--numgrad").help("-- Perform the gradient calculation numerically.").default_value(1e-5).scan<'g', double>();
     // mp2.add_argument("--numhess").help("-- Perform the frequency calculation numerically.").default_value(1e-5).scan<'g', double>();
 
     // add positional arguments to the CI argument parser
@@ -124,13 +125,13 @@ void Distributor::run() {
     // print the distances if requested
     if (CONTAINS(print, "dist")) std::cout << "\nDISTANCE MATRIX\n" << data.system.dists << std::endl; 
 
-    // create the initial guess for the density matrix
-    data.roothaan.D = Matrix::Zero(data.system.shells.nbf(), data.system.shells.nbf());
-
     // perform the HF calculation
     if (program.is_subcommand_used("hf")) {
         // calculate the molecular integrals
-        data.ints = integrals(data.system);
+        data = integrals(data);
+
+        // create the initial guess for the density matrix
+        data.roothaan.D = Matrix::Zero(data.system.shells.nbf(), data.system.shells.nbf());
 
         // extract HF printing and saving options
         auto hfprint = hf.get<std::vector<std::string>>("-p"), hfsave = hf.get<std::vector<std::string>>("-e");
@@ -139,6 +140,7 @@ void Distributor::run() {
         data.roothaan.grad.numerical = hf.is_used("--numgrad"), data.roothaan.grad.step = hf.get<double>("--numgrad");
         data.roothaan.diis = {hf.get<std::vector<int>>("-d").at(0), hf.get<std::vector<int>>("-d").at(1)};
         data.roothaan.maxiter = hf.get<int>("-m"), data.roothaan.thresh = hf.get<double>("-t");
+        data.roothaan.opt.thresh = hf.get<double>("-o");
 
         // transform the print and save vectors to lowercase
         for (auto& element : hfprint) std::transform(element.begin(), element.end(), element.begin(), [](auto c){return std::tolower(c);});
@@ -183,8 +185,8 @@ void Distributor::run() {
         // calculate the nuclear gradient
         if (hf.is_used("-g")) {
             // print the analytical RHF gradient method header
-            if (hf.is_used("--numgrad")) std::cout << "\n" + std::string(104, '-') + "\nNUMERICAL GRADIENT FOR RESTRICTED HARTREE-FOCK \n";
-            else std::cout << "\n" + std::string(104, '-') + "\nANALYTICAL GRADIENT FOR RESTRICTED HARTREE-FOCK \n";
+            if (hf.is_used("--numgrad")) std::cout << "\n" + std::string(104, '-') + "\nNUMERICAL GRADIENT FOR RESTRICTED HARTREE-FOCK\n";
+            else std::cout << "\n" + std::string(104, '-') + "\nANALYTICAL GRADIENT FOR RESTRICTED HARTREE-FOCK\n";
             std::cout << std::string(104, '-') + "\n\n";
 
             // calculate the gradient
@@ -205,12 +207,29 @@ void Distributor::run() {
             // get the printing options
             auto mp2print = mp2.get<std::vector<std::string>>("-p"), mp2save = mp2.get<std::vector<std::string>>("-e");
 
+            // extract method options
+            data.mp.grad.numerical = mp2.is_used("--numgrad"), data.mp.grad.step = mp2.get<double>("--numgrad");
+            data.mp.opt.thresh = mp2.get<double>("-o");
+
             // transform the print and save vectors to lowercase
             for (auto& element : mp2print) std::transform(element.begin(), element.end(), element.begin(), [](auto c){return std::tolower(c);});
             for (auto& element : mp2save) std::transform(element.begin(), element.end(), element.begin(), [](auto c){return std::tolower(c);});
 
+            // optimize the molecule with HF method
+            if (mp2.is_used("-o")) {
+                // print the analytical RHF optimization method header and optimize the molecule
+                std::cout << "\n" + std::string(104, '-') + "\nRESTRICTED MP2 OPTIMIZATION \n" << std::string(104, '-') + "\n";
+                data = MP(data).Optimizer.mp2();
+
+                // print the new system coordinates
+                std::cout << "\nOPTIMIZED SYSTEM COORDINATES\n" << data.system.coords << std::endl; 
+
+                // print the new distance matrix
+                if (CONTAINS(print, "dist") || CONTAINS(print, "all")) std::cout << "\nOPTIMIZED DISTANCE MATRIX\n" << data.system.dists << std::endl; 
+            }
+
             // print the analytical MP2 correlation method header
-            std::cout << "\n" + std::string(104, '-') + "\nMP2 CORRELATION ENERGY\n";
+            std::cout << "\n" + std::string(104, '-') + "\nRESTRICTED MP2 CORRELATION ENERGY\n";
             std::cout << std::string(104, '-') + "\n";
 
             // transform the coulomb tensor
@@ -224,6 +243,23 @@ void Distributor::run() {
             // print the gradient and norm
             std::cout << "\nMP2 CORRELATION ENERGY: " << data.mp.Ecorr << std::endl;
             std::cout << "FINAL MP2 ENERGY: " << data.roothaan.E + data.mp.Ecorr << std::endl;
+
+            // calculate the MP2 nuclear gradient
+            if (mp2.is_used("-g")) {
+                // print the analytical RHF gradient method header
+                if (mp2.is_used("--numgrad")) std::cout << "\n" + std::string(104, '-') + "\nNUMERICAL GRADIENT FOR MP2 METHOD\n";
+                else std::cout << "\n" + std::string(104, '-') + "\nANALYTICAL GRADIENT FOR MP2 METHOD\n";
+                std::cout << std::string(104, '-') + "\n\n";
+
+                // calculate the gradient
+                if (!mp2.is_used("-o")) {
+                    data = MP(data).Gradient.mp2();
+                }
+
+                // print the gradient and norm
+                std::cout << data.mp.grad.G << "\n\nGRADIENT NORM: ";
+                std::printf("%.2e\n", data.mp.grad.G.norm());
+            }
         }
 
         // calculate ci correlation
@@ -267,53 +303,50 @@ void Distributor::run() {
     }
 }
 
-Integrals Distributor::integrals(const System& system) const {
-    // define the struct
-    Integrals ints;
-
+Data Distributor::integrals(Data data) const {
     // print the integral calculation header
     std::cout << "\n" + std::string(104, '-') + "\nINTEGRAL CALCULATION\n";
     std::cout << std::string(104, '-') << std::endl;
 
     // calculate the overlap integral
-    std::cout << "\nOVERLAP INTEGRAL: " << std::flush; TIME(ints.S = Integral::Overlap(system))
-    if (CONTAINS(print, "s") || CONTAINS(print, "all")) std::cout << "\n" << ints.S << std::endl;
-    if (CONTAINS(save, "s") || CONTAINS(save, "all")) Eigen::Write("S.mat", ints.S);
+    std::cout << "\nOVERLAP INTEGRAL: " << std::flush; TIME(data.ints.S = Integral::Overlap(data.system))
+    if (CONTAINS(print, "s") || CONTAINS(print, "all")) std::cout << "\n" << data.ints.S << std::endl;
+    if (CONTAINS(save, "s") || CONTAINS(save, "all")) Eigen::Write("S.mat", data.ints.S);
 
     // calculate the kinetic integral
-    std::cout << "\nKINETIC INTEGRAL: " << std::flush; TIME(ints.T = Integral::Kinetic(system))
-    if (CONTAINS(print, "t") || CONTAINS(print, "all")) std::cout << "\n" << ints.T << std::endl;
-    if (CONTAINS(save, "t") || CONTAINS(save, "all")) Eigen::Write("T.mat", ints.T);
+    std::cout << "\nKINETIC INTEGRAL: " << std::flush; TIME(data.ints.T = Integral::Kinetic(data.system))
+    if (CONTAINS(print, "t") || CONTAINS(print, "all")) std::cout << "\n" << data.ints.T << std::endl;
+    if (CONTAINS(save, "t") || CONTAINS(save, "all")) Eigen::Write("T.mat", data.ints.T);
 
     // calculate the nuclear-electron attraction integral
-    std::cout << "\nNUCLEAR INTEGRAL: " << std::flush; TIME(ints.V = Integral::Nuclear(system))
-    if (CONTAINS(print, "v") || CONTAINS(print, "all")) std::cout << "\n" << ints.V << std::endl;
-    if (CONTAINS(save, "v") || CONTAINS(save, "all")) Eigen::Write("V.mat", ints.V);
+    std::cout << "\nNUCLEAR INTEGRAL: " << std::flush; TIME(data.ints.V = Integral::Nuclear(data.system))
+    if (CONTAINS(print, "v") || CONTAINS(print, "all")) std::cout << "\n" << data.ints.V << std::endl;
+    if (CONTAINS(save, "v") || CONTAINS(save, "all")) Eigen::Write("V.mat", data.ints.V);
 
     // calculate the electron-electron repulsion integral
-    if (!program.get<bool>("--no-coulomb")) {std::cout << "\nCOULOMB INTEGRAL: " << std::flush; TIME(ints.J = Integral::Coulomb(system))}
-    if (!program.get<bool>("--no-coulomb") && (CONTAINS(print, "j") || CONTAINS(print, "all"))) {std::cout << "\n" << ints.J;} std::cout << "\n";
-    if (!program.get<bool>("--no-coulomb") && (CONTAINS(save, "j") || CONTAINS(save, "all"))) Eigen::Write("J.mat", ints.J);
+    if (!program.get<bool>("--no-coulomb")) {std::cout << "\nCOULOMB INTEGRAL: " << std::flush; TIME(data.ints.J = Integral::Coulomb(data.system))}
+    if (!program.get<bool>("--no-coulomb") && (CONTAINS(print, "j") || CONTAINS(print, "all"))) {std::cout << "\n" << data.ints.J;} std::cout << "\n";
+    if (!program.get<bool>("--no-coulomb") && (CONTAINS(save, "j") || CONTAINS(save, "all"))) Eigen::Write("J.mat", data.ints.J);
 
     // if derivatives of the integrals are needed
     if ((hf.is_used("-g") || hf.is_used("-o")) && !hf.is_used("numgrad")) {
         // calculate the overlap integral
-        std::cout << "\nFIRST DERIVATIVE OF OVERLAP INTEGRAL: " << std::flush; TIME(ints.dS = Integral::dOverlap(system))
-        if (CONTAINS(print, "ds")) std::cout << "\n" << ints.dS << std::endl;
+        std::cout << "\nFIRST DERIVATIVE OF OVERLAP INTEGRAL: " << std::flush; TIME(data.ints.dS = Integral::dOverlap(data.system))
+        if (CONTAINS(print, "ds")) std::cout << "\n" << data.ints.dS << std::endl;
 
         // calculate the kinetic integral
-        std::cout << "\nFIRST DERIVATIVE OF KINETIC INTEGRAL: " << std::flush; TIME(ints.dT = Integral::dKinetic(system))
-        if (CONTAINS(print, "dt")) std::cout << "\n" << ints.dT << std::endl;
+        std::cout << "\nFIRST DERIVATIVE OF KINETIC INTEGRAL: " << std::flush; TIME(data.ints.dT = Integral::dKinetic(data.system))
+        if (CONTAINS(print, "dt")) std::cout << "\n" << data.ints.dT << std::endl;
 
         // calculate the nuclear-electron attraction integral
-        std::cout << "\nFIRST DERIVATIVE OF NUCLEAR INTEGRAL: " << std::flush; TIME(ints.dV = Integral::dNuclear(system))
-        if (CONTAINS(print, "dv")) std::cout << "\n" << ints.dV << std::endl;
+        std::cout << "\nFIRST DERIVATIVE OF NUCLEAR INTEGRAL: " << std::flush; TIME(data.ints.dV = Integral::dNuclear(data.system))
+        if (CONTAINS(print, "dv")) std::cout << "\n" << data.ints.dV << std::endl;
 
         // calculate the electron-electron repulsion integral
-        std::cout << "\nFIRST DERIVATIVE OF COULOMB INTEGRAL: " << std::flush; TIME(ints.dJ = Integral::dCoulomb(system))
-        if (CONTAINS(print, "dj")) {std::cout << "\n" << ints.dJ;} std::cout << "\n";
+        std::cout << "\nFIRST DERIVATIVE OF COULOMB INTEGRAL: " << std::flush; TIME(data.ints.dJ = Integral::dCoulomb(data.system))
+        if (CONTAINS(print, "dj")) {std::cout << "\n" << data.ints.dJ;} std::cout << "\n";
     }
 
     // return integrals
-    return ints;
+    return data;
 }

@@ -48,6 +48,8 @@ Below are all the important features of Hazel divided into categories.
 ### Additional Calculations
 
 * Analytical Gradient for HF
+* Numerical Gradient for MP2
+* HF and MP2 Optimization
 
 ## 🛠️ Compilation
 

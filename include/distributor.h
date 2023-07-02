@@ -13,7 +13,7 @@ public:
     ~Distributor(); void run();
 
 private:
-    Integrals integrals(const System& system) const;
+    Data integrals(Data data) const;
 
 private:
     argparse::ArgumentParser program, hf, ci, mp2;

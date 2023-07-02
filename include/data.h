@@ -10,6 +10,14 @@ struct Data {
     } ci;
     struct MP {
         double Ecorr;
+        struct Gradient {
+            bool numerical;
+            double step;
+            Matrix G;
+        } grad;
+        struct Optimizer {
+            double thresh;
+        } opt;
     } mp;
     struct Roothaan {
         struct {int start, keep;} diis;
@@ -21,6 +29,9 @@ struct Data {
             double step;
             Matrix G;
         } grad;
+        struct Optimizer {
+            double thresh;
+        } opt;
     } roothaan;
     Integrals ints, intsmo;
     System system;

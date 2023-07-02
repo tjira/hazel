@@ -20,3 +20,6 @@ bin/
 *.mat
 *.out
 *.so
+
+# cores
+core.*

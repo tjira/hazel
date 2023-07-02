@@ -106,20 +106,22 @@ Data Roothaan::gradientNumerical(bool print) const {
     return output;
 }
 
-Data Roothaan::optimize(bool) const {
+Data Roothaan::optimize(bool print) const {
     // create the output and perform the SCF and gradient calculation
-    Data output = data; output = scf(false); output = Roothaan(output).gradient();
+    Data output = data; output = scf(false); output = Roothaan(output).gradient(false);
 
     // print the header
-    std::printf("ITER        E [Eh]         |GRAD|      TIME\n");
+    if (print) std::printf("ITER        E [Eh]         |GRAD|      TIME\n");
 
     // print the initial state info
-    std::printf("%4d %20.14f %.2e %s\n", 0, output.roothaan.E, output.roothaan.grad.G.norm(), "00:00:00.000");
+    if (print) std::printf("%4d %20.14f %.2e %s\n", 0, output.roothaan.E, output.roothaan.grad.G.norm(), "00:00:00.000");
 
     // move the data.system while gradient is big
-    for (int i = 1; output.roothaan.grad.G.norm() > data.roothaan.thresh; i++) {
-        // start the timer and move the data.system
+    for (int i = 1; output.roothaan.grad.G.norm() > data.roothaan.opt.thresh; i++) {
+        // start the timer
         Timer::Timepoint start = Timer::Now();
+
+        // move the system
         output.system.move(-output.roothaan.grad.G);
 
         // calculate integrals for HF method
@@ -129,16 +131,18 @@ Data Roothaan::optimize(bool) const {
         output.ints.J = Integral::Coulomb(output.system);
 
         // calculate integral derivatives for the gradient
-        output.ints.dS = Integral::dOverlap(output.system);
-        output.ints.dT = Integral::dKinetic(output.system);
-        output.ints.dV = Integral::dNuclear(output.system);
-        output.ints.dJ = Integral::dCoulomb(output.system);
+        if (!data.roothaan.grad.numerical) {
+            output.ints.dS = Integral::dOverlap(output.system);
+            output.ints.dT = Integral::dKinetic(output.system);
+            output.ints.dV = Integral::dNuclear(output.system);
+            output.ints.dJ = Integral::dCoulomb(output.system);
+        }
 
         // perform HF and calculate gradient
         output = Roothaan(output).scf(false); output = Roothaan(output).gradient(false);
 
         // print the iteration info
-        std::printf("%4d %20.14f %.2e %s\n", i, output.roothaan.E, output.roothaan.grad.G.norm(), Timer::Format(Timer::Elapsed(start)).c_str());
+        if (print) std::printf("%4d %20.14f %.2e %s\n", i, output.roothaan.E, output.roothaan.grad.G.norm(), Timer::Format(Timer::Elapsed(start)).c_str());
     }
 
     // return results
@@ -153,11 +157,16 @@ Data Roothaan::scf(bool print) const {
     Matrix H = data.ints.T + data.ints.V, F; int nocc = data.system.electrons / 2;
     Tensor<4> ERI = data.ints.J - 0.5 * data.ints.J.shuffle(Array<4>{0, 3, 2, 1});
     libint2::DIIS<Matrix> diis(data.roothaan.diis.start, data.roothaan.diis.keep);
+
+    // specify the ERI contraction indices
     Eigen::IndexPair<int> first(2, 0), second(3, 1);
 
-    // calculate the energy from the guess density
+    // calculate the Fock matrix
     if (data.ints.J.size()) F = H + toMatrix(ERI.contract(toTensor(output.roothaan.D), Axes<2>{first, second}));
-    else {F = H + Integral::Coulomb(data.system, data.roothaan.D);} output.roothaan.E = 0.5 * output.roothaan.D.cwiseProduct(H + F).sum();
+    else F = H + Integral::Coulomb(data.system, data.roothaan.D);
+
+    // calculate the energy
+    output.roothaan.E = 0.5 * output.roothaan.D.cwiseProduct(H + F).sum();
 
     // print the iteration header
     if (print) std::printf("\nITER       Eel [Eh]         |dE|     |dD|       TIME    \n");
@@ -175,8 +184,10 @@ Data Roothaan::scf(bool print) const {
         Matrix e = data.ints.S * output.roothaan.D * F - F * output.roothaan.D * data.ints.S;
         if (i > 1) diis.extrapolate(F, e);
 
-        // solve the roothan equations and save the previous values
+        // solve the roothan equations
         Eigen::GeneralizedSelfAdjointEigenSolver<Matrix> solver(F, data.ints.S);
+
+        // exteract the eigenvalues and eigenvectors and save previous values of D and E
         output.roothaan.C = solver.eigenvectors(), output.roothaan.eps = solver.eigenvalues();
         Matrix Dp = output.roothaan.D; double Ep = output.roothaan.E;
 
@@ -184,12 +195,18 @@ Data Roothaan::scf(bool print) const {
         output.roothaan.D = 2 * output.roothaan.C.leftCols(nocc) * output.roothaan.C.leftCols(nocc).transpose();
         output.roothaan.E = 0.5 * output.roothaan.D.cwiseProduct(H + F).sum();
 
+        // calculate the E and D errors and elapsed time
+        double Eerr = std::abs(output.roothaan.E - Ep), Derr = (output.roothaan.D - Dp).norm();
+        const char* elapsed = Timer::Format(Timer::Elapsed(start)).c_str();
+
         // print the iteration info line
-        if (print) std::printf("%4d %20.14f %.2e %.2e %s %s\n", i, output.roothaan.E, std::abs(output.roothaan.E - Ep), (output.roothaan.D - Dp).norm(), Timer::Format(Timer::Elapsed(start)).c_str(), i > data.roothaan.diis.start - 1 ? "DIIS" : "");
+        if (print) std::printf("%4d %20.14f %.2e %.2e %s %s\n", i, output.roothaan.E, Eerr, Derr, elapsed, i > data.roothaan.diis.start - 1 ? "DIIS" : "");
 
         // finish if covergence reached
-        if (std::abs(output.roothaan.E - Ep) < data.roothaan.thresh && (output.roothaan.D - Dp).norm() < data.roothaan.thresh) break;
-        else if (i == data.roothaan.maxiter) throw std::runtime_error("Maximum number of iterations in SCF reached.");
+        if (Eerr < data.roothaan.thresh && Derr < data.roothaan.thresh) break;
+        else if (i == data.roothaan.maxiter) {
+            throw std::runtime_error("Maximum number of iterations in SCF reached.");
+        }
     }
 
     // add the nuclear repultion energy

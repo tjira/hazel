@@ -1,7 +1,7 @@
 #!/bin/bash
 
-SYSTEMS=("acetone" "ammonia" "ethanol" "methane" "pyrrole" "water")
-BASES=("sto-3g" "6-31g" "6-311g" "cc-pvdz")
+SYSTEMS=("acetone" "ammonia" "ethane" "ethanol" "ethylene" "methane" "pyrrole" "water")
+BASES=("mini" "3-21g" "sto-3g" "6-31g" "6-311g" "cc-pvdz")
 
 for SYSTEM in ${SYSTEMS[@]}; do
     for BASIS in ${BASES[@]}; do
