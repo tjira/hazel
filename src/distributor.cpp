@@ -96,6 +96,7 @@ void Distributor::run() {
 
     // extract printing and saving options
     print = program.get<std::vector<std::string>>("-p"), save = program.get<std::vector<std::string>>("-e");
+    std::vector<std::string> ciprint, hfprint, mp2print, cisave, mp2save, hfsave;
 
     // transform the print and save vectors to lowercase
     for (auto& element : print) std::transform(element.begin(), element.end(), element.begin(), [](auto c){return std::tolower(c);});
@@ -125,37 +126,47 @@ void Distributor::run() {
     // print the distances if requested
     if (CONTAINS(print, "dist")) std::cout << "\nDISTANCE MATRIX\n" << data.system.dists << std::endl; 
 
+    // extract all the options
+    if (program.is_subcommand_used("hf")) {
+        hfprint = hf.get<std::vector<std::string>>("-p"), hfsave = hf.get<std::vector<std::string>>("-e");
+        data.roothaan.diis = {hf.get<std::vector<int>>("-d").at(0), hf.get<std::vector<int>>("-d").at(1)};
+        data.roothaan.maxiter = hf.get<int>("-m"), data.roothaan.grad.step = hf.get<double>("--numgrad");
+        data.roothaan.thresh = hf.get<double>("-t"), data.roothaan.opt.thresh = hf.get<double>("-o");
+        data.roothaan.grad.numerical = hf.is_used("--numgrad");
+        if (hf.is_subcommand_used("mp2")) {
+            mp2print = mp2.get<std::vector<std::string>>("-p"), mp2save = mp2.get<std::vector<std::string>>("-e");
+            data.mp.grad.numerical = mp2.is_used("--numgrad"), data.mp.grad.step = mp2.get<double>("--numgrad");
+            data.mp.opt.thresh = mp2.get<double>("-o");
+        } else if (hf.is_subcommand_used("ci")) {
+            ciprint = ci.get<std::vector<std::string>>("-p"), cisave = ci.get<std::vector<std::string>>("-e");
+        }
+    }
+
+    // transform the print and save vectors to lowercase
+    for (auto& element : mp2print) std::transform(element.begin(), element.end(), element.begin(), [](auto c){return std::tolower(c);});
+    for (auto& element : hfprint) std::transform(element.begin(), element.end(), element.begin(), [](auto c){return std::tolower(c);});
+    for (auto& element : mp2save) std::transform(element.begin(), element.end(), element.begin(), [](auto c){return std::tolower(c);});
+    for (auto& element : ciprint) std::transform(element.begin(), element.end(), element.begin(), [](auto c){return std::tolower(c);});
+    for (auto& element : hfsave) std::transform(element.begin(), element.end(), element.begin(), [](auto c){return std::tolower(c);});
+    for (auto& element : cisave) std::transform(element.begin(), element.end(), element.begin(), [](auto c){return std::tolower(c);});
+
     // perform the HF calculation
     if (program.is_subcommand_used("hf")) {
-        // calculate the molecular integrals
-        data = integrals(data);
-
-        // create the initial guess for the density matrix
-        data.roothaan.D = Matrix::Zero(data.system.shells.nbf(), data.system.shells.nbf());
-
-        // extract HF printing and saving options
-        auto hfprint = hf.get<std::vector<std::string>>("-p"), hfsave = hf.get<std::vector<std::string>>("-e");
-
-        // extract method options
-        data.roothaan.grad.numerical = hf.is_used("--numgrad"), data.roothaan.grad.step = hf.get<double>("--numgrad");
-        data.roothaan.diis = {hf.get<std::vector<int>>("-d").at(0), hf.get<std::vector<int>>("-d").at(1)};
-        data.roothaan.maxiter = hf.get<int>("-m"), data.roothaan.thresh = hf.get<double>("-t");
-        data.roothaan.opt.thresh = hf.get<double>("-o");
-
-        // transform the print and save vectors to lowercase
-        for (auto& element : hfprint) std::transform(element.begin(), element.end(), element.begin(), [](auto c){return std::tolower(c);});
-        for (auto& element : hfsave) std::transform(element.begin(), element.end(), element.begin(), [](auto c){return std::tolower(c);});
+        // calculate the molecular integrals and create the guess density
+        data = integrals(data), data.roothaan.D = Matrix::Zero(data.system.shells.nbf(), data.system.shells.nbf());
 
         // optimize the molecule with HF method
         if (hf.is_used("-o")) {
-            // print the analytical RHF optimization method header and optimize the molecule
-            std::cout << "\n" + std::string(104, '-') + "\nRESTRICTED HARTREE-FOCK OPTIMIZATION \n" << std::string(104, '-') + "\n";
+            // print the analytical RHF optimization method, optimize the molecule and print the new coordinates
+            std::cout << "\n" + std::string(104, '-') + "\nRESTRICTED HARTREE-FOCK OPTIMIZATION\n" << std::string(104, '-') + "\n";
+            
+            // perform the optimization
             data = Roothaan(data).optimize();
 
-            // print the new system coordinates
+            // print the optimized coordinates
             std::cout << "\nOPTIMIZED SYSTEM COORDINATES\n" << data.system.coords << std::endl; 
 
-            // print the new distance matrix
+            // print the new distance matrix if requested
             if (CONTAINS(print, "dist") || CONTAINS(print, "all")) std::cout << "\nOPTIMIZED DISTANCE MATRIX\n" << data.system.dists << std::endl; 
         }
 
@@ -165,15 +176,13 @@ void Distributor::run() {
         // print the RHF options
         std::printf("-- MAXITER: %d, THRESH: %.2e\n-- DIIS: [START: %d, KEEP: %d]\n", data.roothaan.maxiter, data.roothaan.thresh, data.roothaan.diis.start, data.roothaan.diis.keep);
 
-        // perform the Hartree-Fock method and extract the results
+        // perform the Hartree-Fock calculation
         data = Roothaan(data).scf();
 
-        // print the results
+        // print and save the resulting matrices
         if (CONTAINS(hfprint, "eps") || CONTAINS(print, "all")) std::cout << "\nORBITAL ENERGIES\n" << Matrix(data.roothaan.eps) << std::endl;
         if (CONTAINS(hfprint, "c") || CONTAINS(print, "all")) std::cout << "\nCOEFFICIENT MATRIX\n" << data.roothaan.C << std::endl;
         if (CONTAINS(hfprint, "d") || CONTAINS(print, "all")) std::cout << "\nDENSITY MATRIX\n" << data.roothaan.D << std::endl;
-
-        // save the results
         if (CONTAINS(hfsave, "eps") || CONTAINS(save, "all")) Eigen::Write("EPS.mat", data.roothaan.eps);
         if (CONTAINS(hfsave, "c") || CONTAINS(save, "all")) Eigen::Write("C.mat", data.roothaan.C);
         if (CONTAINS(hfsave, "d") || CONTAINS(save, "all")) Eigen::Write("D.mat", data.roothaan.D);
@@ -189,14 +198,11 @@ void Distributor::run() {
             else std::cout << "\n" + std::string(104, '-') + "\nANALYTICAL GRADIENT FOR RESTRICTED HARTREE-FOCK\n";
             std::cout << std::string(104, '-') + "\n\n";
 
-            // calculate the gradient
-            if (!hf.is_used("-o")) {
-                data = Roothaan(data).gradient();
-            }
+            // perform the gradient calculation
+            if (!hf.is_used("-o")) data = Roothaan(data).gradient();
 
             // print the gradient and norm
-            std::cout << data.roothaan.grad.G << "\n\nGRADIENT NORM: ";
-            std::printf("%.2e\n", data.roothaan.grad.G.norm());
+            std::cout << data.roothaan.grad.G << "\n\nGRADIENT NORM: "; std::printf("%.2e\n", data.roothaan.grad.G.norm());
         }
 
         // calculate the MP2 correlation
@@ -204,59 +210,46 @@ void Distributor::run() {
             // throw an error if no coulomb
             if (program.get<bool>("--no-coulomb")) throw std::runtime_error("I'm sorry, you need the coulomb tensor for the MP2 method.");
 
-            // get the printing options
-            auto mp2print = mp2.get<std::vector<std::string>>("-p"), mp2save = mp2.get<std::vector<std::string>>("-e");
-
-            // extract method options
-            data.mp.grad.numerical = mp2.is_used("--numgrad"), data.mp.grad.step = mp2.get<double>("--numgrad");
-            data.mp.opt.thresh = mp2.get<double>("-o");
-
-            // transform the print and save vectors to lowercase
-            for (auto& element : mp2print) std::transform(element.begin(), element.end(), element.begin(), [](auto c){return std::tolower(c);});
-            for (auto& element : mp2save) std::transform(element.begin(), element.end(), element.begin(), [](auto c){return std::tolower(c);});
-
-            // optimize the molecule with HF method
+            // optimize the molecule with MP2 method
             if (mp2.is_used("-o")) {
-                // print the analytical RHF optimization method header and optimize the molecule
-                std::cout << "\n" + std::string(104, '-') + "\nRESTRICTED MP2 OPTIMIZATION \n" << std::string(104, '-') + "\n";
+                // print the MP2 optimization method header and optimize the molecule
+                std::cout << "\n" + std::string(104, '-') + "\nRESTRICTED MP2 OPTIMIZATION\n" << std::string(104, '-') << "\n\n";
+
+                // perform the optimization
                 data = MP(data).Optimizer.mp2();
 
-                // print the new system coordinates
-                std::cout << "\nOPTIMIZED SYSTEM COORDINATES\n" << data.system.coords << std::endl; 
+                // print the optimized coordinates
+                std::cout << "\nOPTIMIZED SYSTEM COORDINATES\n" << data.system.coords << std::endl;
 
                 // print the new distance matrix
                 if (CONTAINS(print, "dist") || CONTAINS(print, "all")) std::cout << "\nOPTIMIZED DISTANCE MATRIX\n" << data.system.dists << std::endl; 
             }
 
-            // print the analytical MP2 correlation method header
-            std::cout << "\n" + std::string(104, '-') + "\nRESTRICTED MP2 CORRELATION ENERGY\n";
-            std::cout << std::string(104, '-') + "\n";
+            // print the MP2 correlation method header
+            std::cout << "\n" + std::string(104, '-') + "\nRESTRICTED MP2 CORRELATION ENERGY\n" << std::string(104, '-') + "\n";
 
             // transform the coulomb tensor
             std::cout << "\nCOULOMB TENSOR IN MO BASIS: " << std::flush; TIME(data.intsmo.J = Transform::Coulomb(data.ints.J, data.roothaan.C))
             if (CONTAINS(mp2print, "jmo") || CONTAINS(print, "all")) {std::cout << "\n" << data.intsmo.J;} std::cout << "\n";
             if (CONTAINS(mp2save, "jmo") || CONTAINS(save, "all")) Eigen::Write("JMO.mat", data.intsmo.J);
 
-            // calculate the correlation energy
+            // do the calculation
             data = MP(data).mp2();
 
             // print the gradient and norm
-            std::cout << "\nMP2 CORRELATION ENERGY: " << data.mp.Ecorr << std::endl;
-            std::cout << "FINAL MP2 ENERGY: " << data.roothaan.E + data.mp.Ecorr << std::endl;
+            std::cout << "\nMP2 CORRELATION ENERGY: " << data.mp.Ecorr << std::endl << "FINAL ";
+            std::cout << "MP2 ENERGY: " << data.roothaan.E + data.mp.Ecorr << std::endl;
 
             // calculate the MP2 nuclear gradient
             if (mp2.is_used("-g")) {
-                // print the analytical RHF gradient method header
-                if (mp2.is_used("--numgrad")) std::cout << "\n" + std::string(104, '-') + "\nNUMERICAL GRADIENT FOR MP2 METHOD\n";
-                else std::cout << "\n" + std::string(104, '-') + "\nANALYTICAL GRADIENT FOR MP2 METHOD\n";
-                std::cout << std::string(104, '-') + "\n\n";
+                // print the MP2 gradient method header and perform the calculation
+                if (mp2.is_used("--numgrad")) std::cout << "\n" + std::string(104, '-') + "\nNUMERICAL GRADIENT FOR MP2 METHOD\n" << std::string(104, '-');
+                else std::cout << "\n" + std::string(104, '-') + "\nANALYTICAL GRADIENT FOR MP2 METHOD\n" << std::string(104, '-') << "\n\n";
 
-                // calculate the gradient
-                if (!mp2.is_used("-o")) {
-                    data = MP(data).Gradient.mp2();
-                }
+                // perform the calculation
+                if (!mp2.is_used("-o")) data = MP(data).Gradient.mp2();
 
-                // print the gradient and norm
+                // print the gradient results
                 std::cout << data.mp.grad.G << "\n\nGRADIENT NORM: ";
                 std::printf("%.2e\n", data.mp.grad.G.norm());
             }
@@ -264,34 +257,22 @@ void Distributor::run() {
 
         // calculate ci correlation
         if (hf.is_subcommand_used("ci")) {
-            // throw an error if no coulomb
+            // throw an error if no coulomb and print the CI method header
             if (program.get<bool>("--no-coulomb")) throw std::runtime_error("I'm sorry, you need the coulomb tensor for CI.");
-
-            // get the printing options
-            auto ciprint = ci.get<std::vector<std::string>>("-p"), cisave = ci.get<std::vector<std::string>>("-e");
-
-            // transform the print and save vectors to lowercase
-            for (auto& element : ciprint) std::transform(element.begin(), element.end(), element.begin(), [](auto c){return std::tolower(c);});
-            for (auto& element : cisave) std::transform(element.begin(), element.end(), element.begin(), [](auto c){return std::tolower(c);});
-
-            // print the CI correlation method header
-            std::cout << "\n" + std::string(104, '-') + "\nCI CORRELATION ENERGY\n";
-            std::cout << std::string(104, '-') + "\n";
+            std::cout << "\n" + std::string(104, '-') + "\nCI CORRELATION ENERGY\n" << std::string(104, '-') + "\n";
 
             // transform the coulomb tensor
             std::cout << "\nCOULOMB TENSOR IN MO BASIS: " << std::flush; TIME(data.intsmo.J = Transform::Coulomb(data.ints.J, data.roothaan.C))
             if (CONTAINS(ciprint, "jmo") || CONTAINS(print, "all")) {std::cout << "\n" << data.intsmo.J;} std::cout << "\n";
             if (CONTAINS(cisave, "jmo") || CONTAINS(save, "all")) Eigen::Write("JMO.mat", data.intsmo.J);
 
-            // calculate the correlation energy retrieved
+            // do the calculation
             data = CI(data).cid();
 
-            // print the result matrices
+            // print and save the result matrices
             if (CONTAINS(ciprint, "cie") || CONTAINS(print, "all")) {std::cout << "\n" << data.ci.eig << "\n";}
             if (CONTAINS(ciprint, "cih") || CONTAINS(print, "all")) {std::cout << "\n" << data.ci.H << "\n";}
             if (CONTAINS(ciprint, "cic") || CONTAINS(print, "all")) {std::cout << "\n" << data.ci.C << "\n";}
-
-            // save the result matrices
             if (CONTAINS(cisave, "cie") || CONTAINS(save, "all")) Eigen::Write("CIE.mat", data.ci.eig);
             if (CONTAINS(cisave, "cih") || CONTAINS(save, "all")) Eigen::Write("CIH.mat", data.ci.H);
             if (CONTAINS(cisave, "cic") || CONTAINS(save, "all")) Eigen::Write("CIC.mat", data.ci.C);
