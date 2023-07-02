@@ -158,7 +158,7 @@ void Distributor::run() {
         // optimize the molecule with HF method
         if (hf.is_used("-o")) {
             // print the analytical RHF optimization method, optimize the molecule and print the new coordinates
-            std::cout << "\n" + std::string(104, '-') + "\nRESTRICTED HARTREE-FOCK OPTIMIZATION\n" << std::string(104, '-') + "\n";
+            std::cout << "\n" + std::string(104, '-') + "\nRESTRICTED HARTREE-FOCK OPTIMIZATION\n" << std::string(104, '-') + "\n\n";
             
             // perform the optimization
             data = Roothaan(data).optimize();
@@ -243,7 +243,7 @@ void Distributor::run() {
             // calculate the MP2 nuclear gradient
             if (mp2.is_used("-g")) {
                 // print the MP2 gradient method header and perform the calculation
-                if (mp2.is_used("--numgrad")) std::cout << "\n" + std::string(104, '-') + "\nNUMERICAL GRADIENT FOR MP2 METHOD\n" << std::string(104, '-');
+                if (mp2.is_used("--numgrad")) std::cout << "\n" + std::string(104, '-') + "\nNUMERICAL GRADIENT FOR MP2 METHOD\n" << std::string(104, '-') << "\n\n";
                 else std::cout << "\n" + std::string(104, '-') + "\nANALYTICAL GRADIENT FOR MP2 METHOD\n" << std::string(104, '-') << "\n\n";
 
                 // perform the calculation
