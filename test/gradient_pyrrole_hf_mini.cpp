@@ -7,6 +7,7 @@ int test_gradient_pyrrole_hf_mini(int, char**) {
 
     // set some options
     data.roothaan.diis = {3, 5}, data.roothaan.maxiter = 1000, data.roothaan.thresh = 1e-8;
+    data.roothaan.grad.step = 0.0005, data.roothaan.grad.numerical = false;
 
     // initialize the guess density matrix
     data.roothaan.D = Matrix::Zero(data.system.shells.nbf(), data.system.shells.nbf());
