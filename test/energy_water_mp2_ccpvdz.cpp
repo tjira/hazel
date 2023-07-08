@@ -1,9 +1,10 @@
 #include "../include/roothaan.h"
 #include "../include/system.h"
+#include "../include/mp.h"
 
-int test_energy_ethanol_hf_6311g(int, char**) {
+int test_energy_water_mp2_ccpvdz(int, char**) {
     // initialize the system
-    Data data; data.system = System("../example/molecule/ethanol.xyz", "6-311G", 0, 1);
+    Data data; data.system = System("../example/molecule/water.xyz", "CC-PVDZ", 0, 1);
 
     // set some options
     data.roothaan.diis = {3, 5}, data.roothaan.maxiter = 1000, data.roothaan.thresh = 1e-8;
@@ -22,10 +23,16 @@ int test_energy_ethanol_hf_6311g(int, char**) {
     // perform the SCF cycle
     data = Roothaan(data).scf(false);
 
+    // transform the coulomb tensor to MO basis
+    data.intsmo.J = Transform::Coulomb(data.ints.J, data.roothaan.C);
+
+    // calculate MP2 correlation
+    data = MP(data).mp2();
+
     // print the results
-    std::cout << std::fixed << std::setprecision(14) << "COMPUTED ENERGY: " << data.roothaan.E << std::endl;
-    std::cout << std::fixed << std::setprecision(14) << "EXPECTED ENERGY: " << -154.04714248609721 << std::endl;
+    std::cout << std::fixed << std::setprecision(14) << "COMPUTED ENERGY: " << data.roothaan.E + data.mp.Ecorr << std::endl;
+    std::cout << std::fixed << std::setprecision(14) << "EXPECTED ENERGY: " << -76.22985471489328 << std::endl;
 
     // return success or failure based on the error
-    return std::abs(data.roothaan.E - -154.04714248609721) > 1e-8;
+    return std::abs(data.roothaan.E + data.mp.Ecorr - -76.22985471489328) > 1e-8;
 }

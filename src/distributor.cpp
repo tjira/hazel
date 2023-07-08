@@ -255,7 +255,7 @@ void Distributor::run() {
             }
         }
 
-        // calculate ci correlation
+        // calculate CI correlation
         if (hf.is_subcommand_used("ci")) {
             // throw an error if no coulomb and print the CI method header
             if (program.get<bool>("--no-coulomb")) throw std::runtime_error("I'm sorry, you need the coulomb tensor for CI.");

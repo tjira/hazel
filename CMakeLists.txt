@@ -36,22 +36,22 @@ endif()
 enable_testing()
 
 # get all the test source files and create the source lists
-file(GLOB SRC_ENERGY RELATIVE ${PROJECT_SOURCE_DIR} test/energy_*.cpp)
-create_test_sourcelist(TEST_ENERGY test_energy.cpp ${SRC_ENERGY})
+file(GLOB SRC_TEST RELATIVE ${PROJECT_SOURCE_DIR} test/*.cpp)
+create_test_sourcelist(TEST_LIST test_hazel.cpp ${SRC_TEST})
 
 # add executables and set their properties
-add_executable(test_energy EXCLUDE_FROM_ALL src/eigen.cpp src/integral.cpp src/roothaan.cpp src/system.cpp src/timer.cpp ${TEST_ENERGY})
-set_target_properties(test_energy PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin/test)
-target_compile_definitions(test_energy PRIVATE DATADIR="${PROJECT_SOURCE_DIR}")
-target_link_libraries(test_energy Eigen3::Eigen int2.a)
+add_executable(test_hazel EXCLUDE_FROM_ALL src/eigen.cpp src/integral.cpp src/mp.cpp src/roothaan.cpp src/system.cpp src/transform.cpp src/timer.cpp ${TEST_LIST})
+set_target_properties(test_hazel PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin/test)
+target_compile_definitions(test_hazel PRIVATE DATADIR="${PROJECT_SOURCE_DIR}")
+target_link_libraries(test_hazel Eigen3::Eigen int2.a)
 
 # extract energy test name
-foreach (FILE ${SRC_ENERGY})
+foreach (FILE ${SRC_TEST})
     get_filename_component(TNAME ${FILE} NAME_WE)
-    list(APPEND TESTS_ENERGY test/${TNAME})
+    list(APPEND TESTS test/${TNAME})
 endforeach()
 
 # add energy tests
-foreach (TEST ${TESTS_ENERGY})
-    add_test(NAME ${TEST} COMMAND test_energy ${TEST})
+foreach (TEST ${TESTS})
+    add_test(NAME ${TEST} COMMAND test_hazel ${TEST})
 endforeach()
