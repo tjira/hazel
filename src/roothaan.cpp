@@ -63,7 +63,7 @@ Data Roothaan::gradientNumerical(bool print) const {
 
     // fill the gradient
     #if defined(_OPENMP)
-    #pragma omp parallel for num_threads(nthread) shared(data, output)
+    #pragma omp parallel for num_threads(nthread) shared(data, output) collapse(2)
     #endif
     for (int i = 0; i < output.roothaan.grad.G.rows(); i++) {
         for (int j = 0; j < output.roothaan.grad.G.cols(); j++) {

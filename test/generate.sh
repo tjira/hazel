@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SYSTEMS=("acetone" "ammonia" "ethane" "ethanol" "ethylene" "methane" "pyrrole" "water")
+SYSTEMS=("ammonia" "ethane" "ethylene" "formaldehyde" "methane" "water")
 BASES=("mini" "3-21g" "sto-3g" "6-31g" "cc-pvdz")
 
 CORES=64
@@ -27,13 +27,32 @@ done
 for SYSTEM in ${SYSTEMS[@]}; do
     for BASIS in ${BASES[@]}; do
         # echo the source file name
-        FILE="gradient_${SYSTEM,,}_hf_${BASIS//-/}.cpp"; echo "$FILE"
+        FILE="grad_${SYSTEM,,}_hf_${BASIS//-/}.cpp"; echo "$FILE"
 
         # create the source file
-        cat template/gradient_hf.in > "$FILE"
+        cat template/grad_hf.in > "$FILE"
 
         # calculate the expected energy
         GRAD=$(../bin/hazel -b "$BASIS" -f "../example/molecule/$SYSTEM.xyz" -n $CORES hf -d 3 5 -m 1000 -t 1e-8 -g | sed -n "/ANAL/,/GRAD/p" | tail -n +5 | head -n -2)
+        GRAD=$(echo $GRAD | tr "\n" " " | tr -s " " | sed "s/\s*$//g" | sed "s/ /, /g")
+
+        # replace values in the source file
+        sed -i "s/BASIS/${BASIS//-/}/g" $FILE && sed -i "s/\"${BASIS//-/}\"/\"${BASIS^^}\"/g" "$FILE"
+        sed -i "s/SYSTEM/$SYSTEM/g" "$FILE" && sed -i "s/GRADVAL/$GRAD/g" "$FILE"
+    done
+done
+
+# Hartree-Fock numerical gradient
+for SYSTEM in ${SYSTEMS[@]}; do
+    for BASIS in ${BASES[@]}; do
+        # echo the source file name
+        FILE="numgrad_${SYSTEM,,}_hf_${BASIS//-/}.cpp"; echo "$FILE"
+
+        # create the source file
+        cat template/numgrad_hf.in > "$FILE"
+
+        # calculate the expected energy
+        GRAD=$(../bin/hazel -b "$BASIS" -f "../example/molecule/$SYSTEM.xyz" -n $CORES hf -d 3 5 -m 1000 -t 1e-12 -g --numgrad 1e-5 | sed -n "/NUME/,/GRAD/p" | sed -n "/: 1-3/,/GRAD/p" | tail -n +2 | head -n -2)
         GRAD=$(echo $GRAD | tr "\n" " " | tr -s " " | sed "s/\s*$//g" | sed "s/ /, /g")
 
         # replace values in the source file
@@ -57,6 +76,25 @@ for SYSTEM in ${SYSTEMS[@]}; do
         # replace values in the source file
         sed -i "s/BASIS/${BASIS//-/}/g" $FILE && sed -i "s/\"${BASIS//-/}\"/\"${BASIS^^}\"/g" "$FILE"
         sed -i "s/SYSTEM/$SYSTEM/g" "$FILE" && sed -i "s/EVALUE/$ENERGY/g" "$FILE"
+    done
+done
+
+# MP2 numerical gradient
+for SYSTEM in ${SYSTEMS[@]}; do
+    for BASIS in ${BASES[@]}; do
+        # echo the source file name
+        FILE="numgrad_${SYSTEM,,}_mp2_${BASIS//-/}.cpp"; echo "$FILE"
+
+        # create the source file
+        cat template/numgrad_mp2.in > "$FILE"
+
+        # calculate the expected energy
+        GRAD=$(../bin/hazel -b "$BASIS" -f "../example/molecule/$SYSTEM.xyz" -n $CORES hf -d 3 5 -m 1000 -t 1e-12 mp2 -g --numgrad 1e-5 | sed -n "/NUME/,/GRAD/p" | sed -n "/: 1-3/,/GRAD/p" | tail -n +2 | head -n -2)
+        GRAD=$(echo $GRAD | tr "\n" " " | tr -s " " | sed "s/\s*$//g" | sed "s/ /, /g")
+
+        # replace values in the source file
+        sed -i "s/BASIS/${BASIS//-/}/g" $FILE && sed -i "s/\"${BASIS//-/}\"/\"${BASIS^^}\"/g" "$FILE"
+        sed -i "s/SYSTEM/$SYSTEM/g" "$FILE" && sed -i "s/GRADVAL/$GRAD/g" "$FILE"
     done
 done
 

@@ -24,6 +24,10 @@ Data MP::mp2(bool) const {
 }
 
 Data MP::Gradient::mp2(bool print) const {
+    // check if the coulomb tensor was transformed
+    if (!mp->data.intsmo.J.size()) throw std::runtime_error("You have not transformed the coulomb tensor to the MO basis.");
+
+    // choose the type of the gradient
     if (mp->data.mp.grad.numerical) return mp2Numerical(print);
     else return mp2Analytical(print);
 }
@@ -41,7 +45,7 @@ Data MP::Gradient::mp2Numerical(bool print) const {
 
     // fill the gradient
     #if defined(_OPENMP)
-    #pragma omp parallel for num_threads(nthread) shared(output)
+    #pragma omp parallel for num_threads(nthread) shared(output) collapse(2)
     #endif
     for (int i = 0; i < output.mp.grad.G.rows(); i++) {
         for (int j = 0; j < output.mp.grad.G.cols(); j++) {
@@ -53,7 +57,7 @@ Data MP::Gradient::mp2Numerical(bool print) const {
             Matrix dirPlus(mp->data.system.atoms.size(), 3); Data dataPlus = mp->data;
 
             // fill the direction matrices
-            dirMinus(i, j) -= mp->data.roothaan.grad.step * A2BOHR; dirPlus(i, j) += mp->data.roothaan.grad.step * A2BOHR;
+            dirMinus(i, j) -= mp->data.mp.grad.step * A2BOHR; dirPlus(i, j) += mp->data.mp.grad.step * A2BOHR;
 
             // move the systems
             dataMinus.roothaan.D = mp->data.roothaan.D, dataPlus.roothaan.D = mp->data.roothaan.D;
@@ -74,7 +78,7 @@ Data MP::Gradient::mp2Numerical(bool print) const {
             dataPlus.intsmo.J = Transform::Coulomb(dataPlus.ints.J, dataPlus.roothaan.C); dataPlus = MP(dataPlus).mp2(false);
                 
             // calculate the derivative
-            output.mp.grad.G(i, j) = BOHR2A * (dataPlus.roothaan.E + dataPlus.mp.Ecorr - dataMinus.roothaan.E - dataMinus.mp.Ecorr) / mp->data.roothaan.grad.step / 2;
+            output.mp.grad.G(i, j) = BOHR2A * (dataPlus.roothaan.E + dataPlus.mp.Ecorr - dataMinus.roothaan.E - dataMinus.mp.Ecorr) / mp->data.mp.grad.step / 2;
 
             // print the iteration info
             if (print) std::printf("(%2d, %2d) %18.14f %s\n", i + 1, j + 1, output.mp.grad.G(i, j), Timer::Format(Timer::Elapsed(start)).c_str());
