@@ -10,13 +10,14 @@ Distributor::Distributor(int argc, char** argv) : program("hazel", "0.1", argpar
     ci = argparse::ArgumentParser("ci", "0.1", argparse::default_arguments::none);
 
     // add positional arguments to the main argument parser
-    program.add_argument("-c", "--center").help("-- Center the molecule before doing any calculation.").default_value(false).implicit_value(true);
     program.add_argument("-b", "--basis").help("-- Basis set used to approximate atomic orbitals.").default_value(std::string("STO-3G"));
+    program.add_argument("-c", "--charge").help("-- Molecular charge.").default_value(0).scan<'i', int>();
     program.add_argument("-f", "--file").help("-- Quantum system to use in .xyz file format.").default_value("molecule.xyz");
     program.add_argument("-h", "--help").help("-- Display this help message and exit.").default_value(false).implicit_value(true);
     program.add_argument("-n", "--nthread").help("-- Number of threads to use.").default_value(1).scan<'i', int>();
     program.add_argument("-p", "--print").help("-- Output printing options.").default_value<std::vector<std::string>>({}).append();
     program.add_argument("-e", "--export").help("-- Export matrices and tensors to files.").default_value<std::vector<std::string>>({}).append();
+    program.add_argument("--center").help("-- Center the molecule before doing any calculation.").default_value(false).implicit_value(true);
     program.add_argument("--no-coulomb").help("-- Disable calculation of the coulomb tensor.").default_value(false).implicit_value(true);
 
     // add positional arguments to the HF argument parser
@@ -86,7 +87,10 @@ Distributor::~Distributor() {
 
 void Distributor::run() {
     // initialize the system
-    Data data; data.system = System(program.get("-f"), program.get("-b"), 0, 1);
+    Data data; data.system = System(program.get("-f"), program.get("-b"), program.get<int>("-c"), 1);
+
+    // check if unrestricted calculation needed
+    if (program.get<int>("-c") % 2) throw std::runtime_error("Spin unrestricted calculations are not supported yet.");
 
     // extract printing and saving options
     print = program.get<std::vector<std::string>>("-p"), save = program.get<std::vector<std::string>>("-e");
