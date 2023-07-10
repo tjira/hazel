@@ -16,13 +16,11 @@ Distributor::Distributor(int argc, char** argv) : program("hazel", "0.1", argpar
     program.add_argument("-h", "--help").help("-- Display this help message and exit.").default_value(false).implicit_value(true);
     program.add_argument("-n", "--nthread").help("-- Number of threads to use.").default_value(1).scan<'i', int>();
     program.add_argument("-p", "--print").help("-- Output printing options.").default_value<std::vector<std::string>>({}).append();
-    program.add_argument("-e", "--export").help("-- Export matrices and tensors to files.").default_value<std::vector<std::string>>({}).append();
     program.add_argument("--center").help("-- Center the molecule before doing any calculation.").default_value(false).implicit_value(true);
     program.add_argument("--no-coulomb").help("-- Disable calculation of the coulomb tensor.").default_value(false).implicit_value(true);
 
     // add positional arguments to the HF argument parser
     hf.add_argument("-d", "--diis").help("-- Start iteration and Fock history length for DIIS.").default_value(std::vector<int>{3, 5}).nargs(2).scan<'i', int>();
-    hf.add_argument("-e", "--export").help("-- Export matrices and tensors to files.").default_value<std::vector<std::string>>({}).append();
     hf.add_argument("-f", "--frequency").help("-- Enable analytical (0) or numerical (1) frequency calculation.").default_value(std::vector<double>{1, 1e-5}).nargs(2).scan<'g', double>();
     hf.add_argument("-g", "--gradient").help("-- Enable analytical (0) or numerical (1) gradient calculation.").default_value(std::vector<double>{0, 1e-5}).nargs(2).scan<'g', double>();
     hf.add_argument("-h", "--help").help("-- Display this help message and exit.").default_value(false).implicit_value(true);
@@ -32,7 +30,6 @@ Distributor::Distributor(int argc, char** argv) : program("hazel", "0.1", argpar
     hf.add_argument("-t", "--thresh").help("-- Threshold for conververgence.").default_value(1e-12).scan<'g', double>();
 
     // add positional arguments to the MP2 argument parser
-    mp2.add_argument("-e", "--export").help("-- Export matrices and tensors to files.").default_value<std::vector<std::string>>({}).append();
     mp2.add_argument("-f", "--frequency").help("-- Enable analytical (0) or numerical (1) frequency calculation.").default_value(std::vector<double>{1, 1e-5}).nargs(2).scan<'g', double>();
     mp2.add_argument("-g", "--gradient").help("-- Enable analytical (0) or numerical (1) gradient calculation.").default_value(std::vector<double>{1, 1e-5}).nargs(2).scan<'g', double>();
     mp2.add_argument("-h", "--help").help("-- Display this help message and exit.").default_value(false).implicit_value(true);
@@ -40,7 +37,6 @@ Distributor::Distributor(int argc, char** argv) : program("hazel", "0.1", argpar
     mp2.add_argument("-p", "--print").help("-- Output printing options.").default_value<std::vector<std::string>>({}).append();
 
     // add positional arguments to the CI argument parser
-    ci.add_argument("-e", "--export").help("-- Export matrices and tensors to files.").default_value<std::vector<std::string>>({}).append();
     // ci.add_argument("-f", "--frequency").help("-- Enable frequency calculation.").default_value(false).implicit_value(true);
     // ci.add_argument("-g", "--gradient").help("-- Enable gradient calculation.").default_value(false).implicit_value(true);
     ci.add_argument("-h", "--help").help("-- Display this help message and exit.").default_value(false).implicit_value(true);
@@ -92,13 +88,8 @@ void Distributor::run() {
     // check if unrestricted calculation needed
     if (program.get<int>("-c") % 2) throw std::runtime_error("Spin unrestricted calculations are not supported yet.");
 
-    // extract printing and saving options
-    print = program.get<std::vector<std::string>>("-p"), save = program.get<std::vector<std::string>>("-e");
-    std::vector<std::string> ciprint, hfprint, mp2print, cisave, mp2save, hfsave;
-
-    // transform the print and save vectors to lowercase
-    for (auto& element : print) std::transform(element.begin(), element.end(), element.begin(), [](auto c){return std::tolower(c);});
-    for (auto& element : save) std::transform(element.begin(), element.end(), element.begin(), [](auto c){return std::tolower(c);});
+    // extract printing options
+    print = program.get<std::vector<std::string>>("-p");
 
     // print the title with number of threads
     std::cout << "QUANTUM HAZEL (" << nthread << " THREAD" << (nthread > 1 ? "S)" : ")") << std::endl;
@@ -122,212 +113,209 @@ void Distributor::run() {
     }
 
     // print the distances if requested
-    if (CONTAINS(print, "dist")) std::cout << "\nDISTANCE MATRIX\n" << data.system.dists << std::endl; 
+    if (CONTAINS(print, "dist") || CONTAINS(print, "all")) std::cout << "\nDISTANCE MATRIX\n" << data.system.dists << std::endl; 
 
     // extract all the options
     if (program.is_subcommand_used("hf")) {
-        hfprint = hf.get<std::vector<std::string>>("-p"), hfsave = hf.get<std::vector<std::string>>("-e");
         data.roothaan.diis = {hf.get<std::vector<int>>("-d").at(0), hf.get<std::vector<int>>("-d").at(1)};
         data.roothaan.maxiter = hf.get<int>("-m"), data.roothaan.thresh = hf.get<double>("-t");
+        data.roothaan.D = Matrix::Zero(data.system.shells.nbf(), data.system.shells.nbf());
         data.roothaan.freq.numerical = hf.get<std::vector<double>>("-f").at(0);
         data.roothaan.grad.numerical = hf.get<std::vector<double>>("-g").at(0);
         data.roothaan.freq.step = hf.get<std::vector<double>>("-f").at(1);
         data.roothaan.grad.step = hf.get<std::vector<double>>("-g").at(1);
+        hfprint = hf.get<std::vector<std::string>>("-p");
         data.roothaan.opt.thresh = hf.get<double>("-o");
         if (hf.is_subcommand_used("mp2")) {
-            mp2print = mp2.get<std::vector<std::string>>("-p"), mp2save = mp2.get<std::vector<std::string>>("-e");
             data.mp.freq.numerical = mp2.get<std::vector<double>>("-f").at(0);
             data.mp.grad.numerical = mp2.get<std::vector<double>>("-g").at(0);
             data.mp.freq.step = mp2.get<std::vector<double>>("-g").at(1);
             data.mp.grad.step = mp2.get<std::vector<double>>("-g").at(1);
+            mp2print = mp2.get<std::vector<std::string>>("-p");
             data.mp.opt.thresh = mp2.get<double>("-o");
         } else if (hf.is_subcommand_used("ci")) {
-            ciprint = ci.get<std::vector<std::string>>("-p"), cisave = ci.get<std::vector<std::string>>("-e");
+            ciprint = ci.get<std::vector<std::string>>("-p");
         }
     }
-
-    // transform the print and save vectors to lowercase
+;
+    // transform the print vectors to lowercase
     for (auto& element : mp2print) std::transform(element.begin(), element.end(), element.begin(), [](auto c){return std::tolower(c);});
     for (auto& element : hfprint) std::transform(element.begin(), element.end(), element.begin(), [](auto c){return std::tolower(c);});
-    for (auto& element : mp2save) std::transform(element.begin(), element.end(), element.begin(), [](auto c){return std::tolower(c);});
     for (auto& element : ciprint) std::transform(element.begin(), element.end(), element.begin(), [](auto c){return std::tolower(c);});
-    for (auto& element : hfsave) std::transform(element.begin(), element.end(), element.begin(), [](auto c){return std::tolower(c);});
-    for (auto& element : cisave) std::transform(element.begin(), element.end(), element.begin(), [](auto c){return std::tolower(c);});
+    for (auto& element : print) std::transform(element.begin(), element.end(), element.begin(), [](auto c){return std::tolower(c);});
 
-    // perform the HF calculation
-    if (program.is_subcommand_used("hf")) {
-        // calculate the molecular integrals and create the guess density
-        data = integrals(data), data.roothaan.D = Matrix::Zero(data.system.shells.nbf(), data.system.shells.nbf());
+    // distribute the calculations
+    if (program.is_subcommand_used("hf")) hfrun(data);
+}
 
-        // optimize the molecule with HF method
-        if (hf.is_used("-o")) {
-            // print the analytical RHF optimization method, optimize the molecule and print the new coordinates
-            std::cout << "\n" + std::string(104, '-') + "\nRESTRICTED HARTREE-FOCK OPTIMIZATION\n" << std::string(104, '-') + "\n\n";
-            
-            // perform the optimization
-            data = Roothaan(data).optimize();
+void Distributor::hfrun(Data& data) const {
+    // calculate the integrals
+    data = integrals(data);
 
-            // print the optimized coordinates
-            std::cout << "\nOPTIMIZED SYSTEM COORDINATES\n" << data.system.coords << std::endl; 
+    // optimize the gradient
+    if (hf.is_used("-o")) hfo(data);
 
-            // print the new distance matrix if requested
-            if (CONTAINS(print, "dist") || CONTAINS(print, "all")) std::cout << "\nOPTIMIZED DISTANCE MATRIX\n" << data.system.dists << std::endl; 
-        }
+    // print the RHF method header
+    std::cout << "\n" + std::string(104, '-') + "\nRESTRICTED HARTREE-FOCK METHOD\n" << std::string(104, '-') + "\n\n";
+    std::printf("-- MAXITER: %d, THRESH: %.2e\n-- DIIS: [START: %d, KEEP: %d]\n", data.roothaan.maxiter, data.roothaan.thresh, data.roothaan.diis.start, data.roothaan.diis.keep);
 
-        // print the RHF method header
-        std::cout << "\n" + std::string(104, '-') + "\nRESTRICTED HARTREE-FOCK METHOD\n" << std::string(104, '-') + "\n\n";
+    // perform the Hartree-Fock calculation
+    data = Roothaan(data).scf();
 
-        // print the RHF options
-        std::printf("-- MAXITER: %d, THRESH: %.2e\n-- DIIS: [START: %d, KEEP: %d]\n", data.roothaan.maxiter, data.roothaan.thresh, data.roothaan.diis.start, data.roothaan.diis.keep);
+    // print the resulting matrices and energies
+    if (CONTAINS(hfprint, "eps") || CONTAINS(print, "all")) std::cout << "\nORBITAL ENERGIES\n" << Matrix(data.roothaan.eps) << std::endl;
+    if (CONTAINS(hfprint, "c") || CONTAINS(print, "all")) std::cout << "\nCOEFFICIENT MATRIX\n" << data.roothaan.C << std::endl;
+    if (CONTAINS(hfprint, "d") || CONTAINS(print, "all")) std::cout << "\nDENSITY MATRIX\n" << data.roothaan.D << std::endl;
+    std::cout << "\nTOTAL NUCLEAR REPULSION ENERGY: " << Integral::Repulsion(data.system) << std::endl;
+    std::cout << "FINAL HARTREE-FOCK ENERGY: " << data.roothaan.E << std::endl;
 
-        // perform the Hartree-Fock calculation
-        data = Roothaan(data).scf();
+    // gradient and hessian frequency
+    if (hf.is_used("-g")) hfg(data);
+    if (hf.is_used("-f")) hff(data);
 
-        // print and save the resulting matrices
-        if (CONTAINS(hfprint, "eps") || CONTAINS(print, "all")) std::cout << "\nORBITAL ENERGIES\n" << Matrix(data.roothaan.eps) << std::endl;
-        if (CONTAINS(hfprint, "c") || CONTAINS(print, "all")) std::cout << "\nCOEFFICIENT MATRIX\n" << data.roothaan.C << std::endl;
-        if (CONTAINS(hfprint, "d") || CONTAINS(print, "all")) std::cout << "\nDENSITY MATRIX\n" << data.roothaan.D << std::endl;
-        if (CONTAINS(hfsave, "eps") || CONTAINS(save, "all")) Eigen::Write("EPS.mat", data.roothaan.eps);
-        if (CONTAINS(hfsave, "c") || CONTAINS(save, "all")) Eigen::Write("C.mat", data.roothaan.C);
-        if (CONTAINS(hfsave, "d") || CONTAINS(save, "all")) Eigen::Write("D.mat", data.roothaan.D);
+    // calculate the MP2 correlation;
+    if (hf.is_subcommand_used("mp2")) mp2run(data);
 
-        // print the energy
-        std::cout << "\nTOTAL NUCLEAR REPULSION ENERGY: " << Integral::Repulsion(data.system) << std::endl;
-        std::cout << "FINAL HARTREE-FOCK ENERGY: " << data.roothaan.E << std::endl;
+    // calculate CI correlation
+    if (hf.is_subcommand_used("ci")) {
+        // throw an error if no coulomb and print the CI method header
+        if (program.get<bool>("--no-coulomb")) throw std::runtime_error("I'm sorry, you need the coulomb tensor for CI.");
+        std::cout << "\n" + std::string(104, '-') + "\nCI CORRELATION ENERGY\n" << std::string(104, '-') + "\n";
 
-        // calculate the nuclear gradient
-        if (hf.is_used("-g")) {
-            // print the analytical RHF gradient method header
-            if (data.roothaan.grad.numerical) std::cout << "\n" + std::string(104, '-') + "\nNUMERICAL GRADIENT FOR RESTRICTED HARTREE-FOCK\n";
-            else std::cout << "\n" + std::string(104, '-') + "\nANALYTICAL GRADIENT FOR RESTRICTED HARTREE-FOCK\n";
-            std::cout << std::string(104, '-') + "\n\n";
+        // transform the coulomb tensor
+        std::cout << "\nCOULOMB TENSOR IN MO BASIS: " << std::flush; TIME(data.intsmo.J = Transform::Coulomb(data.ints.J, data.roothaan.C))
+        if (CONTAINS(ciprint, "jmo") || CONTAINS(print, "all")) {std::cout << "\n" << data.intsmo.J;} std::cout << "\n";
 
-            // perform the gradient calculation
-            if (!hf.is_used("-o")) data = Roothaan(data).gradient();
+        // do the calculation
+        data = CI(data).cid();
 
-            // print the gradient and norm
-            std::cout << data.roothaan.grad.G << "\n\nGRADIENT NORM: "; std::printf("%.2e\n", data.roothaan.grad.G.norm());
-        }
+        // print the result matrices
+        if (CONTAINS(ciprint, "cie") || CONTAINS(print, "all")) {std::cout << "\n" << data.ci.eig << "\n";}
+        if (CONTAINS(ciprint, "cih") || CONTAINS(print, "all")) {std::cout << "\n" << data.ci.H << "\n";}
+        if (CONTAINS(ciprint, "cic") || CONTAINS(print, "all")) {std::cout << "\n" << data.ci.C << "\n";}
 
-        // perform the frequency calculation
-        if (hf.is_used("-f")) {
-            // print the frequency calculation header
-            if (data.roothaan.freq.numerical) std::cout << "\n" + std::string(104, '-') + "\nNUMERICAL HESSIAN FOR RESTRICTED HARTREE-FOCK\n";
-            else std::cout << "\n" + std::string(104, '-') + "\nANALYTICAL HESSIAN FOR RESTRICTED HARTREE-FOCK\n";
-            std::cout << std::string(104, '-') + "\n\n";
-
-            // perform the hessian
-            data = Roothaan(data).hessian();
-
-            // print the hessian
-            std::cout << "NUCLEAR HESSIAN\n" << data.roothaan.freq.H << "\n\nHESSIAN NORM: "; std::printf("%.2e\n", data.roothaan.freq.H.norm());
-
-            // perform the frequency calculation
-            data = Roothaan(data).frequency();
-
-            // print the vibrational frequencies
-            std::cout << "\n" + std::string(104, '-') + "\nHARTREE-FOCK FREQUENCY ANALYSIS\n" << std::string(104, '-') + "\n";
-            std::cout << "\nVIBRATIONAL FREQUENCIES\n" << Matrix(data.roothaan.freq.freq) << std::endl;
-        }
-
-        // calculate the MP2 correlation
-        if (hf.is_subcommand_used("mp2")) {
-            // throw an error if no coulomb
-            if (program.get<bool>("--no-coulomb")) throw std::runtime_error("I'm sorry, you need the coulomb tensor for the MP2 method.");
-
-            // optimize the molecule with MP2 method
-            if (mp2.is_used("-o")) {
-                // print the MP2 optimization method header and optimize the molecule
-                std::cout << "\n" + std::string(104, '-') + "\nRESTRICTED MP2 OPTIMIZATION\n" << std::string(104, '-') << "\n\n";
-
-                // perform the optimization
-                data = MP(data).Optimizer.mp2();
-
-                // print the optimized coordinates
-                std::cout << "\nOPTIMIZED SYSTEM COORDINATES\n" << data.system.coords << std::endl;
-
-                // print the new distance matrix
-                if (CONTAINS(print, "dist") || CONTAINS(print, "all")) std::cout << "\nOPTIMIZED DISTANCE MATRIX\n" << data.system.dists << std::endl; 
-            }
-
-            // print the MP2 correlation method header
-            std::cout << "\n" + std::string(104, '-') + "\nRESTRICTED MP2 CORRELATION ENERGY\n" << std::string(104, '-') + "\n";
-
-            // transform the coulomb tensor
-            std::cout << "\nCOULOMB TENSOR IN MO BASIS: " << std::flush; TIME(data.intsmo.J = Transform::Coulomb(data.ints.J, data.roothaan.C))
-            if (CONTAINS(mp2print, "jmo") || CONTAINS(print, "all")) {std::cout << "\n" << data.intsmo.J;} std::cout << "\n";
-            if (CONTAINS(mp2save, "jmo") || CONTAINS(save, "all")) Eigen::Write("JMO.mat", data.intsmo.J);
-
-            // do the calculation
-            data = MP(data).mp2();
-
-            // print the gradient and norm
-            std::cout << "\nMP2 CORRELATION ENERGY: " << data.mp.Ecorr << std::endl << "FINAL ";
-            std::cout << "MP2 ENERGY: " << data.roothaan.E + data.mp.Ecorr << std::endl;
-
-            // calculate the MP2 nuclear gradient
-            if (mp2.is_used("-g")) {
-                // print the MP2 gradient method header and perform the calculation
-                if (data.mp.grad.numerical) std::cout << "\n" + std::string(104, '-') + "\nNUMERICAL GRADIENT FOR MP2 METHOD\n" << std::string(104, '-') << "\n\n";
-                else std::cout << "\n" + std::string(104, '-') + "\nANALYTICAL GRADIENT FOR MP2 METHOD\n" << std::string(104, '-') << "\n\n";
-
-                // perform the calculation
-                if (!mp2.is_used("-o")) data = MP(data).Gradient.mp2();
-
-                // print the gradient results
-                std::cout << data.mp.grad.G << "\n\nGRADIENT NORM: ";
-                std::printf("%.2e\n", data.mp.grad.G.norm());
-            }
-
-            // perform the frequency calculation
-            if (mp2.is_used("-f")) {
-                // print the frequency calculation header
-                if (data.mp.freq.numerical) std::cout << "\n" + std::string(104, '-') + "\nNUMERICAL HESSIAN FOR MP2\n";
-                else std::cout << "\n" + std::string(104, '-') + "\nANALYTICAL HESSIAN FOR MP2\n";
-                std::cout << std::string(104, '-') + "\n\n";
-
-                // perform the hessian
-                data = MP(data).Hessian.mp2();
-
-                // print the hessian
-                std::cout << "NUCLEAR HESSIAN\n" << data.mp.freq.H << "\n\nHESSIAN NORM: "; std::printf("%.2e\n", data.mp.freq.H.norm());
-
-                // perform the frequency calculation
-                data = MP(data).Frequency.mp2();
-
-                // print the vibrational frequencies
-                std::cout << "\n" + std::string(104, '-') + "\nHARTREE-FOCK FREQUENCY ANALYSIS\n" << std::string(104, '-') + "\n";
-                std::cout << "\nVIBRATIONAL FREQUENCIES\n" << Matrix(data.mp.freq.freq) << std::endl;
-            }
-        }
-
-        // calculate CI correlation
-        if (hf.is_subcommand_used("ci")) {
-            // throw an error if no coulomb and print the CI method header
-            if (program.get<bool>("--no-coulomb")) throw std::runtime_error("I'm sorry, you need the coulomb tensor for CI.");
-            std::cout << "\n" + std::string(104, '-') + "\nCI CORRELATION ENERGY\n" << std::string(104, '-') + "\n";
-
-            // transform the coulomb tensor
-            std::cout << "\nCOULOMB TENSOR IN MO BASIS: " << std::flush; TIME(data.intsmo.J = Transform::Coulomb(data.ints.J, data.roothaan.C))
-            if (CONTAINS(ciprint, "jmo") || CONTAINS(print, "all")) {std::cout << "\n" << data.intsmo.J;} std::cout << "\n";
-            if (CONTAINS(cisave, "jmo") || CONTAINS(save, "all")) Eigen::Write("JMO.mat", data.intsmo.J);
-
-            // do the calculation
-            data = CI(data).cid();
-
-            // print and save the result matrices
-            if (CONTAINS(ciprint, "cie") || CONTAINS(print, "all")) {std::cout << "\n" << data.ci.eig << "\n";}
-            if (CONTAINS(ciprint, "cih") || CONTAINS(print, "all")) {std::cout << "\n" << data.ci.H << "\n";}
-            if (CONTAINS(ciprint, "cic") || CONTAINS(print, "all")) {std::cout << "\n" << data.ci.C << "\n";}
-            if (CONTAINS(cisave, "cie") || CONTAINS(save, "all")) Eigen::Write("CIE.mat", data.ci.eig);
-            if (CONTAINS(cisave, "cih") || CONTAINS(save, "all")) Eigen::Write("CIH.mat", data.ci.H);
-            if (CONTAINS(cisave, "cic") || CONTAINS(save, "all")) Eigen::Write("CIC.mat", data.ci.C);
-
-            // print the gradient and norm
-            std::cout << "\nCI CORRELATION ENERGY: " << data.ci.Ecorr << std::endl;
-            std::cout << "FINAL CI ENERGY: " << data.roothaan.E + data.ci.Ecorr << std::endl;
-        }
+        // print the gradient and norm
+        std::cout << "\nCI CORRELATION ENERGY: " << data.ci.Ecorr << std::endl;
+        std::cout << "FINAL CI ENERGY: " << data.roothaan.E + data.ci.Ecorr << std::endl;
     }
+}
+
+void Distributor::hff(Data& data) const {
+    // print the hessian header
+    if (data.roothaan.freq.numerical) std::cout << "\n" + std::string(104, '-') + "\nNUMERICAL HESSIAN FOR RESTRICTED HARTREE-FOCK\n";
+    else std::cout << "\n" + std::string(104, '-') + "\nANALYTICAL HESSIAN FOR RESTRICTED HARTREE-FOCK\n";
+    std::cout << std::string(104, '-') + "\n\n";
+
+    // perform the hessian calculation
+    data = Roothaan(data).hessian();
+
+    // print the hessian results
+    std::cout << "NUCLEAR HESSIAN\n" << data.roothaan.freq.H << "\n\nHESSIAN NORM: ";
+    std::printf("%.2e\n", data.roothaan.freq.H.norm());
+
+    // perform the frequency calculation
+    data = Roothaan(data).frequency();
+
+    // print the frequency reslts
+    std::cout << "\n" + std::string(104, '-') + "\nHARTREE-FOCK FREQUENCY ANALYSIS\n" << std::string(104, '-');
+    std::cout << "\n\nVIBRATIONAL FREQUENCIES\n" << Matrix(data.roothaan.freq.freq) << std::endl;
+}
+
+void Distributor::hfg(Data& data) const {
+    // print the header
+    if (data.roothaan.grad.numerical) std::cout << "\n" + std::string(104, '-') + "\nNUMERICAL GRADIENT FOR RESTRICTED HARTREE-FOCK\n";
+    else std::cout << "\n" + std::string(104, '-') + "\nANALYTICAL GRADIENT FOR RESTRICTED HARTREE-FOCK\n";
+    std::cout << std::string(104, '-') + "\n\n"; 
+
+    // calculate the gradient
+    if (!hf.is_used("-o")) data = Roothaan(data).gradient();
+
+    // print the results
+    std::cout << data.roothaan.grad.G << "\n\nGRADIENT NORM: ";
+    std::printf("%.2e\n", data.roothaan.grad.G.norm());
+}
+
+void Distributor::hfo(Data& data) const {
+    // print the header
+    std::cout << "\n" + std::string(104, '-') + "\nRESTRICTED HARTREE-FOCK OPTIMIZATION\n" << std::string(104, '-') + "\n\n";
+
+    // perform the optimization
+    data = Roothaan(data).optimize();
+
+    // print the results
+    std::cout << "\nOPTIMIZED SYSTEM COORDINATES\n" << data.system.coords << std::endl; 
+    if (CONTAINS(print, "dist") || CONTAINS(print, "all")) std::cout << "\nOPTIMIZED DISTANCE MATRIX\n" << data.system.dists << std::endl;
+}
+
+void Distributor::mp2run(Data& data) const {
+    // throw an error if no coulomb
+    if (program.get<bool>("--no-coulomb")) throw std::runtime_error("I'm sorry, you need the coulomb tensor for the MP2 method.");
+
+    // optimize the molecule with MP2 method
+    if (mp2.is_used("-o")) mp2o(data);
+
+    // print the MP2 correlation method header
+    std::cout << "\n" + std::string(104, '-') + "\nRESTRICTED MP2 CORRELATION ENERGY\n" << std::string(104, '-') + "\n";
+
+    // transform the coulomb tensor
+    std::cout << "\nCOULOMB TENSOR IN MO BASIS: " << std::flush; TIME(data.intsmo.J = Transform::Coulomb(data.ints.J, data.roothaan.C))
+    if (CONTAINS(mp2print, "jmo") || CONTAINS(print, "all")) {std::cout << "\n" << data.intsmo.J;} std::cout << "\n";
+
+    // do the MP2 calculation
+    data = MP(data).mp2();
+
+    // print the gradient and norm
+    std::cout << "\nMP2 CORRELATION ENERGY: " << data.mp.Ecorr << std::endl << "FINAL ";
+    std::cout << "MP2 ENERGY: " << data.roothaan.E + data.mp.Ecorr << std::endl;
+
+    // calculate the MP2 nuclear gradient
+    if (mp2.is_used("-g")) mp2g(data);
+    if (mp2.is_used("-f")) mp2f(data);
+}
+
+void Distributor::mp2f(Data& data) const {
+    // print the frequency calculation header
+    if (data.mp.freq.numerical) std::cout << "\n" + std::string(104, '-') + "\nNUMERICAL HESSIAN FOR MP2\n";
+    else std::cout << "\n" + std::string(104, '-') + "\nANALYTICAL HESSIAN FOR MP2\n";
+    std::cout << std::string(104, '-') + "\n\n";
+
+    // perform the hessian
+    data = MP(data).Hessian.mp2();
+
+    // print the hessian resuls
+    std::cout << "NUCLEAR HESSIAN\n" << data.mp.freq.H << "\n\nHESSIAN NORM: "; std::printf("%.2e\n", data.mp.freq.H.norm());
+
+    // perform the frequency calculation
+    data = MP(data).Frequency.mp2();
+
+    // print the frequency analysis results
+    std::cout << "\n" + std::string(104, '-') + "\nHARTREE-FOCK FREQUENCY ANALYSIS\n" << std::string(104, '-') + "\n";
+    std::cout << "\nVIBRATIONAL FREQUENCIES\n" << Matrix(data.mp.freq.freq) << std::endl;
+}
+
+void Distributor::mp2g(Data& data) const {
+    // print the MP2 gradient method header and perform the calculation
+    if (data.mp.grad.numerical) std::cout << "\n" + std::string(104, '-') + "\nNUMERICAL GRADIENT FOR MP2 METHOD\n" << std::string(104, '-') << "\n\n";
+    else std::cout << "\n" + std::string(104, '-') + "\nANALYTICAL GRADIENT FOR MP2 METHOD\n" << std::string(104, '-') << "\n\n";
+
+    // perform the calculation
+    if (!mp2.is_used("-o")) data = MP(data).Gradient.mp2();
+
+    // print the gradient results
+    std::cout << data.mp.grad.G << "\n\nGRADIENT NORM: ";
+    std::printf("%.2e\n", data.mp.grad.G.norm());
+}
+
+void Distributor::mp2o(Data& data) const {
+    // print the MP2 optimization method header and optimize the molecule
+    std::cout << "\n" + std::string(104, '-') + "\nRESTRICTED MP2 OPTIMIZATION\n" << std::string(104, '-') << "\n\n";
+
+    // perform the optimization
+    data = MP(data).Optimizer.mp2();
+
+    // print the optimization results
+    std::cout << "\nOPTIMIZED SYSTEM COORDINATES\n" << data.system.coords << std::endl;
+    if (CONTAINS(print, "dist") || CONTAINS(print, "all")) std::cout << "\nOPTIMIZED DISTANCE MATRIX\n" << data.system.dists << std::endl;
 }
 
 Data Distributor::integrals(Data data) const {
@@ -338,40 +326,36 @@ Data Distributor::integrals(Data data) const {
     // calculate the overlap integral
     std::cout << "\nOVERLAP INTEGRAL: " << std::flush; TIME(data.ints.S = Integral::Overlap(data.system))
     if (CONTAINS(print, "s") || CONTAINS(print, "all")) std::cout << "\n" << data.ints.S << std::endl;
-    if (CONTAINS(save, "s") || CONTAINS(save, "all")) Eigen::Write("S.mat", data.ints.S);
 
     // calculate the kinetic integral
     std::cout << "\nKINETIC INTEGRAL: " << std::flush; TIME(data.ints.T = Integral::Kinetic(data.system))
     if (CONTAINS(print, "t") || CONTAINS(print, "all")) std::cout << "\n" << data.ints.T << std::endl;
-    if (CONTAINS(save, "t") || CONTAINS(save, "all")) Eigen::Write("T.mat", data.ints.T);
 
     // calculate the nuclear-electron attraction integral
     std::cout << "\nNUCLEAR INTEGRAL: " << std::flush; TIME(data.ints.V = Integral::Nuclear(data.system))
     if (CONTAINS(print, "v") || CONTAINS(print, "all")) std::cout << "\n" << data.ints.V << std::endl;
-    if (CONTAINS(save, "v") || CONTAINS(save, "all")) Eigen::Write("V.mat", data.ints.V);
 
     // calculate the electron-electron repulsion integral
     if (!program.get<bool>("--no-coulomb")) {std::cout << "\nCOULOMB INTEGRAL: " << std::flush; TIME(data.ints.J = Integral::Coulomb(data.system))}
     if (!program.get<bool>("--no-coulomb") && (CONTAINS(print, "j") || CONTAINS(print, "all"))) {std::cout << "\n" << data.ints.J;} std::cout << "\n";
-    if (!program.get<bool>("--no-coulomb") && (CONTAINS(save, "j") || CONTAINS(save, "all"))) Eigen::Write("J.mat", data.ints.J);
 
     // if derivatives of the integrals are needed
     if ((hf.is_used("-g") || hf.is_used("-o")) && !data.roothaan.grad.numerical) {
         // calculate the overlap integral
         std::cout << "\nFIRST DERIVATIVE OF OVERLAP INTEGRAL: " << std::flush; TIME(data.ints.dS = Integral::dOverlap(data.system))
-        if (CONTAINS(print, "ds")) std::cout << "\n" << data.ints.dS << std::endl;
+        if (CONTAINS(print, "ds") || CONTAINS(print, "all")) std::cout << "\n" << data.ints.dS << std::endl;
 
         // calculate the kinetic integral
         std::cout << "\nFIRST DERIVATIVE OF KINETIC INTEGRAL: " << std::flush; TIME(data.ints.dT = Integral::dKinetic(data.system))
-        if (CONTAINS(print, "dt")) std::cout << "\n" << data.ints.dT << std::endl;
+        if (CONTAINS(print, "dt") || CONTAINS(print, "all")) std::cout << "\n" << data.ints.dT << std::endl;
 
         // calculate the nuclear-electron attraction integral
         std::cout << "\nFIRST DERIVATIVE OF NUCLEAR INTEGRAL: " << std::flush; TIME(data.ints.dV = Integral::dNuclear(data.system))
-        if (CONTAINS(print, "dv")) std::cout << "\n" << data.ints.dV << std::endl;
+        if (CONTAINS(print, "dv") || CONTAINS(print, "all")) std::cout << "\n" << data.ints.dV << std::endl;
 
         // calculate the electron-electron repulsion integral
         std::cout << "\nFIRST DERIVATIVE OF COULOMB INTEGRAL: " << std::flush; TIME(data.ints.dJ = Integral::dCoulomb(data.system))
-        if (CONTAINS(print, "dj")) {std::cout << "\n" << data.ints.dJ;} std::cout << "\n";
+        if (CONTAINS(print, "dj") || CONTAINS(print, "all")) {std::cout << "\n" << data.ints.dJ;} std::cout << "\n";
     }
 
     // return integrals
