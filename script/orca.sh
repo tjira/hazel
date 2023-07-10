@@ -1,5 +1,25 @@
 #!/bin/bash
 
+if [[ $# -eq 0 ]]; then
+    echo "No molecule file provided."; exit 1
+fi
+
+if [[ $# -eq 0 ]]; then
+    echo "No charge provided."; exit 1
+fi
+
+if [[ $# -eq 0 ]]; then
+    echo "No multiplicity provided."; exit 1
+fi
+
+if [[ $# -eq 0 ]]; then
+    echo "No method name provided."; exit 1
+fi
+
+if [[ $# -eq 0 ]]; then
+    echo "No basis name provided."; exit 1
+fi
+
 cleanup() {
     rm -f -- *.0 *.tmp orca.densities orca.engrad orca.gbw orca.hess orca.inp orca_property.txt
 }

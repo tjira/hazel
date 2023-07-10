@@ -20,27 +20,23 @@ Distributor::Distributor(int argc, char** argv) : program("hazel", "0.1", argpar
     program.add_argument("--no-coulomb").help("-- Disable calculation of the coulomb tensor.").default_value(false).implicit_value(true);
 
     // add positional arguments to the HF argument parser
-    hf.add_argument("-d", "--diis").help("-- Start iteration and Fock history length for DIIS.").default_value(std::vector<int>{3, 5}).nargs(1, 2).scan<'i', int>();
+    hf.add_argument("-d", "--diis").help("-- Start iteration and Fock history length for DIIS.").default_value(std::vector<int>{3, 5}).nargs(2).scan<'i', int>();
     hf.add_argument("-e", "--export").help("-- Export matrices and tensors to files.").default_value<std::vector<std::string>>({}).append();
-    // hf.add_argument("-f", "--frequency").help("-- Enable frequency calculation.").default_value(false).implicit_value(true);
-    hf.add_argument("-g", "--gradient").help("-- Enable gradient calculation.").default_value(false).implicit_value(true);
+    hf.add_argument("-f", "--frequency").help("-- Enable analytical (0) or numerical (1) frequency calculation.").default_value(std::vector<double>{1, 1e-5}).nargs(2).scan<'g', double>();
+    hf.add_argument("-g", "--gradient").help("-- Enable analytical (0) or numerical (1) gradient calculation.").default_value(std::vector<double>{0, 1e-5}).nargs(2).scan<'g', double>();
     hf.add_argument("-h", "--help").help("-- Display this help message and exit.").default_value(false).implicit_value(true);
     hf.add_argument("-m", "--maxiter").help("-- Maximum number of iterations to do in iterative calculations.").default_value(100).scan<'i', int>();
     hf.add_argument("-p", "--print").help("-- Output printing options.").default_value<std::vector<std::string>>({}).append();
     hf.add_argument("-o", "--optimize").help("-- Optimize the provided system.").default_value(1e-8).scan<'g', double>();
     hf.add_argument("-t", "--thresh").help("-- Threshold for conververgence.").default_value(1e-12).scan<'g', double>();
-    hf.add_argument("--numgrad").help("-- Perform the gradient calculation numerically.").default_value(1e-5).scan<'g', double>();
-    // hf.add_argument("--numhess").help("-- Perform the frequency calculation numerically.").default_value(1e-5).scan<'g', double>();
 
     // add positional arguments to the MP2 argument parser
     mp2.add_argument("-e", "--export").help("-- Export matrices and tensors to files.").default_value<std::vector<std::string>>({}).append();
-    // mp2.add_argument("-f", "--frequency").help("-- Enable frequency calculation.").default_value(false).implicit_value(true);
-    mp2.add_argument("-g", "--gradient").help("-- Enable gradient calculation.").default_value(false).implicit_value(true);
+    mp2.add_argument("-f", "--frequency").help("-- Enable analytical (0) or numerical (1) frequency calculation.").default_value(std::vector<double>{1, 1e-5}).nargs(2).scan<'g', double>();
+    mp2.add_argument("-g", "--gradient").help("-- Enable analytical (0) or numerical (1) gradient calculation.").default_value(std::vector<double>{1, 1e-5}).nargs(2).scan<'g', double>();
     mp2.add_argument("-h", "--help").help("-- Display this help message and exit.").default_value(false).implicit_value(true);
     mp2.add_argument("-o", "--optimize").help("-- Optimize the provided system.").default_value(1e-8).scan<'g', double>();
     mp2.add_argument("-p", "--print").help("-- Output printing options.").default_value<std::vector<std::string>>({}).append();
-    mp2.add_argument("--numgrad").help("-- Perform the gradient calculation numerically.").default_value(1e-5).scan<'g', double>();
-    // mp2.add_argument("--numhess").help("-- Perform the frequency calculation numerically.").default_value(1e-5).scan<'g', double>();
 
     // add positional arguments to the CI argument parser
     ci.add_argument("-e", "--export").help("-- Export matrices and tensors to files.").default_value<std::vector<std::string>>({}).append();
@@ -48,8 +44,6 @@ Distributor::Distributor(int argc, char** argv) : program("hazel", "0.1", argpar
     // ci.add_argument("-g", "--gradient").help("-- Enable gradient calculation.").default_value(false).implicit_value(true);
     ci.add_argument("-h", "--help").help("-- Display this help message and exit.").default_value(false).implicit_value(true);
     ci.add_argument("-p", "--print").help("-- Output printing options.").default_value<std::vector<std::string>>({}).append();
-    // ci.add_argument("--numgrad").help("-- Perform the gradient calculation numerically.").default_value(1e-5).scan<'g', double>();
-    // ci.add_argument("--numhess").help("-- Perform the frequency calculation numerically.").default_value(1e-5).scan<'g', double>();
 
     // add the parsers
     program.add_subparser(hf); hf.add_subparser(mp2), hf.add_subparser(ci);
@@ -102,7 +96,7 @@ void Distributor::run() {
     for (auto& element : print) std::transform(element.begin(), element.end(), element.begin(), [](auto c){return std::tolower(c);});
     for (auto& element : save) std::transform(element.begin(), element.end(), element.begin(), [](auto c){return std::tolower(c);});
 
-    // print the title
+    // print the title with number of threads
     std::cout << "QUANTUM HAZEL (" << nthread << " THREAD" << (nthread > 1 ? "S)" : ")") << std::endl;
 
     // print the general info block
@@ -130,12 +124,18 @@ void Distributor::run() {
     if (program.is_subcommand_used("hf")) {
         hfprint = hf.get<std::vector<std::string>>("-p"), hfsave = hf.get<std::vector<std::string>>("-e");
         data.roothaan.diis = {hf.get<std::vector<int>>("-d").at(0), hf.get<std::vector<int>>("-d").at(1)};
-        data.roothaan.maxiter = hf.get<int>("-m"), data.roothaan.grad.step = hf.get<double>("--numgrad");
-        data.roothaan.thresh = hf.get<double>("-t"), data.roothaan.opt.thresh = hf.get<double>("-o");
-        data.roothaan.grad.numerical = hf.is_used("--numgrad");
+        data.roothaan.maxiter = hf.get<int>("-m"), data.roothaan.thresh = hf.get<double>("-t");
+        data.roothaan.freq.numerical = hf.get<std::vector<double>>("-f").at(0);
+        data.roothaan.grad.numerical = hf.get<std::vector<double>>("-g").at(0);
+        data.roothaan.freq.step = hf.get<std::vector<double>>("-f").at(1);
+        data.roothaan.grad.step = hf.get<std::vector<double>>("-g").at(1);
+        data.roothaan.opt.thresh = hf.get<double>("-o");
         if (hf.is_subcommand_used("mp2")) {
             mp2print = mp2.get<std::vector<std::string>>("-p"), mp2save = mp2.get<std::vector<std::string>>("-e");
-            data.mp.grad.numerical = mp2.is_used("--numgrad"), data.mp.grad.step = mp2.get<double>("--numgrad");
+            data.mp.freq.numerical = mp2.get<std::vector<double>>("-f").at(0);
+            data.mp.grad.numerical = mp2.get<std::vector<double>>("-g").at(0);
+            data.mp.freq.step = mp2.get<std::vector<double>>("-g").at(1);
+            data.mp.grad.step = mp2.get<std::vector<double>>("-g").at(1);
             data.mp.opt.thresh = mp2.get<double>("-o");
         } else if (hf.is_subcommand_used("ci")) {
             ciprint = ci.get<std::vector<std::string>>("-p"), cisave = ci.get<std::vector<std::string>>("-e");
@@ -194,7 +194,7 @@ void Distributor::run() {
         // calculate the nuclear gradient
         if (hf.is_used("-g")) {
             // print the analytical RHF gradient method header
-            if (hf.is_used("--numgrad")) std::cout << "\n" + std::string(104, '-') + "\nNUMERICAL GRADIENT FOR RESTRICTED HARTREE-FOCK\n";
+            if (data.roothaan.grad.numerical) std::cout << "\n" + std::string(104, '-') + "\nNUMERICAL GRADIENT FOR RESTRICTED HARTREE-FOCK\n";
             else std::cout << "\n" + std::string(104, '-') + "\nANALYTICAL GRADIENT FOR RESTRICTED HARTREE-FOCK\n";
             std::cout << std::string(104, '-') + "\n\n";
 
@@ -203,6 +203,27 @@ void Distributor::run() {
 
             // print the gradient and norm
             std::cout << data.roothaan.grad.G << "\n\nGRADIENT NORM: "; std::printf("%.2e\n", data.roothaan.grad.G.norm());
+        }
+
+        // perform the frequency calculation
+        if (hf.is_used("-f")) {
+            // print the frequency calculation header
+            if (data.roothaan.freq.numerical) std::cout << "\n" + std::string(104, '-') + "\nNUMERICAL HESSIAN FOR RESTRICTED HARTREE-FOCK\n";
+            else std::cout << "\n" + std::string(104, '-') + "\nANALYTICAL HESSIAN FOR RESTRICTED HARTREE-FOCK\n";
+            std::cout << std::string(104, '-') + "\n\n";
+
+            // perform the hessian
+            data = Roothaan(data).hessian();
+
+            // print the hessian
+            std::cout << "NUCLEAR HESSIAN\n" << data.roothaan.freq.H << "\n\nHESSIAN NORM: "; std::printf("%.2e\n", data.roothaan.freq.H.norm());
+
+            // perform the frequency calculation
+            data = Roothaan(data).frequency();
+
+            // print the vibrational frequencies
+            std::cout << "\n" + std::string(104, '-') + "\nHARTREE-FOCK FREQUENCY ANALYSIS\n" << std::string(104, '-') + "\n";
+            std::cout << "\nVIBRATIONAL FREQUENCIES\n" << Matrix(data.roothaan.freq.freq) << std::endl;
         }
 
         // calculate the MP2 correlation
@@ -243,7 +264,7 @@ void Distributor::run() {
             // calculate the MP2 nuclear gradient
             if (mp2.is_used("-g")) {
                 // print the MP2 gradient method header and perform the calculation
-                if (mp2.is_used("--numgrad")) std::cout << "\n" + std::string(104, '-') + "\nNUMERICAL GRADIENT FOR MP2 METHOD\n" << std::string(104, '-') << "\n\n";
+                if (data.mp.grad.numerical) std::cout << "\n" + std::string(104, '-') + "\nNUMERICAL GRADIENT FOR MP2 METHOD\n" << std::string(104, '-') << "\n\n";
                 else std::cout << "\n" + std::string(104, '-') + "\nANALYTICAL GRADIENT FOR MP2 METHOD\n" << std::string(104, '-') << "\n\n";
 
                 // perform the calculation
@@ -252,6 +273,27 @@ void Distributor::run() {
                 // print the gradient results
                 std::cout << data.mp.grad.G << "\n\nGRADIENT NORM: ";
                 std::printf("%.2e\n", data.mp.grad.G.norm());
+            }
+
+            // perform the frequency calculation
+            if (mp2.is_used("-f")) {
+                // print the frequency calculation header
+                if (data.mp.freq.numerical) std::cout << "\n" + std::string(104, '-') + "\nNUMERICAL HESSIAN FOR MP2\n";
+                else std::cout << "\n" + std::string(104, '-') + "\nANALYTICAL HESSIAN FOR MP2\n";
+                std::cout << std::string(104, '-') + "\n\n";
+
+                // perform the hessian
+                data = MP(data).Hessian.mp2();
+
+                // print the hessian
+                std::cout << "NUCLEAR HESSIAN\n" << data.mp.freq.H << "\n\nHESSIAN NORM: "; std::printf("%.2e\n", data.mp.freq.H.norm());
+
+                // perform the frequency calculation
+                data = MP(data).Frequency.mp2();
+
+                // print the vibrational frequencies
+                std::cout << "\n" + std::string(104, '-') + "\nHARTREE-FOCK FREQUENCY ANALYSIS\n" << std::string(104, '-') + "\n";
+                std::cout << "\nVIBRATIONAL FREQUENCIES\n" << Matrix(data.mp.freq.freq) << std::endl;
             }
         }
 
@@ -310,7 +352,7 @@ Data Distributor::integrals(Data data) const {
     if (!program.get<bool>("--no-coulomb") && (CONTAINS(save, "j") || CONTAINS(save, "all"))) Eigen::Write("J.mat", data.ints.J);
 
     // if derivatives of the integrals are needed
-    if ((hf.is_used("-g") || hf.is_used("-o")) && !hf.is_used("numgrad")) {
+    if ((hf.is_used("-g") || hf.is_used("-o")) && !data.roothaan.grad.numerical) {
         // calculate the overlap integral
         std::cout << "\nFIRST DERIVATIVE OF OVERLAP INTEGRAL: " << std::flush; TIME(data.ints.dS = Integral::dOverlap(data.system))
         if (CONTAINS(print, "ds")) std::cout << "\n" << data.ints.dS << std::endl;

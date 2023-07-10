@@ -1,5 +1,31 @@
 #include "roothaan.h"
 
+Data Roothaan::frequency(bool print) const {
+    // check if hessian is calculated
+    if (!data.roothaan.freq.H.size()) throw std::runtime_error("You have not calculated the nuclear hessian matrix.");
+
+    // create the output data
+    Data output = data;
+
+    // create the mass matrix
+    Matrix M(3 * data.system.atoms.size(), 3 * data.system.atoms.size());
+    for (int i = 0; i < M.rows(); i++) {
+        M(i, i) = std::sqrt(1 / masses.at(data.system.atoms.at(i / 3).atomic_number));
+    }
+
+    // calculate the frequencies in atomic units
+    Eigen::EigenSolver<Matrix> solver(M * output.roothaan.freq.H * M); auto eval = solver.eigenvalues();
+
+    // extract the frequencies in cm-1
+    output.roothaan.freq.freq = (eval.cwiseSqrt() - eval.cwiseSqrt().imag()).real() * CFREQ;
+
+    // sort the frequencies
+    std::sort(output.roothaan.freq.freq.begin(), output.roothaan.freq.freq.end(), std::greater<>());
+
+    // return the results
+    return output;
+}
+
 Data Roothaan::gradient(bool print) const {
     if (data.roothaan.grad.numerical) return gradientNumerical(print);
     else return gradientAnalytical(print);
@@ -104,6 +130,76 @@ Data Roothaan::gradientNumerical(bool print) const {
 
     // return the gradient
     return output;
+}
+
+Data Roothaan::hessian(bool print) const {
+    if (data.roothaan.freq.numerical) return hessianNumerical(print);
+    else return hessianAnalytical(print);
+}
+
+Data Roothaan::hessianAnalytical(bool) const {
+    throw std::runtime_error("Analytical hessian for HF method is not implemented.");
+}
+
+Data Roothaan::hessianNumerical(bool print) const {
+    // create the output data and define the gradient matrix
+    Data output = data; output.roothaan.freq.H = Matrix::Zero(3 * data.system.atoms.size(), 3 * data.system.atoms.size());
+
+    // print the header
+    if (print) std::printf("  ELEM      dE [Eh/Bohr]        TIME\n");
+
+    // fill the gradient
+    #if defined(_OPENMP)
+    #pragma omp parallel for num_threads(nthread) shared(data, output) collapse(2)
+    #endif
+    for (int i = 0; i < output.roothaan.freq.H.rows(); i++) {
+        for (int j = 0; j < output.roothaan.freq.H.cols(); j++) {
+            // start the timer
+            Timer::Timepoint start = Timer::Now();
+
+            // define the direction matrices and temporary systems
+            Data dataMinusMinus = data, dataMinusPlus = data, dataPlusMinus = data, dataPlusPlus = data;
+            Matrix dir1(data.system.atoms.size(), 3), dir2(data.system.atoms.size(), 3);
+
+            // fill the direction matrices
+            dir1(i / 3, i % 3) = data.roothaan.freq.step * A2BOHR; dir2(j / 3, j % 3) = data.roothaan.freq.step * A2BOHR;
+
+            // move the systems
+            dataMinusMinus.roothaan.D = data.roothaan.D, dataMinusPlus.roothaan.D = data.roothaan.D;
+            dataPlusMinus.roothaan.D = data.roothaan.D, dataPlusPlus.roothaan.D = data.roothaan.D;
+            dataMinusMinus.system.move(-dir1 - dir2), dataMinusPlus.system.move(-dir1 + dir2);
+            dataPlusMinus.system.move(dir1 - dir2), dataPlusPlus.system.move(dir1 + dir2);
+
+            // calculate all the integrals
+            dataMinusMinus.ints.S = Integral::Overlap(dataMinusMinus.system), dataMinusPlus.ints.S = Integral::Overlap(dataMinusPlus.system);
+            dataMinusMinus.ints.T = Integral::Kinetic(dataMinusMinus.system), dataMinusPlus.ints.T = Integral::Kinetic(dataMinusPlus.system);
+            dataMinusMinus.ints.V = Integral::Nuclear(dataMinusMinus.system), dataMinusPlus.ints.V = Integral::Nuclear(dataMinusPlus.system);
+            dataMinusMinus.ints.J = Integral::Coulomb(dataMinusMinus.system), dataMinusPlus.ints.J = Integral::Coulomb(dataMinusPlus.system);
+            dataPlusMinus.ints.S = Integral::Overlap(dataPlusMinus.system), dataPlusPlus.ints.S = Integral::Overlap(dataPlusPlus.system);
+            dataPlusMinus.ints.T = Integral::Kinetic(dataPlusMinus.system), dataPlusPlus.ints.T = Integral::Kinetic(dataPlusPlus.system);
+            dataPlusMinus.ints.V = Integral::Nuclear(dataPlusMinus.system), dataPlusPlus.ints.V = Integral::Nuclear(dataPlusPlus.system);
+            dataPlusMinus.ints.J = Integral::Coulomb(dataPlusMinus.system), dataPlusPlus.ints.J = Integral::Coulomb(dataPlusPlus.system);
+
+            // calculate the energies
+            dataMinusMinus = Roothaan(dataMinusMinus).scf(false);
+            dataMinusPlus = Roothaan(dataMinusPlus).scf(false);
+            dataPlusMinus = Roothaan(dataPlusMinus).scf(false);
+            dataPlusPlus = Roothaan(dataPlusPlus).scf(false);
+
+            // calculate the derivative
+            output.roothaan.freq.H(i, j) = BOHR2A * BOHR2A * (dataPlusPlus.roothaan.E - dataMinusPlus.roothaan.E - dataPlusMinus.roothaan.E + dataMinusMinus.roothaan.E) / data.roothaan.freq.step / data.roothaan.freq.step / 4;
+
+            // print the iteration info
+            if (print) std::printf("(%2d, %2d) %18.14f %s\n", i + 1, j + 1, output.roothaan.freq.H(i, j), Timer::Format(Timer::Elapsed(start)).c_str());
+        }
+    }
+
+    // print empty line
+    if (print) std::cout << std::endl;
+
+    // return the output
+    return output;
+
 }
 
 Data Roothaan::optimize(bool print) const {

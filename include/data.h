@@ -10,6 +10,10 @@ struct Data {
     } ci;
     struct MP {
         double Ecorr;
+        struct Frequency {
+            bool numerical; double step;
+            Vector freq; Matrix H;
+        } freq;
         struct Gradient {
             bool numerical;
             double step;
@@ -24,6 +28,10 @@ struct Data {
         double thresh; int maxiter;
         Matrix C, D; Vector eps;
         double E;
+        struct Frequency {
+            bool numerical; double step;
+            Vector freq; Matrix H;
+        } freq;
         struct Gradient {
             bool numerical;
             double step;
