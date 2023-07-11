@@ -47,9 +47,9 @@ Below are all the important features of Hazel divided into categories.
 
 ### Additional Calculations
 
-* Analytical Gradient for HF
-* Numerical Gradient for MP2
-* HF and MP2 Optimization
+* Gradients for HF (analytical) and MP2 (numerical)
+* Numerical hessians and frequency analysis for HF and MP2
+* HF and MP2 steepest descent optimization
 
 ## 🛠️ Compilation
 
@@ -68,7 +68,7 @@ cmake -B build -DCMAKE_BUILD_TYPE=Release .
 If the configuration finished without errors, compile the project by running the following command.
 
 ```bash
-cmake --build build --parallel 4
+cmake --build build
 ```
 
 After the compilation the bin folder will be created along with the executable.

@@ -1,11 +1,7 @@
 #pragma once
 
-#include "ci.h"
-#include "mp.h"
-#include "roothaan.h"
-#include "transform.h"
 #include "argparse.hpp"
-#include <filesystem>
+#include "optimizer.h"
 
 class Distributor {
 public:
@@ -15,7 +11,7 @@ public:
 private:
     Data integrals(Data data) const;
 
-    // Hartre-Fock distribution
+    // HF distribution
     void hfrun(Data& data) const; void hff(Data& data) const;
     void hfg(Data& data) const; void hfo(Data& data) const;
 

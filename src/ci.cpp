@@ -19,12 +19,12 @@ Data CI::cid(bool) const {
     Eigen::IndexPair<int> first(2, 0), second(3, 1);
 
     // fill the first CI matrix element
-    output.ci.H(0, 0) = output.roothaan.E - Integral::Repulsion(data.system);
+    output.ci.H(0, 0) = output.hf.E - Integral::Repulsion(data.system);
 
     // fill the CI Hamiltonian
     for (size_t i = 0; i < excs.size(); i++) {
         // create excited coefficient matrix and density
-        Matrix CEXC = data.roothaan.C; CEXC.col(excs.at(i).first).swap(CEXC.col(excs.at(i).second));
+        Matrix CEXC = data.hf.C; CEXC.col(excs.at(i).first).swap(CEXC.col(excs.at(i).second));
         Matrix DEXC = 2 * CEXC.leftCols(nocc) * CEXC.leftCols(nocc).transpose();
 
         // calculate the fock matrix end excitated energy
@@ -49,7 +49,7 @@ Data CI::cid(bool) const {
     output.ci.C = solver.eigenvectors(), output.ci.eig = solver.eigenvalues();
 
     // extract correlation energy
-    output.ci.Ecorr = output.ci.eig(0) - data.roothaan.E + Integral::Repulsion(data.system);
+    output.ci.Ecorr = output.ci.eig(0) - data.hf.E + Integral::Repulsion(data.system);
 
     // return the result
     return output;

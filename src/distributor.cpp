@@ -117,15 +117,15 @@ void Distributor::run() {
 
     // extract all the options
     if (program.is_subcommand_used("hf")) {
-        data.roothaan.diis = {hf.get<std::vector<int>>("-d").at(0), hf.get<std::vector<int>>("-d").at(1)};
-        data.roothaan.maxiter = hf.get<int>("-m"), data.roothaan.thresh = hf.get<double>("-t");
-        data.roothaan.D = Matrix::Zero(data.system.shells.nbf(), data.system.shells.nbf());
-        data.roothaan.freq.numerical = hf.get<std::vector<double>>("-f").at(0);
-        data.roothaan.grad.numerical = hf.get<std::vector<double>>("-g").at(0);
-        data.roothaan.freq.step = hf.get<std::vector<double>>("-f").at(1);
-        data.roothaan.grad.step = hf.get<std::vector<double>>("-g").at(1);
+        data.hf.diis = {hf.get<std::vector<int>>("-d").at(0), hf.get<std::vector<int>>("-d").at(1)};
+        data.hf.maxiter = hf.get<int>("-m"), data.hf.thresh = hf.get<double>("-t");
+        data.hf.D = Matrix::Zero(data.system.shells.nbf(), data.system.shells.nbf());
+        data.hf.freq.numerical = hf.get<std::vector<double>>("-f").at(0);
+        data.hf.grad.numerical = hf.get<std::vector<double>>("-g").at(0);
+        data.hf.freq.step = hf.get<std::vector<double>>("-f").at(1);
+        data.hf.grad.step = hf.get<std::vector<double>>("-g").at(1);
         hfprint = hf.get<std::vector<std::string>>("-p");
-        data.roothaan.opt.thresh = hf.get<double>("-o");
+        data.hf.opt.thresh = hf.get<double>("-o");
         if (hf.is_subcommand_used("mp2")) {
             data.mp.freq.numerical = mp2.get<std::vector<double>>("-f").at(0);
             data.mp.grad.numerical = mp2.get<std::vector<double>>("-g").at(0);
@@ -157,17 +157,17 @@ void Distributor::hfrun(Data& data) const {
 
     // print the RHF method header
     std::cout << "\n" + std::string(104, '-') + "\nRESTRICTED HARTREE-FOCK METHOD\n" << std::string(104, '-') + "\n\n";
-    std::printf("-- MAXITER: %d, THRESH: %.2e\n-- DIIS: [START: %d, KEEP: %d]\n", data.roothaan.maxiter, data.roothaan.thresh, data.roothaan.diis.start, data.roothaan.diis.keep);
+    std::printf("-- MAXITER: %d, THRESH: %.2e\n-- DIIS: [START: %d, KEEP: %d]\n", data.hf.maxiter, data.hf.thresh, data.hf.diis.start, data.hf.diis.keep);
 
     // perform the Hartree-Fock calculation
-    data = Roothaan(data).scf();
+    data = HF(data).scf();
 
     // print the resulting matrices and energies
-    if (CONTAINS(hfprint, "eps") || CONTAINS(print, "all")) std::cout << "\nORBITAL ENERGIES\n" << Matrix(data.roothaan.eps) << std::endl;
-    if (CONTAINS(hfprint, "c") || CONTAINS(print, "all")) std::cout << "\nCOEFFICIENT MATRIX\n" << data.roothaan.C << std::endl;
-    if (CONTAINS(hfprint, "d") || CONTAINS(print, "all")) std::cout << "\nDENSITY MATRIX\n" << data.roothaan.D << std::endl;
+    if (CONTAINS(hfprint, "eps") || CONTAINS(print, "all")) std::cout << "\nORBITAL ENERGIES\n" << Matrix(data.hf.eps) << std::endl;
+    if (CONTAINS(hfprint, "c") || CONTAINS(print, "all")) std::cout << "\nCOEFFICIENT MATRIX\n" << data.hf.C << std::endl;
+    if (CONTAINS(hfprint, "d") || CONTAINS(print, "all")) std::cout << "\nDENSITY MATRIX\n" << data.hf.D << std::endl;
     std::cout << "\nTOTAL NUCLEAR REPULSION ENERGY: " << Integral::Repulsion(data.system) << std::endl;
-    std::cout << "FINAL HARTREE-FOCK ENERGY: " << data.roothaan.E << std::endl;
+    std::cout << "FINAL HARTREE-FOCK ENERGY: " << data.hf.E << std::endl;
 
     // gradient and hessian frequency
     if (hf.is_used("-g")) hfg(data);
@@ -183,7 +183,7 @@ void Distributor::hfrun(Data& data) const {
         std::cout << "\n" + std::string(104, '-') + "\nCI CORRELATION ENERGY\n" << std::string(104, '-') + "\n";
 
         // transform the coulomb tensor
-        std::cout << "\nCOULOMB TENSOR IN MO BASIS: " << std::flush; TIME(data.intsmo.J = Transform::Coulomb(data.ints.J, data.roothaan.C))
+        std::cout << "\nCOULOMB TENSOR IN MO BASIS: " << std::flush; TIME(data.intsmo.J = Transform::Coulomb(data.ints.J, data.hf.C))
         if (CONTAINS(ciprint, "jmo") || CONTAINS(print, "all")) {std::cout << "\n" << data.intsmo.J;} std::cout << "\n";
 
         // do the calculation
@@ -196,43 +196,43 @@ void Distributor::hfrun(Data& data) const {
 
         // print the gradient and norm
         std::cout << "\nCI CORRELATION ENERGY: " << data.ci.Ecorr << std::endl;
-        std::cout << "FINAL CI ENERGY: " << data.roothaan.E + data.ci.Ecorr << std::endl;
+        std::cout << "FINAL CI ENERGY: " << data.hf.E + data.ci.Ecorr << std::endl;
     }
 }
 
 void Distributor::hff(Data& data) const {
     // print the hessian header
-    if (data.roothaan.freq.numerical) std::cout << "\n" + std::string(104, '-') + "\nNUMERICAL HESSIAN FOR RESTRICTED HARTREE-FOCK\n";
+    if (data.hf.freq.numerical) std::cout << "\n" + std::string(104, '-') + "\nNUMERICAL HESSIAN FOR RESTRICTED HARTREE-FOCK\n";
     else std::cout << "\n" + std::string(104, '-') + "\nANALYTICAL HESSIAN FOR RESTRICTED HARTREE-FOCK\n";
     std::cout << std::string(104, '-') + "\n\n";
 
     // perform the hessian calculation
-    data = Roothaan(data).hessian();
+    data = Hessian<HF>(data).get();
 
     // print the hessian results
-    std::cout << "NUCLEAR HESSIAN\n" << data.roothaan.freq.H << "\n\nHESSIAN NORM: ";
-    std::printf("%.2e\n", data.roothaan.freq.H.norm());
+    std::cout << "NUCLEAR HESSIAN\n" << data.hf.freq.H << "\n\nHESSIAN NORM: ";
+    std::printf("%.2e\n", data.hf.freq.H.norm());
 
     // perform the frequency calculation
-    data = Roothaan(data).frequency();
+    data = Hessian<HF>(data).frequency();
 
     // print the frequency reslts
     std::cout << "\n" + std::string(104, '-') + "\nHARTREE-FOCK FREQUENCY ANALYSIS\n" << std::string(104, '-');
-    std::cout << "\n\nVIBRATIONAL FREQUENCIES\n" << Matrix(data.roothaan.freq.freq) << std::endl;
+    std::cout << "\n\nVIBRATIONAL FREQUENCIES\n" << Matrix(data.hf.freq.freq) << std::endl;
 }
 
 void Distributor::hfg(Data& data) const {
     // print the header
-    if (data.roothaan.grad.numerical) std::cout << "\n" + std::string(104, '-') + "\nNUMERICAL GRADIENT FOR RESTRICTED HARTREE-FOCK\n";
+    if (data.hf.grad.numerical) std::cout << "\n" + std::string(104, '-') + "\nNUMERICAL GRADIENT FOR RESTRICTED HARTREE-FOCK\n";
     else std::cout << "\n" + std::string(104, '-') + "\nANALYTICAL GRADIENT FOR RESTRICTED HARTREE-FOCK\n";
     std::cout << std::string(104, '-') + "\n\n"; 
 
     // calculate the gradient
-    if (!hf.is_used("-o")) data = Roothaan(data).gradient();
+    if (!hf.is_used("-o")) data = Gradient<HF>(data).get();
 
     // print the results
-    std::cout << data.roothaan.grad.G << "\n\nGRADIENT NORM: ";
-    std::printf("%.2e\n", data.roothaan.grad.G.norm());
+    std::cout << data.hf.grad.G << "\n\nGRADIENT NORM: ";
+    std::printf("%.2e\n", data.hf.grad.G.norm());
 }
 
 void Distributor::hfo(Data& data) const {
@@ -240,7 +240,7 @@ void Distributor::hfo(Data& data) const {
     std::cout << "\n" + std::string(104, '-') + "\nRESTRICTED HARTREE-FOCK OPTIMIZATION\n" << std::string(104, '-') + "\n\n";
 
     // perform the optimization
-    data = Roothaan(data).optimize();
+    data = Optimizer<HF>(data).optimize();
 
     // print the results
     std::cout << "\nOPTIMIZED SYSTEM COORDINATES\n" << data.system.coords << std::endl; 
@@ -258,7 +258,7 @@ void Distributor::mp2run(Data& data) const {
     std::cout << "\n" + std::string(104, '-') + "\nRESTRICTED MP2 CORRELATION ENERGY\n" << std::string(104, '-') + "\n";
 
     // transform the coulomb tensor
-    std::cout << "\nCOULOMB TENSOR IN MO BASIS: " << std::flush; TIME(data.intsmo.J = Transform::Coulomb(data.ints.J, data.roothaan.C))
+    std::cout << "\nCOULOMB TENSOR IN MO BASIS: " << std::flush; TIME(data.intsmo.J = Transform::Coulomb(data.ints.J, data.hf.C))
     if (CONTAINS(mp2print, "jmo") || CONTAINS(print, "all")) {std::cout << "\n" << data.intsmo.J;} std::cout << "\n";
 
     // do the MP2 calculation
@@ -266,7 +266,7 @@ void Distributor::mp2run(Data& data) const {
 
     // print the gradient and norm
     std::cout << "\nMP2 CORRELATION ENERGY: " << data.mp.Ecorr << std::endl << "FINAL ";
-    std::cout << "MP2 ENERGY: " << data.roothaan.E + data.mp.Ecorr << std::endl;
+    std::cout << "MP2 ENERGY: " << data.hf.E + data.mp.Ecorr << std::endl;
 
     // calculate the MP2 nuclear gradient
     if (mp2.is_used("-g")) mp2g(data);
@@ -279,14 +279,14 @@ void Distributor::mp2f(Data& data) const {
     else std::cout << "\n" + std::string(104, '-') + "\nANALYTICAL HESSIAN FOR MP2\n";
     std::cout << std::string(104, '-') + "\n\n";
 
-    // perform the hessian
-    data = MP(data).Hessian.mp2();
+    // perform the hessian calculation
+    data = Hessian<MP>(data).get();
 
     // print the hessian resuls
     std::cout << "NUCLEAR HESSIAN\n" << data.mp.freq.H << "\n\nHESSIAN NORM: "; std::printf("%.2e\n", data.mp.freq.H.norm());
 
     // perform the frequency calculation
-    data = MP(data).Frequency.mp2();
+    data = Hessian<MP>(data).frequency();
 
     // print the frequency analysis results
     std::cout << "\n" + std::string(104, '-') + "\nHARTREE-FOCK FREQUENCY ANALYSIS\n" << std::string(104, '-') + "\n";
@@ -299,7 +299,7 @@ void Distributor::mp2g(Data& data) const {
     else std::cout << "\n" + std::string(104, '-') + "\nANALYTICAL GRADIENT FOR MP2 METHOD\n" << std::string(104, '-') << "\n\n";
 
     // perform the calculation
-    if (!mp2.is_used("-o")) data = MP(data).Gradient.mp2();
+    if (!mp2.is_used("-o")) data = Gradient<MP>(data).get();
 
     // print the gradient results
     std::cout << data.mp.grad.G << "\n\nGRADIENT NORM: ";
@@ -311,7 +311,7 @@ void Distributor::mp2o(Data& data) const {
     std::cout << "\n" + std::string(104, '-') + "\nRESTRICTED MP2 OPTIMIZATION\n" << std::string(104, '-') << "\n\n";
 
     // perform the optimization
-    data = MP(data).Optimizer.mp2();
+    data = Optimizer<MP>(data).optimize();
 
     // print the optimization results
     std::cout << "\nOPTIMIZED SYSTEM COORDINATES\n" << data.system.coords << std::endl;
@@ -340,7 +340,7 @@ Data Distributor::integrals(Data data) const {
     if (!program.get<bool>("--no-coulomb") && (CONTAINS(print, "j") || CONTAINS(print, "all"))) {std::cout << "\n" << data.ints.J;} std::cout << "\n";
 
     // if derivatives of the integrals are needed
-    if ((hf.is_used("-g") || hf.is_used("-o")) && !data.roothaan.grad.numerical) {
+    if ((hf.is_used("-g") || hf.is_used("-o")) && !data.hf.grad.numerical) {
         // calculate the overlap integral
         std::cout << "\nFIRST DERIVATIVE OF OVERLAP INTEGRAL: " << std::flush; TIME(data.ints.dS = Integral::dOverlap(data.system))
         if (CONTAINS(print, "ds") || CONTAINS(print, "all")) std::cout << "\n" << data.ints.dS << std::endl;

@@ -23,7 +23,7 @@ struct Data {
             double thresh;
         } opt;
     } mp;
-    struct Roothaan {
+    struct HF {
         struct {int start, keep;} diis;
         double thresh; int maxiter;
         Matrix C, D; Vector eps;
@@ -40,7 +40,9 @@ struct Data {
         struct Optimizer {
             double thresh;
         } opt;
-    } roothaan;
+    } hf;
     Integrals ints, intsmo;
     System system;
 };
+
+#include "transform.h"
