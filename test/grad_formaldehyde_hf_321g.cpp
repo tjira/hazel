@@ -1,5 +1,4 @@
 #include "../include/gradient.h"
-#include "../include/system.h"
 
 int test_grad_formaldehyde_hf_321g(int, char**) {
     // initialize the system
@@ -12,20 +11,10 @@ int test_grad_formaldehyde_hf_321g(int, char**) {
     // initialize the guess density matrix
     data.hf.D = Matrix::Zero(data.system.shells.nbf(), data.system.shells.nbf());
 
-    // calculate integrals
-    libint2::initialize();
-    data.ints.S = Integral::Overlap(data.system);
-    data.ints.T = Integral::Kinetic(data.system);
-    data.ints.V = Integral::Nuclear(data.system);
-    data.ints.J = Integral::Coulomb(data.system);
-    data.ints.dS = Integral::dOverlap(data.system);
-    data.ints.dT = Integral::dKinetic(data.system);
-    data.ints.dV = Integral::dNuclear(data.system);
-    data.ints.dJ = Integral::dCoulomb(data.system);
-    libint2::finalize();
-
     // perform the SCF cycle and calculate gradient
+    libint2::initialize();
     data = Gradient<HF>(HF(data).scf(false)).get(false);
+    libint2::finalize();
 
     // create the expectation gradient
     Matrix G(data.system.atoms.size(), 3); G << -0.01958255288121, -0.00049539947789, -0.00225484819105, 0.00483343038055, 0.00012225003361, 0.00055668084847, 0.00630259733685, -0.00164229325287, 0.01056149889293, 0.00844652516382, 0.00201544269717, -0.00886333155048;

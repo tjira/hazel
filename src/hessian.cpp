@@ -10,7 +10,7 @@ Data Hessian<M>::frequency(bool) const {
     if constexpr (std::is_same_v<MP, M>) H = data.mp.freq.H;
 
     // check if hessian is calculated
-    if (!H.size()) throw std::runtime_error("You have not calculated the nuclear hessian matrix.");
+    if (!H.size()) throw std::runtime_error("YOU HAVE NOT CALCULATED THE NUCLEAR HESSIAN MATRIX");
 
     // create the mass matrix
     Matrix MM(3 * data.system.atoms.size(), 3 * data.system.atoms.size());
@@ -37,26 +37,19 @@ Data Hessian<M>::get(bool print) const {
     if constexpr (std::is_same_v<HF, M>) {
         if (data.hf.freq.numerical) {
             auto efunc = [](Data data) {
-                data.ints.S = Integral::Overlap(data.system);
-                data.ints.T = Integral::Kinetic(data.system);
-                data.ints.V = Integral::Nuclear(data.system);
-                data.ints.J = Integral::Coulomb(data.system);
-                return HF(data).scf(false);
+                return HF(data.noints()).scf(false);
             };
             return get(efunc, print);
-        } else throw std::runtime_error("Analytical hessian for HF is not implemented");
+        } else throw std::runtime_error("ANALYTICAL HESSIAN FOR HF IS NOT IMPLEMENTED");
 
     // calculate the MP hessian
     } else if constexpr (std::is_same_v<MP, M>) {
         if (data.mp.freq.numerical) {
             auto efunc = [](Data data) {
-                data.ints.S = Integral::Overlap(data.system), data.ints.T = Integral::Kinetic(data.system);
-                data.ints.V = Integral::Nuclear(data.system), data.ints.J = Integral::Coulomb(data.system);
-                data = HF(data).scf(false); data.intsmo.J = Transform::Coulomb(data.ints.J, data.hf.C);
-                return MP(data).mp2();
+                return MP(HF(data.noints()).scf(false)).mp2(false);
             };
             return get(efunc, print);
-        } else throw std::runtime_error("Analytical hessian for MP2 is not implemented");
+        } else throw std::runtime_error("ANALYTICAL HESSIAN FOR MP2 IS NOT IMPLEMENTED");
     }
 }
 
@@ -74,7 +67,7 @@ Data Hessian<M>::get(const std::function<Data(Data)>& efunc, bool print) const {
 
     // fill the gradient
     #if defined(_OPENMP)
-    #pragma omp parallel for num_threads(nthread) shared(data, output) collapse(2)
+    #pragma omp parallel for num_threads(nthread) collapse(2)
     #endif
     for (int i = 0; i < H.rows(); i++) {
         for (int j = 0; j < H.cols(); j++) {

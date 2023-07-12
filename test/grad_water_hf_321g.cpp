@@ -1,5 +1,4 @@
 #include "../include/gradient.h"
-#include "../include/system.h"
 
 int test_grad_water_hf_321g(int, char**) {
     // initialize the system
@@ -12,20 +11,10 @@ int test_grad_water_hf_321g(int, char**) {
     // initialize the guess density matrix
     data.hf.D = Matrix::Zero(data.system.shells.nbf(), data.system.shells.nbf());
 
-    // calculate integrals
-    libint2::initialize();
-    data.ints.S = Integral::Overlap(data.system);
-    data.ints.T = Integral::Kinetic(data.system);
-    data.ints.V = Integral::Nuclear(data.system);
-    data.ints.J = Integral::Coulomb(data.system);
-    data.ints.dS = Integral::dOverlap(data.system);
-    data.ints.dT = Integral::dKinetic(data.system);
-    data.ints.dV = Integral::dNuclear(data.system);
-    data.ints.dJ = Integral::dCoulomb(data.system);
-    libint2::finalize();
-
     // perform the SCF cycle and calculate gradient
+    libint2::initialize();
     data = Gradient<HF>(HF(data).scf(false)).get(false);
+    libint2::finalize();
 
     // create the expectation gradient
     Matrix G(data.system.atoms.size(), 3); G << -0.03508825565899, -0.01215729813484, -0.01403355041804, 0.01817317883600, 0.00280859395850, 0.00827526909125, 0.01691507682299, 0.00934870417633, 0.00575828132678;

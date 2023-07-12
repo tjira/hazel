@@ -1,5 +1,4 @@
 #include "../include/gradient.h"
-#include "../include/system.h"
 
 int test_grad_ammonia_hf_321g(int, char**) {
     // initialize the system
@@ -12,20 +11,10 @@ int test_grad_ammonia_hf_321g(int, char**) {
     // initialize the guess density matrix
     data.hf.D = Matrix::Zero(data.system.shells.nbf(), data.system.shells.nbf());
 
-    // calculate integrals
-    libint2::initialize();
-    data.ints.S = Integral::Overlap(data.system);
-    data.ints.T = Integral::Kinetic(data.system);
-    data.ints.V = Integral::Nuclear(data.system);
-    data.ints.J = Integral::Coulomb(data.system);
-    data.ints.dS = Integral::dOverlap(data.system);
-    data.ints.dT = Integral::dKinetic(data.system);
-    data.ints.dV = Integral::dNuclear(data.system);
-    data.ints.dJ = Integral::dCoulomb(data.system);
-    libint2::finalize();
-
     // perform the SCF cycle and calculate gradient
+    libint2::initialize();
     data = Gradient<HF>(HF(data).scf(false)).get(false);
+    libint2::finalize();
 
     // create the expectation gradient
     Matrix G(data.system.atoms.size(), 3); G << -0.02344314586885, -0.02918584244444, 0.01892048906773, 0.00878293677851, 0.01395643974080, 0.00141427649435, 0.01363474764934, 0.00349889491791, -0.00870454815847, 0.00102546144104, 0.01173050778574, -0.01163021740362;

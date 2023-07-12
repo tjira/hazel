@@ -4,9 +4,12 @@
 
 class HF {
 public:
-    HF(const Data& data) : data(data) {}
+    // constructor
+    HF(const Data& data);
+
+    // methods
     Data scf(bool print = true) const;
 
 private:
-    const Data data;
+    Data data;
 };

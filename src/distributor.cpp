@@ -86,19 +86,20 @@ void Distributor::run() {
     Data data; data.system = System(program.get("-f"), program.get("-b"), program.get<int>("-c"), 1);
 
     // check if unrestricted calculation needed
-    if (program.get<int>("-c") % 2) throw std::runtime_error("Spin unrestricted calculations are not supported yet.");
+    if (data.system.charge % 2) throw std::runtime_error("SPIN UNRESTRICTED CALCULATIONS ARE NOT SUPPORTED YET");
 
-    // extract printing options
-    print = program.get<std::vector<std::string>>("-p");
+    // extract printing and flag options
+    print = program.get<std::vector<std::string>>("-p"), data.nocoulomb = program.get<bool>("--no-coulomb");
 
     // print the title with number of threads
-    std::cout << "QUANTUM HAZEL (" << nthread << " THREAD" << (nthread > 1 ? "S)" : ")") << std::endl;
+    std::cout << "QUANTUM HAZEL" << std::endl;
 
     // print the general info block
     std::cout << "\n" + std::string(104, '-') + "\nGENERAL INFO\n" << std::string(104, '-') + "\n\n";
     std::printf("COMPILATION TIMESTAMP: %s\nEXECUTION TIMESTAMP: %s\n", __TIMESTAMP__, LOCALTIME.c_str());
     std::printf("\nLIBRARIES: EIGEN %d.%d.%d, LIBINT %d.%d.%d", EIGEN_WORLD_VERSION, EIGEN_MAJOR_VERSION, EIGEN_MINOR_VERSION, LIBINT_MAJOR_VERSION, LIBINT_MINOR_VERSION, LIBINT_MICRO_VERSION);
     std::printf("\nCOMPILER VERSION: GCC %d.%d.%d\nCOMPILER FLAGS: %s\n", __GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__, CXXFLAGS);
+    std::printf("\nAVAILABLE CORES: %d\nUSED THREADS: %d\n", std::thread::hardware_concurrency(), nthread);
 
     // print the system block
     std::cout << "\n" + std::string(104, '-') + "\nSYSTEM SPECIFICATION (" + data.system.basis + ")\n" << std::string(104, '-') + "\n\n";
@@ -137,21 +138,21 @@ void Distributor::run() {
             ciprint = ci.get<std::vector<std::string>>("-p");
         }
     }
-;
+
     // transform the print vectors to lowercase
     for (auto& element : mp2print) std::transform(element.begin(), element.end(), element.begin(), [](auto c){return std::tolower(c);});
     for (auto& element : hfprint) std::transform(element.begin(), element.end(), element.begin(), [](auto c){return std::tolower(c);});
     for (auto& element : ciprint) std::transform(element.begin(), element.end(), element.begin(), [](auto c){return std::tolower(c);});
     for (auto& element : print) std::transform(element.begin(), element.end(), element.begin(), [](auto c){return std::tolower(c);});
 
+    // calculate the integrals
+    data = integrals(data);
+
     // distribute the calculations
     if (program.is_subcommand_used("hf")) hfrun(data);
 }
 
 void Distributor::hfrun(Data& data) const {
-    // calculate the integrals
-    data = integrals(data);
-
     // optimize the gradient
     if (hf.is_used("-o")) hfo(data);
 
@@ -178,8 +179,7 @@ void Distributor::hfrun(Data& data) const {
 
     // calculate CI correlation
     if (hf.is_subcommand_used("ci")) {
-        // throw an error if no coulomb and print the CI method header
-        if (program.get<bool>("--no-coulomb")) throw std::runtime_error("I'm sorry, you need the coulomb tensor for CI.");
+        // print the CI method header
         std::cout << "\n" + std::string(104, '-') + "\nCI CORRELATION ENERGY\n" << std::string(104, '-') + "\n";
 
         // transform the coulomb tensor
@@ -248,9 +248,6 @@ void Distributor::hfo(Data& data) const {
 }
 
 void Distributor::mp2run(Data& data) const {
-    // throw an error if no coulomb
-    if (program.get<bool>("--no-coulomb")) throw std::runtime_error("I'm sorry, you need the coulomb tensor for the MP2 method.");
-
     // optimize the molecule with MP2 method
     if (mp2.is_used("-o")) mp2o(data);
 
@@ -275,8 +272,8 @@ void Distributor::mp2run(Data& data) const {
 
 void Distributor::mp2f(Data& data) const {
     // print the frequency calculation header
-    if (data.mp.freq.numerical) std::cout << "\n" + std::string(104, '-') + "\nNUMERICAL HESSIAN FOR MP2\n";
-    else std::cout << "\n" + std::string(104, '-') + "\nANALYTICAL HESSIAN FOR MP2\n";
+    if (data.mp.freq.numerical) std::cout << "\n" + std::string(104, '-') + "\nNUMERICAL HESSIAN FOR RESTRICTED MP2 METHOD\n";
+    else std::cout << "\n" + std::string(104, '-') + "\nANALYTICAL HESSIAN FOR RESTRICTED MP2 METHOD\n";
     std::cout << std::string(104, '-') + "\n\n";
 
     // perform the hessian calculation
@@ -289,14 +286,14 @@ void Distributor::mp2f(Data& data) const {
     data = Hessian<MP>(data).frequency();
 
     // print the frequency analysis results
-    std::cout << "\n" + std::string(104, '-') + "\nHARTREE-FOCK FREQUENCY ANALYSIS\n" << std::string(104, '-') + "\n";
+    std::cout << "\n" + std::string(104, '-') + "\nRESTRICTED MP2 FREQUENCY ANALYSIS\n" << std::string(104, '-') + "\n";
     std::cout << "\nVIBRATIONAL FREQUENCIES\n" << Matrix(data.mp.freq.freq) << std::endl;
 }
 
 void Distributor::mp2g(Data& data) const {
     // print the MP2 gradient method header and perform the calculation
-    if (data.mp.grad.numerical) std::cout << "\n" + std::string(104, '-') + "\nNUMERICAL GRADIENT FOR MP2 METHOD\n" << std::string(104, '-') << "\n\n";
-    else std::cout << "\n" + std::string(104, '-') + "\nANALYTICAL GRADIENT FOR MP2 METHOD\n" << std::string(104, '-') << "\n\n";
+    if (data.mp.grad.numerical) std::cout << "\n" + std::string(104, '-') + "\nNUMERICAL GRADIENT FOR RESTRICTED MP2 METHOD\n" << std::string(104, '-') << "\n\n";
+    else std::cout << "\n" + std::string(104, '-') + "\nANALYTICAL GRADIENT FOR RESTRICTED MP2 METHOD\n" << std::string(104, '-') << "\n\n";
 
     // perform the calculation
     if (!mp2.is_used("-o")) data = Gradient<MP>(data).get();
@@ -336,8 +333,8 @@ Data Distributor::integrals(Data data) const {
     if (CONTAINS(print, "v") || CONTAINS(print, "all")) std::cout << "\n" << data.ints.V << std::endl;
 
     // calculate the electron-electron repulsion integral
-    if (!program.get<bool>("--no-coulomb")) {std::cout << "\nCOULOMB INTEGRAL: " << std::flush; TIME(data.ints.J = Integral::Coulomb(data.system))}
-    if (!program.get<bool>("--no-coulomb") && (CONTAINS(print, "j") || CONTAINS(print, "all"))) {std::cout << "\n" << data.ints.J;} std::cout << "\n";
+    if (!data.nocoulomb) {std::cout << "\nCOULOMB INTEGRAL: " << std::flush; TIME(data.ints.J = Integral::Coulomb(data.system))}
+    if (!data.nocoulomb && (CONTAINS(print, "j") || CONTAINS(print, "all"))) {std::cout << "\n" << data.ints.J;} std::cout << "\n";
 
     // if derivatives of the integrals are needed
     if ((hf.is_used("-g") || hf.is_used("-o")) && !data.hf.grad.numerical) {

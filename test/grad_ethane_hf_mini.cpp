@@ -1,5 +1,4 @@
 #include "../include/gradient.h"
-#include "../include/system.h"
 
 int test_grad_ethane_hf_mini(int, char**) {
     // initialize the system
@@ -12,20 +11,10 @@ int test_grad_ethane_hf_mini(int, char**) {
     // initialize the guess density matrix
     data.hf.D = Matrix::Zero(data.system.shells.nbf(), data.system.shells.nbf());
 
-    // calculate integrals
-    libint2::initialize();
-    data.ints.S = Integral::Overlap(data.system);
-    data.ints.T = Integral::Kinetic(data.system);
-    data.ints.V = Integral::Nuclear(data.system);
-    data.ints.J = Integral::Coulomb(data.system);
-    data.ints.dS = Integral::dOverlap(data.system);
-    data.ints.dT = Integral::dKinetic(data.system);
-    data.ints.dV = Integral::dNuclear(data.system);
-    data.ints.dJ = Integral::dCoulomb(data.system);
-    libint2::finalize();
-
     // perform the SCF cycle and calculate gradient
+    libint2::initialize();
     data = Gradient<HF>(HF(data).scf(false)).get(false);
+    libint2::finalize();
 
     // create the expectation gradient
     Matrix G(data.system.atoms.size(), 3); G << -0.04439093638979, 0.00132745202381, 0.00123206536889, 0.04439095001330, -0.00132842262872, -0.00123313349452, -0.02866209762444, -0.00125347131433, -0.06772839404478, -0.02744072771362, -0.05746998438062, 0.03680283036100, -0.02399583308137, 0.06111990759537, 0.03315036968817, 0.02744144367081, 0.05747901062801, -0.03678824650985, 0.02399535946430, -0.06111102499627, -0.03316501962251, 0.02866184166024, 0.00123653307273, 0.06772952825360;

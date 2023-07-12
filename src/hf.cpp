@@ -1,5 +1,12 @@
 #include "hf.h"
 
+HF::HF(const Data& data) : data(data) {
+    if (!data.ints.J.size() && !data.nocoulomb) this->data.ints.J = Integral::Coulomb(data.system);
+    if (!data.ints.S.size()) this->data.ints.S = Integral::Overlap(data.system);
+    if (!data.ints.T.size()) this->data.ints.T = Integral::Kinetic(data.system);
+    if (!data.ints.V.size()) this->data.ints.V = Integral::Nuclear(data.system);
+}
+
 Data HF::scf(bool print) const {
     // create the output data
     Data output = data;

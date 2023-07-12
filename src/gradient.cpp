@@ -1,16 +1,24 @@
 #include "gradient.h"
 
 template <class M>
+Gradient<M>::Gradient(const Data& data) : data(data) {
+    if constexpr (std::is_same_v<HF, M>) {
+        if (!data.hf.grad.numerical) {
+            if (!data.ints.dJ.size()) this->data.ints.dJ = Integral::dCoulomb(data.system);
+            if (!data.ints.dS.size()) this->data.ints.dS = Integral::dOverlap(data.system);
+            if (!data.ints.dT.size()) this->data.ints.dT = Integral::dKinetic(data.system);
+            if (!data.ints.dV.size()) this->data.ints.dV = Integral::dNuclear(data.system);
+        }
+    }
+}
+
+template <class M>
 Data Gradient<M>::get(bool print) const {
     // calculate the HF gradient
     if constexpr (std::is_same_v<HF, M>) {
         if (data.hf.grad.numerical) {
             auto efunc = [](Data data) {
-                data.ints.S = Integral::Overlap(data.system);
-                data.ints.T = Integral::Kinetic(data.system);
-                data.ints.V = Integral::Nuclear(data.system);
-                data.ints.J = Integral::Coulomb(data.system);
-                return HF(data).scf(false);
+                return HF(data.noints()).scf(false);
             };
             return get(efunc, print);
         } else return getHF(print);
@@ -19,13 +27,10 @@ Data Gradient<M>::get(bool print) const {
     } else if constexpr (std::is_same_v<MP, M>) {
         if (data.mp.grad.numerical) {
             auto efunc = [](Data data) {
-                data.ints.S = Integral::Overlap(data.system), data.ints.T = Integral::Kinetic(data.system);
-                data.ints.V = Integral::Nuclear(data.system), data.ints.J = Integral::Coulomb(data.system);
-                data = HF(data).scf(false); data.intsmo.J = Transform::Coulomb(data.ints.J, data.hf.C);
-                return MP(data).mp2();
+                return MP(HF(data.noints()).scf(false)).mp2(false);
             };
             return get(efunc, print);
-        } else throw std::runtime_error("Analytical gradient for MP2 is not implemented");
+        } else throw std::runtime_error("ANALYTICAL GRADIENT FOR MP2 IS NOT IMPLEMENTED");
     }
 }
 
@@ -43,7 +48,7 @@ Data Gradient<M>::get(const std::function<Data(Data)>& efunc, bool print) const 
 
     // fill the gradient
     #if defined(_OPENMP)
-    #pragma omp parallel for num_threads(nthread) shared(data, output) collapse(2)
+    #pragma omp parallel for num_threads(nthread) collapse(2)
     #endif
     for (int i = 0; i < G.rows(); i++) {
         for (int j = 0; j < G.cols(); j++) {
@@ -88,7 +93,7 @@ Data Gradient<M>::get(const std::function<Data(Data)>& efunc, bool print) const 
 }
 
 template <class M>
-Data Gradient<M>::getHF(bool print) const {
+Data Gradient<M>::getHF(bool) const {
     // extract the useful stuff from the calculated integrals and define all the contractio axes
     Tensor<3> dS1 = data.ints.dS.slice<Index<3>, Index<3>>({0, 0, 0}, {data.ints.dS.dimension(0), data.ints.dS.dimension(1), 3});
     Tensor<3> dT1 = data.ints.dT.slice<Index<3>, Index<3>>({0, 0, 0}, {data.ints.dT.dimension(0), data.ints.dT.dimension(1), 3});

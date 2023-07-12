@@ -1,6 +1,9 @@
 #include "transform.h"
 
 Tensor<4> Transform::Coulomb(const Tensor<4>& J, const Matrix& C) {
+    // throw an error if coulomb is not calculated
+    if (!J.size()) throw std::runtime_error("TO TRANSFORM THE COULOMB TENSOR INTO THE MO BASIS YOU NEED TO CALCULATE IT FIRST");
+
     // declare the ERI tensor in molecular orbital basis and tensors of partial transform
     Tensor<4> J01(J.dimension(0), J.dimension(1), J.dimension(2), J.dimension(3)); J01.setZero();
     Tensor<4> J02(J.dimension(0), J.dimension(1), J.dimension(2), J.dimension(3)); J02.setZero();
@@ -9,7 +12,7 @@ Tensor<4> Transform::Coulomb(const Tensor<4>& J, const Matrix& C) {
 
     // first 5th order partial transform
     #if defined(_OPENMP)
-    #pragma omp parallel for num_threads(nthread) shared(J, J01, C)
+    #pragma omp parallel for num_threads(nthread)
     #endif
     for (int i = 0; i < J.dimension(0); i++) {
         for (int a = 0; a < J.dimension(0); a++) {
@@ -25,7 +28,7 @@ Tensor<4> Transform::Coulomb(const Tensor<4>& J, const Matrix& C) {
 
     // second 5th order partial transform
     #if defined(_OPENMP)
-    #pragma omp parallel for num_threads(nthread) shared(J01, J02, C)
+    #pragma omp parallel for num_threads(nthread)
     #endif
     for (int i = 0; i < J.dimension(0); i++) {
         for (int j = 0; j < J.dimension(1); j++) {
@@ -41,7 +44,7 @@ Tensor<4> Transform::Coulomb(const Tensor<4>& J, const Matrix& C) {
 
     // third 5th order partial transform
     #if defined(_OPENMP)
-    #pragma omp parallel for num_threads(nthread) shared(J02, J03, C)
+    #pragma omp parallel for num_threads(nthread)
     #endif
     for (int i = 0; i < J.dimension(0); i++) {
         for (int j = 0; j < J.dimension(1); j++) {
@@ -57,7 +60,7 @@ Tensor<4> Transform::Coulomb(const Tensor<4>& J, const Matrix& C) {
 
     // fourth 5th order partial transform
     #if defined(_OPENMP)
-    #pragma omp parallel for num_threads(nthread) shared(J03, Jmo, C)
+    #pragma omp parallel for num_threads(nthread)
     #endif
     for (int i = 0; i < J.dimension(0); i++) {
         for (int j = 0; j < J.dimension(1); j++) {

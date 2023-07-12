@@ -1,9 +1,11 @@
 #pragma once
 
 #include "integral.h"
+#include "system.h"
 #include "timer.h"
 
 struct Data {
+    bool nocoulomb = false;
     struct CI {
         Matrix C, H; Vector eig;
         double Ecorr;
@@ -43,6 +45,11 @@ struct Data {
     } hf;
     Integrals ints, intsmo;
     System system;
+
+public:
+    Data noints() const {
+        Data out = *this; out.ints = {}, out.intsmo = {}; return out;
+    }
 };
 
 #include "transform.h"

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 SYSTEMS=("ammonia" "ethane" "ethylene" "formaldehyde" "methane" "water")
-BASES=("mini" "3-21g" "sto-3g" "6-31g" "cc-pvdz")
+BASES=("mini" "3-21g" "sto-3g" "6-31g" "6-31g*" "cc-pvdz")
 
 CORES=64
 
@@ -9,7 +9,7 @@ CORES=64
 for SYSTEM in ${SYSTEMS[@]}; do
     for BASIS in ${BASES[@]}; do
         # echo the source file name
-        FILE="energy_${SYSTEM,,}_hf_${BASIS//-/}.cpp"; echo "$FILE"
+        FILE="energy_${SYSTEM,,}_hf_$BASIS.cpp"; echo "$FILE"
 
         # create the source file
         cat template/energy_hf.in > "$FILE"
@@ -18,7 +18,7 @@ for SYSTEM in ${SYSTEMS[@]}; do
         ENERGY=$(../bin/hazel -b "$BASIS" -f "../example/molecule/$SYSTEM.xyz" -n $CORES hf -d 3 5 -m 1000 -t 1e-8 | grep FINAL | awk '{print $4}')
 
         # replace values in the source file
-        sed -i "s/BASIS/${BASIS//-/}/g" $FILE && sed -i "s/\"${BASIS//-/}\"/\"${BASIS^^}\"/g" "$FILE"
+        sed -i "s/BNAME/$(echo $BASIS | sed -e 's/*/s/g' -e 's/-//g')/g" $FILE && sed -i "s/BASIS/${BASIS^^}/g" "$FILE"
         sed -i "s/SYSTEM/$SYSTEM/g" "$FILE" && sed -i "s/EVALUE/$ENERGY/g" "$FILE"
     done
 done
@@ -27,7 +27,7 @@ done
 for SYSTEM in ${SYSTEMS[@]}; do
     for BASIS in ${BASES[@]}; do
         # echo the source file name
-        FILE="grad_${SYSTEM,,}_hf_${BASIS//-/}.cpp"; echo "$FILE"
+        FILE="grad_${SYSTEM,,}_hf_$BASIS.cpp"; echo "$FILE"
 
         # create the source file
         cat template/grad_hf.in > "$FILE"
@@ -37,7 +37,7 @@ for SYSTEM in ${SYSTEMS[@]}; do
         GRAD=$(echo $GRAD | tr "\n" " " | tr -s " " | sed "s/\s*$//g" | sed "s/ /, /g")
 
         # replace values in the source file
-        sed -i "s/BASIS/${BASIS//-/}/g" $FILE && sed -i "s/\"${BASIS//-/}\"/\"${BASIS^^}\"/g" "$FILE"
+        sed -i "s/BNAME/$(echo $BASIS | sed -e 's/*/s/g' -e 's/-//g')/g" $FILE && sed -i "s/BASIS/${BASIS^^}/g" "$FILE"
         sed -i "s/SYSTEM/$SYSTEM/g" "$FILE" && sed -i "s/GRADVAL/$GRAD/g" "$FILE"
     done
 done
@@ -46,7 +46,7 @@ done
 for SYSTEM in ${SYSTEMS[@]}; do
     for BASIS in ${BASES[@]}; do
         # echo the source file name
-        FILE="energy_${SYSTEM,,}_mp2_${BASIS//-/}.cpp"; echo "$FILE"
+        FILE="energy_${SYSTEM,,}_mp2_$BASIS.cpp"; echo "$FILE"
 
         # create the source file
         cat template/energy_mp2.in > "$FILE"
@@ -55,9 +55,9 @@ for SYSTEM in ${SYSTEMS[@]}; do
         ENERGY=$(../bin/hazel -b "$BASIS" -f "../example/molecule/$SYSTEM.xyz" -n $CORES hf -d 3 5 -m 1000 -t 1e-8 mp2 | grep "FINAL MP2" | awk '{print $4}')
 
         # replace values in the source file
-        sed -i "s/BASIS/${BASIS//-/}/g" $FILE && sed -i "s/\"${BASIS//-/}\"/\"${BASIS^^}\"/g" "$FILE"
+        sed -i "s/BNAME/$(echo $BASIS | sed -e 's/*/s/g' -e 's/-//g')/g" $FILE && sed -i "s/BASIS/${BASIS^^}/g" "$FILE"
         sed -i "s/SYSTEM/$SYSTEM/g" "$FILE" && sed -i "s/EVALUE/$ENERGY/g" "$FILE"
     done
 done
 
-rm -f gmon.out
+rename "*" "s" * && rename "-" "" * && rm -f gmon.out

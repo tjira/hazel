@@ -1,5 +1,4 @@
 #include "../include/gradient.h"
-#include "../include/system.h"
 
 int test_grad_methane_hf_ccpvdz(int, char**) {
     // initialize the system
@@ -12,20 +11,10 @@ int test_grad_methane_hf_ccpvdz(int, char**) {
     // initialize the guess density matrix
     data.hf.D = Matrix::Zero(data.system.shells.nbf(), data.system.shells.nbf());
 
-    // calculate integrals
-    libint2::initialize();
-    data.ints.S = Integral::Overlap(data.system);
-    data.ints.T = Integral::Kinetic(data.system);
-    data.ints.V = Integral::Nuclear(data.system);
-    data.ints.J = Integral::Coulomb(data.system);
-    data.ints.dS = Integral::dOverlap(data.system);
-    data.ints.dT = Integral::dKinetic(data.system);
-    data.ints.dV = Integral::dNuclear(data.system);
-    data.ints.dJ = Integral::dCoulomb(data.system);
-    libint2::finalize();
-
     // perform the SCF cycle and calculate gradient
+    libint2::initialize();
     data = Gradient<HF>(HF(data).scf(false)).get(false);
+    libint2::finalize();
 
     // create the expectation gradient
     Matrix G(data.system.atoms.size(), 3); G << 0.00000098656881, 0.00000084272066, 0.00000131438484, -0.00278902574038, -0.00084977921624, -0.00493592958873, -0.00108251603324, -0.00434644802054, 0.00357798436276, -0.00176458219726, 0.00491232125932, 0.00237066802351, 0.00563513740207, 0.00028306325679, -0.00101403718238;

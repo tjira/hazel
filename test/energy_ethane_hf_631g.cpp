@@ -1,4 +1,3 @@
-#include "../include/system.h"
 #include "../include/hf.h"
 
 int test_energy_ethane_hf_631g(int, char**) {
@@ -11,16 +10,10 @@ int test_energy_ethane_hf_631g(int, char**) {
     // initialize the guess density matrix
     data.hf.D = Matrix::Zero(data.system.shells.nbf(), data.system.shells.nbf());
 
-    // calculate integrals
-    libint2::initialize();
-    data.ints.S = Integral::Overlap(data.system);
-    data.ints.T = Integral::Kinetic(data.system);
-    data.ints.V = Integral::Nuclear(data.system);
-    data.ints.J = Integral::Coulomb(data.system);
-    libint2::finalize();
-
     // perform the SCF cycle
+    libint2::initialize();
     data = HF(data).scf(false);
+    libint2::finalize();
 
     // print the results
     std::cout << std::fixed << std::setprecision(14) << "COMPUTED ENERGY: " << data.hf.E << std::endl;

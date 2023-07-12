@@ -16,10 +16,7 @@ Data Optimizer<M>::optimize(bool print) const {
     // run the MP optimizer
     } else if constexpr (std::is_same_v<MP, M>) {
         auto egfunc = [](Data data) {
-            data.ints.S = Integral::Overlap(data.system), data.ints.T = Integral::Kinetic(data.system);
-            data.ints.V = Integral::Nuclear(data.system), data.ints.J = Integral::Coulomb(data.system);
-            data = HF(data).scf(false); data.intsmo.J = Transform::Coulomb(data.ints.J, data.hf.C);
-            return Gradient<MP>(MP(data).mp2(false)).get(false);
+            return Gradient<MP>(MP(HF(data.noints()).scf(false)).mp2(false)).get(false);
         };
         return optimize(egfunc, print);
     }

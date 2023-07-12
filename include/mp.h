@@ -4,9 +4,12 @@
 
 class MP {
 public:
-    MP(const Data& data) : data(data) {}
+    // constructor
+    MP(const Data& data);
+
+    // methods
     Data mp2(bool print = true) const;
 
 private:
-    const Data data;
+    Data data;
 };

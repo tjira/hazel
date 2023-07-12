@@ -1,9 +1,10 @@
 #include "mp.h"
 
-Data MP::mp2(bool) const {
-    // check if the coulomb tensor was transformed
-    if (!data.intsmo.J.size()) throw std::runtime_error("You have not transformed the coulomb tensor to the MO basis.");
+MP::MP(const Data& data) : data(data) {
+    if (!data.intsmo.J.size()) this->data.intsmo.J = Transform::Coulomb(data.ints.J, data.hf.C);
+}
 
+Data MP::mp2(bool) const {
     // define the output, energy and nocc
     Data output = data; output.mp.Ecorr = 0;
     int nocc = data.system.electrons / 2;

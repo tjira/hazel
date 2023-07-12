@@ -7,7 +7,10 @@
 template <class M>
 class Gradient {
 public:
-    Gradient(const Data& data) : data(data) {}
+    // constructor
+    Gradient(const Data& data);
+
+    // methods
     Data get(bool print = true) const;
 
 private:

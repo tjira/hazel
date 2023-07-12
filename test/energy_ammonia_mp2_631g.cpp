@@ -1,4 +1,3 @@
-#include "../include/system.h"
 #include "../include/mp.h"
 
 int test_energy_ammonia_mp2_631g(int, char**) {
@@ -11,22 +10,10 @@ int test_energy_ammonia_mp2_631g(int, char**) {
     // initialize the guess density matrix
     data.hf.D = Matrix::Zero(data.system.shells.nbf(), data.system.shells.nbf());
 
-    // calculate integrals
+    // calculate HF energy and MP2 correlation
     libint2::initialize();
-    data.ints.S = Integral::Overlap(data.system);
-    data.ints.T = Integral::Kinetic(data.system);
-    data.ints.V = Integral::Nuclear(data.system);
-    data.ints.J = Integral::Coulomb(data.system);
+    data = MP(HF(data).scf(false)).mp2(false);
     libint2::finalize();
-
-    // perform the SCF cycle
-    data = HF(data).scf(false);
-
-    // transform the coulomb tensor to MO basis
-    data.intsmo.J = Transform::Coulomb(data.ints.J, data.hf.C);
-
-    // calculate MP2 correlation
-    data = MP(data).mp2();
 
     // print the results
     std::cout << std::fixed << std::setprecision(14) << "COMPUTED ENERGY: " << data.hf.E + data.mp.Ecorr << std::endl;
