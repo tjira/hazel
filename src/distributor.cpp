@@ -37,8 +37,7 @@ Distributor::Distributor(int argc, char** argv) : program("hazel", "0.1", argpar
     mp2.add_argument("-p", "--print").help("-- Output printing options.").default_value<std::vector<std::string>>({}).append();
 
     // add positional arguments to the CI argument parser
-    // ci.add_argument("-f", "--frequency").help("-- Enable frequency calculation.").default_value(false).implicit_value(true);
-    // ci.add_argument("-g", "--gradient").help("-- Enable gradient calculation.").default_value(false).implicit_value(true);
+    ci.add_argument("-e", "--excitations").help("-- Define what excitations to use in the CI calculation.").default_value("s");
     ci.add_argument("-h", "--help").help("-- Display this help message and exit.").default_value(false).implicit_value(true);
     ci.add_argument("-p", "--print").help("-- Output printing options.").default_value<std::vector<std::string>>({}).append();
 
@@ -187,12 +186,13 @@ void Distributor::hfrun(Data& data) const {
         if (CONTAINS(ciprint, "jmo") || CONTAINS(print, "all")) {std::cout << "\n" << data.intsmo.J;} std::cout << "\n";
 
         // do the calculation
-        data = CI(data).cid();
+        if (ci.get("-e") == "s") data = CI(data).cis();
+        if (ci.get("-e") == "d") data = CI(data).cid();
 
         // print the result matrices
-        if (CONTAINS(ciprint, "cie") || CONTAINS(print, "all")) {std::cout << "\n" << data.ci.eig << "\n";}
-        if (CONTAINS(ciprint, "cih") || CONTAINS(print, "all")) {std::cout << "\n" << data.ci.H << "\n";}
-        if (CONTAINS(ciprint, "cic") || CONTAINS(print, "all")) {std::cout << "\n" << data.ci.C << "\n";}
+        if (CONTAINS(ciprint, "cih") || CONTAINS(print, "all")) std::cout << "\nCI HAMILTONIAN\n" << data.ci.H << "\n";
+        if (CONTAINS(ciprint, "cie") || CONTAINS(print, "all")) std::cout << "\nCI ENERGIES\n" << Matrix(data.ci.eig) << "\n";
+        if (CONTAINS(ciprint, "cic") || CONTAINS(print, "all")) std::cout << "\nCI EXPANSION COEFFICIENTS\n" << data.ci.C << "\n";
 
         // print the gradient and norm
         std::cout << "\nCI CORRELATION ENERGY: " << data.ci.Ecorr << std::endl;

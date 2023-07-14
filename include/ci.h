@@ -8,6 +8,7 @@ public:
 
     // order methods
     Data cid(bool print = true) const;
+    Data cis(bool print = true) const;
 
 private:
     const Data data;
