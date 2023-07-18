@@ -8,7 +8,7 @@ public:
     HF(const Data& data);
 
     // methods
-    Data scf(bool print = true) const;
+    Data rscf(bool print = true) const;
 
 private:
     Data data;
