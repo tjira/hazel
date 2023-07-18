@@ -11,10 +11,12 @@
 __pycache__/
 Testing/
 .cache/
+_site/
 build/
 bin/
 
 # exts
+*.lock
 *.dat
 *.log
 *.mat
