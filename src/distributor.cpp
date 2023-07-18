@@ -81,8 +81,9 @@ Distributor::~Distributor() {
 
 
 void Distributor::run() {
-    // initialize the system
+    // initialize the system and create the guess density matrix
     Data data; data.system = System(program.get("-f"), program.get("-b"), program.get<int>("-c"), 1);
+    data.hf.D = Matrix::Zero(data.system.shells.nbf(), data.system.shells.nbf());
 
     // check if unrestricted calculation needed
     if (data.system.charge % 2) throw std::runtime_error("SPIN UNRESTRICTED CALCULATIONS ARE NOT SUPPORTED YET");
@@ -117,23 +118,41 @@ void Distributor::run() {
 
     // extract all the options
     if (program.is_subcommand_used("hf")) {
+        // printing options
+        hfprint = hf.get<std::vector<std::string>>("-p");
+
+        // scf options
         data.hf.diis = {hf.get<std::vector<int>>("-d").at(0), hf.get<std::vector<int>>("-d").at(1)};
         data.hf.maxiter = hf.get<int>("-m"), data.hf.thresh = hf.get<double>("-t");
-        data.hf.D = Matrix::Zero(data.system.shells.nbf(), data.system.shells.nbf());
-        data.hf.freq.numerical = hf.get<std::vector<double>>("-f").at(0);
+
+        // gradient options
         data.hf.grad.numerical = hf.get<std::vector<double>>("-g").at(0);
-        data.hf.freq.step = hf.get<std::vector<double>>("-f").at(1);
         data.hf.grad.step = hf.get<std::vector<double>>("-g").at(1);
-        hfprint = hf.get<std::vector<std::string>>("-p");
+
+        // frequency options
+        data.hf.freq.numerical = hf.get<std::vector<double>>("-f").at(0);
+        data.hf.freq.step = hf.get<std::vector<double>>("-f").at(1);
+
+        // optimization options
         data.hf.opt.thresh = hf.get<double>("-o");
+
         if (hf.is_subcommand_used("mp2")) {
-            data.mp.freq.numerical = mp2.get<std::vector<double>>("-f").at(0);
-            data.mp.grad.numerical = mp2.get<std::vector<double>>("-g").at(0);
-            data.mp.freq.step = mp2.get<std::vector<double>>("-g").at(1);
-            data.mp.grad.step = mp2.get<std::vector<double>>("-g").at(1);
+            // printing options
             mp2print = mp2.get<std::vector<std::string>>("-p");
+
+            // gradient options
+            data.mp.grad.numerical = mp2.get<std::vector<double>>("-g").at(0);
+            data.mp.grad.step = mp2.get<std::vector<double>>("-g").at(1);
+
+            // frequency options
+            data.mp.freq.numerical = mp2.get<std::vector<double>>("-f").at(0);
+            data.mp.freq.step = mp2.get<std::vector<double>>("-g").at(1);
+
+            // optimization options
             data.mp.opt.thresh = mp2.get<double>("-o");
+
         } else if (hf.is_subcommand_used("ci")) {
+            // printing options
             ciprint = ci.get<std::vector<std::string>>("-p");
         }
     }
