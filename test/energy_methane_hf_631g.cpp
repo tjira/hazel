@@ -12,7 +12,7 @@ int test_energy_methane_hf_631g(int, char**) {
 
     // perform the SCF cycle
     libint2::initialize();
-    data = HF(data).scf(false);
+    data = HF(data).rscf(false);
     libint2::finalize();
 
     // print the results

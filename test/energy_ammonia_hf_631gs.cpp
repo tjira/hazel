@@ -12,7 +12,7 @@ int test_energy_ammonia_hf_631gs(int, char**) {
 
     // perform the SCF cycle
     libint2::initialize();
-    data = HF(data).scf(false);
+    data = HF(data).rscf(false);
     libint2::finalize();
 
     // print the results

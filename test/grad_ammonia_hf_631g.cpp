@@ -13,7 +13,7 @@ int test_grad_ammonia_hf_631g(int, char**) {
 
     // perform the SCF cycle and calculate gradient
     libint2::initialize();
-    data = Gradient<HF>(HF(data).scf(false)).get(false);
+    data = Gradient<HF>(HF(data).rscf(false)).get(false);
     libint2::finalize();
 
     // create the expectation gradient

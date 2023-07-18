@@ -13,7 +13,7 @@ int test_grad_formaldehyde_hf_631gs(int, char**) {
 
     // perform the SCF cycle and calculate gradient
     libint2::initialize();
-    data = Gradient<HF>(HF(data).scf(false)).get(false);
+    data = Gradient<HF>(HF(data).rscf(false)).get(false);
     libint2::finalize();
 
     // create the expectation gradient

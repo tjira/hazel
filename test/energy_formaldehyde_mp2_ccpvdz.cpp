@@ -12,7 +12,7 @@ int test_energy_formaldehyde_mp2_ccpvdz(int, char**) {
 
     // calculate HF energy and MP2 correlation
     libint2::initialize();
-    data = MP(HF(data).scf(false)).mp2(false);
+    data = MP(HF(data).rscf(false)).mp2(false);
     libint2::finalize();
 
     // print the results
