@@ -18,7 +18,7 @@ Data Gradient<M>::get(bool print) const {
     if constexpr (std::is_same_v<HF, M>) {
         if (data.hf.grad.numerical) {
             auto efunc = [](Data data) {
-                return HF(data.noints()).scf(false);
+                return HF(data.noints()).rscf(false);
             };
             return get(efunc, print);
         } else return getHF(print);
@@ -27,7 +27,7 @@ Data Gradient<M>::get(bool print) const {
     } else if constexpr (std::is_same_v<MP, M>) {
         if (data.mp.grad.numerical) {
             auto efunc = [](Data data) {
-                return MP(HF(data.noints()).scf(false)).mp2(false);
+                return MP(HF(data.noints()).rscf(false)).mp2(false);
             };
             return get(efunc, print);
         } else throw std::runtime_error("ANALYTICAL GRADIENT FOR MP2 IS NOT IMPLEMENTED");

@@ -160,7 +160,7 @@ void Distributor::hfrun(Data& data) const {
     std::printf("-- MAXITER: %d, THRESH: %.2e\n-- DIIS: [START: %d, KEEP: %d]\n", data.hf.maxiter, data.hf.thresh, data.hf.diis.start, data.hf.diis.keep);
 
     // perform the Hartree-Fock calculation
-    data = HF(data).scf();
+    data = HF(data).rscf();
 
     // print the resulting matrices and energies
     if (CONTAINS(hfprint, "eps") || CONTAINS(print, "all")) std::cout << "\nORBITAL ENERGIES\n" << Matrix(data.hf.eps) << std::endl;

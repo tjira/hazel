@@ -9,14 +9,14 @@ Data Optimizer<M>::optimize(bool print) const {
             data.ints.dV = Integral::dNuclear(data.system), data.ints.dJ = Integral::dCoulomb(data.system);
             data.ints.S = Integral::Overlap(data.system), data.ints.T = Integral::Kinetic(data.system);
             data.ints.V = Integral::Nuclear(data.system), data.ints.J = Integral::Coulomb(data.system);
-            return Gradient<HF>(HF(data).scf(false)).get(false);
+            return Gradient<HF>(HF(data).rscf(false)).get(false);
         };
         return optimize(egfunc, print);
 
     // run the MP optimizer
     } else if constexpr (std::is_same_v<MP, M>) {
         auto egfunc = [](Data data) {
-            return Gradient<MP>(MP(HF(data.noints()).scf(false)).mp2(false)).get(false);
+            return Gradient<MP>(MP(HF(data.noints()).rscf(false)).mp2(false)).get(false);
         };
         return optimize(egfunc, print);
     }

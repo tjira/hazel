@@ -7,7 +7,7 @@ HF::HF(const Data& data) : data(data) {
     if (!data.ints.V.size()) this->data.ints.V = Integral::Nuclear(data.system);
 }
 
-Data HF::scf(bool print) const {
+Data HF::rscf(bool print) const {
     // create the output data
     Data output = data;
 
