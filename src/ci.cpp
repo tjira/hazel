@@ -53,48 +53,39 @@ Data CI::cid(bool) const {
 }
 
 Data CI::cis(bool) const {
-    // define the output and occupation number
-    Data output = data; int nocc = data.system.electrons / 2;
+    // define the output and number of occupied and virtual orbitals
+    Data output = data; int nocc = data.system.electrons / 2; int nvirt = data.system.shells.nbf() - nocc;
 
-    // generate extications
-    std::vector<std::pair<int, int>> singles;
-    for (int i = 0; i < nocc; i++) {
-        for (int j = nocc; j < data.system.shells.nbf(); j++) {
-            singles.push_back({i, j});
-        }
-    }
-
-    // reverse vector
-    std:reverse(singles.begin(), singles.end());
-
-    // create the CI Hamiltonian an define the contraction axes
-    output.ci.H = Matrix::Zero(singles.size() + 1, singles.size() + 1);
-    Eigen::IndexPair<int> first(2, 0), second(3, 1);
-
-    // fill the first CI matrix element
+    // create the CI Hamiltonian and fill the HF energy
+    output.ci.H = Matrix::Zero(2 * nocc * nvirt + 1, 2 * nocc * nvirt + 1);
     output.ci.H(0, 0) = data.hf.E - Integral::Repulsion(data.system);
 
     // fill the singlet singles in CI Hamiltonian
-    for (size_t i = 0; i < singles.size(); i++) {
-        for (size_t j = 0; j < singles.size(); j++) {
-            // extract extication levels
-            int a = singles.at(i).first, r = singles.at(i).second, b = singles.at(j).first, s = singles.at(j).second;
-
-            // assign the elements
-            if (i == j) output.ci.H(i + 1, j + 1) = output.ci.H(0, 0) + (data.hf.eps(r) - data.hf.eps(a)) - data.intsmo.J(r, s, b, a) + data.intsmo.J(r, a, b, s);
-            else output.ci.H(i + 1, j + 1) = data.intsmo.J(r, a, b, s) - data.intsmo.J(r, s, b, a);
+    for (size_t i = 0; i < nocc; i++) {
+        for (size_t a = 0; a < nvirt; a++) {
+            for (size_t j = 0; j < nocc; j++) {
+                for (size_t b = 0; b < nvirt; b++) {
+                    output.ci.H(i * nvirt + a + 1, j * nvirt + b + 1) = 2 * data.intsmo.J(i, nocc + a, j, nocc + b) - data.intsmo.J(i, j, nocc + a, nocc + b);
+                }
+            }
+            output.ci.H(i * nvirt + a + 1, i * nvirt + a + 1) += output.ci.H(0, 0) + data.hf.eps(nocc + a) - data.hf.eps(i);
         }
     }
 
-    // find the eigenvalues and eigenvectors of the CI Hamiltonian
-    Eigen::SelfAdjointEigenSolver<Matrix> solver(output.ci.H);
+    // fill the triplet singles in CI Hamiltonian
+    for (size_t i = 0; i < nocc; i++) {
+        for (size_t a = 0; a < nvirt; a++) {
+            for (size_t j = 0; j < nocc; j++) {
+                for (size_t b = 0; b < nvirt; b++) {
+                    output.ci.H(nocc * nvirt + i * nvirt + a + 1,nocc * nvirt +  j * nvirt + b + 1) -= data.intsmo.J(i, j, nocc + a, nocc + b);
+                }
+            }
+            output.ci.H(nocc * nvirt + i * nvirt + a + 1,nocc * nvirt +  i * nvirt + a + 1) += output.ci.H(0, 0) + data.hf.eps(nocc + a) - data.hf.eps(i);
+        }
+    }
 
-    // extract the excitation energies and expansion coefs
-    output.ci.C = solver.eigenvectors(), output.ci.eig = solver.eigenvalues().array() + Integral::Repulsion(data.system);
-
-    // extract correlation energy
-    output.ci.Ecorr = output.ci.eig(0) - data.hf.E;
-
-    // return the result
-    return output;
+    // find the eigenvalues and eigenvectors of the CI Hamiltonian, extract energies and return
+    Eigen::SelfAdjointEigenSolver<Matrix> solver(output.ci.H); output.ci.C = solver.eigenvectors();
+    output.ci.eig = solver.eigenvalues().array() + Integral::Repulsion(data.system);
+    output.ci.Ecorr = output.ci.eig(0) - data.hf.E; return output;
 }
