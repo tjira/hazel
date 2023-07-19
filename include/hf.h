@@ -8,6 +8,7 @@ public:
     struct OptionsRestricted {
         struct {int start, keep;} diis;
         double thresh; int maxiter;
+        bool nocoulomb;
     };
     struct ResultsRestricted {
         Matrix C, D; Vector eps;

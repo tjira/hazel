@@ -7,7 +7,10 @@ std::unordered_map<int, std::string> an2sm = {
 };
 
 System::System(const std::string& fname, const std::string& basis, int charge, int multi) : electrons(0), charge(charge), multi(multi), basis(basis) {
-    if (!std::ifstream(fname).good()) throw std::runtime_error("System file does not exist.");
+    // check for the input file existence
+    if (!std::ifstream(fname).good()) throw std::runtime_error("SYSTEM FILE DOES NOT EXIST");
+
+    // assign all the variables
     std::ifstream file(fname); atoms = libint2::read_dotxyz(file); electrons -= charge;
     coords = Matrix(atoms.size(), 3), dists = Matrix(atoms.size(), atoms.size());
     for (const auto& atom : atoms) electrons += atom.atomic_number;
@@ -26,7 +29,11 @@ System::System(const std::string& fname, const std::string& basis, int charge, i
     }
 }
 
-// Moves the system in the desired direction. The 'dir' variable needs to be in Bohrs.
+System& System::clearints() {
+    // delete integrals and return reference of itself
+    ints = {}, dints = {}; return *this;
+}
+
 void System::move(const Matrix& dir) {
     // shift the atoms
     for (size_t i = 0; i < atoms.size(); i++) {
@@ -47,13 +54,16 @@ void System::move(const Matrix& dir) {
 }
 
 void System::save(const std::string& fname) const {
+    // open the file, write number of atoms and set output stream flags
     std::ofstream file(fname); file << fname << "\n" << atoms.size();
     file << std::fixed << std::setprecision(14) << "\n";
+
+    // print all the atom coordinates
     for (int i = 0; i < coords.rows(); i++) {
         file << an2sm.at(atoms.at(i).atomic_number) << " "
-              << std::setw(20) << coords(i, 0) << " "
-              << std::setw(20) << coords(i, 1) << " "
-              << std::setw(20) << coords(i, 2) << " "
-              << std::endl;
+             << std::setw(20) << coords(i, 0) << " "
+             << std::setw(20) << coords(i, 1) << " "
+             << std::setw(20) << coords(i, 2) << " "
+             << std::endl;
     }
 }

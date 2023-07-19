@@ -2,29 +2,29 @@
 
 int test_grad_ethane_hf_sto3g(int, char**) {
     // initialize the system
-    Data data; data.system = System("../example/molecule/ethane.xyz", "STO-3G", 0, 1);
+    System system("../example/molecule/ethane.xyz", "STO-3G", 0, 1);
 
     // set some options
-    data.hf.diis = {3, 5}, data.hf.maxiter = 1000, data.hf.thresh = 1e-8;
-    data.hf.grad.step = 0.0005, data.hf.grad.numerical = false;
+    HF::OptionsRestricted rhfopt = {{3, 5}, 1e-8, 1000, false};
 
     // initialize the guess density matrix
-    data.hf.D = Matrix::Zero(data.system.shells.nbf(), data.system.shells.nbf());
+    Matrix D(system.shells.nbf(), system.shells.nbf());
 
-    // perform the SCF cycle and calculate gradient
+    // calculate HF energy and gradient
     libint2::initialize();
-    data = Gradient<HF>(HF(data).rscf(false)).get(false);
+    HF::ResultsRestricted rhfres = HF(rhfopt).rscf(system, D, false);
+    Matrix G = Gradient({}).get(system, rhfres, false);
     libint2::finalize();
 
     // create the expectation gradient
-    Matrix G(data.system.atoms.size(), 3); G << 0.00000711676384, -0.00000044518035, -0.00000080732515, -0.00000713266195, -0.00000038357673, -0.00000000683924, 0.00000351306717, 0.00000117949002, 0.00000769977863, 0.00000321921504, 0.00000592083077, -0.00000504068893, 0.00000230334536, -0.00000663144425, -0.00000254525334, -0.00000314368845, -0.00000699407166, 0.00000338464372, -0.00000279589220, 0.00000637331451, 0.00000457548015, -0.00000308014877, 0.00000098063768, -0.00000725979585;
+    Matrix Gexp(system.atoms.size(), 3); Gexp << 0.00000711676384, -0.00000044518035, -0.00000080732515, -0.00000713266195, -0.00000038357673, -0.00000000683924, 0.00000351306717, 0.00000117949002, 0.00000769977863, 0.00000321921504, 0.00000592083077, -0.00000504068893, 0.00000230334536, -0.00000663144425, -0.00000254525334, -0.00000314368845, -0.00000699407166, 0.00000338464372, -0.00000279589220, 0.00000637331451, 0.00000457548015, -0.00000308014877, 0.00000098063768, -0.00000725979584;
 
     // print the results
-    std::cout << std::fixed << std::setprecision(14) << "COMPUTED GRADIENT: " << data.hf.grad.G << std::endl;
-    std::cout << std::fixed << std::setprecision(14) << "COMPUTED GRADIENT NORM: " << data.hf.grad.G.norm() << std::endl;
-    std::cout << std::fixed << std::setprecision(14) << "EXPECTED GRADIENT: " << G << std::endl;
-    std::cout << std::fixed << std::setprecision(14) << "EXPECTED GRADIENT NORM: " << G.norm() << std::endl;
+    std::cout << std::fixed << std::setprecision(14) << "COMPUTED GRADIENT: " << G << std::endl;
+    std::cout << std::fixed << std::setprecision(14) << "COMPUTED GRADIENT NORM: " << G.norm() << std::endl;
+    std::cout << std::fixed << std::setprecision(14) << "EXPECTED GRADIENT: " << Gexp << std::endl;
+    std::cout << std::fixed << std::setprecision(14) << "EXPECTED GRADIENT NORM: " << Gexp.norm() << std::endl;
 
     // return success or failure based on the error
-    return (data.hf.grad.G - G).norm() > 1e-8;
+    return (G - Gexp).norm() > 1e-8;
 }

@@ -21,7 +21,7 @@ jobs:
         run: sudo apt install -y libboost-all-dev libeigen3-dev
 
       - name: Build Libint
-        run: ./script/libint.sh
+        run: ./script/software/libint.sh
 
       - name: Configure Hazel
         run: cmake -B build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}

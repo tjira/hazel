@@ -1,7 +1,7 @@
 #include "ci.h"
 
-CI::ResultsRestricted CI::cid(const System& system, const Tensor<4>& Jmo, bool) const {
-    // define the output and number of occupied and virtual orbitals
+CI::ResultsRestricted CI::rcid(const System& system, const Tensor<4>& Jmo, bool) const {
+    // define the output and the number of occupied and virtual orbitals
     int nocc = system.electrons / 2; int nvirt = system.shells.nbf() - nocc;
 
     // create the CI Hamiltonian and fill the HF energy
@@ -25,7 +25,7 @@ CI::ResultsRestricted CI::cid(const System& system, const Tensor<4>& Jmo, bool) 
         }
     }
 
-    // find the eigenvalues and eigenvectors of the CI Hamiltonian, extract energies
+    // find the eigenvalues and eigenvectors of the CI Hamiltonian and extract energies
     Eigen::SelfAdjointEigenSolver<Matrix> solver(H); Matrix C = solver.eigenvectors();
     Vector eig = solver.eigenvalues().array() + ropt.rhfres.Enuc;
     double Ecorr = eig(0) - ropt.rhfres.E;
@@ -34,7 +34,7 @@ CI::ResultsRestricted CI::cid(const System& system, const Tensor<4>& Jmo, bool) 
     return {H, C, eig, Ecorr};
 }
 
-CI::ResultsRestricted CI::cis(const System& system, const Tensor<4>& Jmo, bool) const {
+CI::ResultsRestricted CI::rcis(const System& system, const Tensor<4>& Jmo, bool) const {
     // define the output and number of occupied and virtual orbitals
     int nocc = system.electrons / 2; int nvirt = system.shells.nbf() - nocc;
 
@@ -69,7 +69,7 @@ CI::ResultsRestricted CI::cis(const System& system, const Tensor<4>& Jmo, bool) 
         }
     }
 
-    // find the eigenvalues and eigenvectors of the CI Hamiltonian, extract energies
+    // find the eigenvalues and eigenvectors of the CI Hamiltonian and extract energies
     Eigen::SelfAdjointEigenSolver<Matrix> solver(H); Matrix C = solver.eigenvectors();
     Vector eig = solver.eigenvalues().array() + ropt.rhfres.Enuc;
     double Ecorr = eig(0) - ropt.rhfres.E;

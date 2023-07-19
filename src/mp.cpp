@@ -1,7 +1,10 @@
 #include "mp.h"
 
-MP::ResultsRestricted MP::mp2(const System& system, const Tensor<4>& Jmo, bool) const {
-    // define the output, energy and nocc
+double MP::rmp2(const System& system, const Tensor<4>& Jmo, bool) const {
+    // transform the coulomb tensor if not already
+    if (!Jmo.size()) const_cast<Tensor<4>&>(Jmo) = Transform::Coulomb(system.ints.J, ropt.rhfres.C);
+
+    // define the correlation energy and nocc
     int nocc = system.electrons / 2; double Ecorr = 0;
 
     // calculate the correlation energy
@@ -16,5 +19,5 @@ MP::ResultsRestricted MP::mp2(const System& system, const Tensor<4>& Jmo, bool) 
     }
 
     // return the energy
-    return {Ecorr};
+    return Ecorr;
 }

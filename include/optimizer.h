@@ -3,24 +3,18 @@
 #include "gradient.h"
 #include "hessian.h"
 
-template <class M>
 class Optimizer {
 public:
-    struct OptionsRestricted {
-        HF::OptionsRestricted rhfopt;
-        Gradient<M>::OptionsRestricted gradopt;
+    struct Options {
         double thresh;
     };
 public:
     // constructor
-    Optimizer(const OptionsRestricted& ropt) : ropt(ropt) {}
+    Optimizer(const Options& opt) : opt(opt) {}
 
     // methods
-    System optimize(const System& system, bool print = true) const;
+    System optimize(System system, const std::function<std::tuple<double, Matrix>(System&)>& egfunc, bool print = true) const;
 
 private:
-    System optimize(const System& system, const std::function<std::tuple<double, Matrix>(System&)>& egfunc, bool print) const;
-
-private:
-    OptionsRestricted ropt;
+    Options opt;
 };

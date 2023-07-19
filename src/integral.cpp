@@ -1,5 +1,4 @@
 #include "integral.h"
-#include <numeric>
 
 Matrix Integral::Coulomb(const System& system, const Matrix& D) {
     libint2::Engine engine(libint2::Operator::coulomb, system.shells.max_nprim(), system.shells.max_l(), 0, 1e-12);
@@ -144,7 +143,7 @@ Tensor<4> Integral::Double(libint2::Engine& engine, const System& system) {
 };
 
 Tensor<5> Integral::dDouble(libint2::Engine& engine, const System& system) {
-    // create the integral engine and create shell map
+    // create the integral engine and shell map
     std::vector<size_t> sh2bf = system.shells.shell2bf();
     const auto& result = engine.results();
 

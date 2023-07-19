@@ -2,23 +2,26 @@
 
 int test_energy_methane_mp2_ccpvdz(int, char**) {
     // initialize the system
-    Data data; data.system = System("../example/molecule/methane.xyz", "CC-PVDZ", 0, 1);
+    System system("../example/molecule/methane.xyz", "CC-PVDZ", 0, 1);
 
     // set some options
-    data.hf.diis = {3, 5}, data.hf.maxiter = 1000, data.hf.thresh = 1e-8;
+    HF::OptionsRestricted rhfopt = {{3, 5}, 1e-8, 1000, false};
 
     // initialize the guess density matrix
-    data.hf.D = Matrix::Zero(data.system.shells.nbf(), data.system.shells.nbf());
+    Matrix D(system.shells.nbf(), system.shells.nbf());
 
-    // calculate HF energy and MP2 correlation
+    // calculate HF energy
     libint2::initialize();
-    data = MP(HF(data).rscf(false)).mp2(false);
+    HF::ResultsRestricted rhfres = HF(rhfopt).rscf(system, D, false);
     libint2::finalize();
 
+    // calculate the correlation energy
+    double Ecorr = MP({rhfres}).rmp2(system, Tensor<4>(), false);
+
     // print the results
-    std::cout << std::fixed << std::setprecision(14) << "COMPUTED ENERGY: " << data.hf.E + data.mp.Ecorr << std::endl;
-    std::cout << std::fixed << std::setprecision(14) << "EXPECTED ENERGY: " << -40.36238873624110 << std::endl;
+    std::cout << std::fixed << std::setprecision(14) << "COMPUTED ENERGY: " << rhfres.E + Ecorr << std::endl;
+    std::cout << std::fixed << std::setprecision(14) << "EXPECTED ENERGY: " << -40.36238873624114 << std::endl;
 
     // return success or failure based on the error
-    return std::abs(data.hf.E + data.mp.Ecorr - -40.36238873624110) > 1e-8;
+    return std::abs(rhfres.E + Ecorr - -40.36238873624114) > 1e-8;
 }

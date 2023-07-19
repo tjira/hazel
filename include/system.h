@@ -11,8 +11,9 @@ inline std::unordered_map<int, double> masses = {
 };
 
 struct System {
+    // constructors and all the functions
     System() = default; System(const std::string& fname, const std::string& basis, int charge, int multi);
-    void move(const Matrix& dir); void save(const std::string& fname) const;
+    void move(const Matrix& dir); void save(const std::string& fname) const; System& clearints();
 
     // properties of the system
     std::vector<libint2::Atom> atoms;

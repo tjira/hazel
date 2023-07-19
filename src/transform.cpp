@@ -1,7 +1,7 @@
 #include "transform.h"
 
 Tensor<4> Transform::Coulomb(const Tensor<4>& J, const Matrix& C) {
-    // throw an error if coulomb is not calculated
+    // throw an error if coulomb tensor in AO basis is not calculated
     if (!J.size()) throw std::runtime_error("TO TRANSFORM THE COULOMB TENSOR INTO THE MO BASIS YOU NEED TO CALCULATE IT FIRST");
 
     // declare the ERI tensor in molecular orbital basis and tensors of partial transform
@@ -79,7 +79,7 @@ Tensor<4> Transform::Coulomb(const Tensor<4>& J, const Matrix& C) {
 }
 
 Matrix Transform::Oneelec(const Matrix& A, const Matrix& C) {
-    // declare the transformed matrix
+    // create the transformed matrix
     Matrix Amo(A.rows(), A.cols());
 
     // perform the transformation
