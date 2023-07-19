@@ -5,10 +5,10 @@ Data Optimizer<M>::optimize(bool print) const {
     // run the HF optimizer
     if constexpr (std::is_same_v<HF, M>) {
         auto egfunc = [](Data data) {
-            data.ints.dS = Integral::dOverlap(data.system), data.ints.dT = Integral::dKinetic(data.system);
-            data.ints.dV = Integral::dNuclear(data.system), data.ints.dJ = Integral::dCoulomb(data.system);
-            data.ints.S = Integral::Overlap(data.system), data.ints.T = Integral::Kinetic(data.system);
-            data.ints.V = Integral::Nuclear(data.system), data.ints.J = Integral::Coulomb(data.system);
+            data.system.dints.dS = Integral::dOverlap(data.system), data.system.dints.dT = Integral::dKinetic(data.system);
+            data.system.dints.dV = Integral::dNuclear(data.system), data.system.dints.dJ = Integral::dCoulomb(data.system);
+            data.system.ints.S = Integral::Overlap(data.system), data.system.ints.T = Integral::Kinetic(data.system);
+            data.system.ints.V = Integral::Nuclear(data.system), data.system.ints.J = Integral::Coulomb(data.system);
             return Gradient<HF>(HF(data).rscf(false)).get(false);
         };
         return optimize(egfunc, print);
@@ -16,7 +16,13 @@ Data Optimizer<M>::optimize(bool print) const {
     // run the MP optimizer
     } else if constexpr (std::is_same_v<MP, M>) {
         auto egfunc = [](Data data) {
-            return Gradient<MP>(MP(HF(data.noints()).rscf(false)).mp2(false)).get(false);
+            data.system.ints.J = Integral::Coulomb(data.system);
+            data.system.ints.S = Integral::Overlap(data.system);
+            data.system.ints.T = Integral::Kinetic(data.system);
+            data.system.ints.V = Integral::Nuclear(data.system);
+            data = HF(data).rscf(false);
+            data.Jmo = Transform::Coulomb(data.system.ints.J, data.hf.C);
+            return Gradient<MP>(MP(data).mp2(false)).get(false);
         };
         return optimize(egfunc, print);
     }

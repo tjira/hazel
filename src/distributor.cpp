@@ -36,7 +36,7 @@ Distributor::Distributor(int argc, char** argv) : program("hazel", "0.1", argpar
     mp2.add_argument("-o", "--optimize").help("-- Optimize the provided system.").default_value(1e-8).scan<'g', double>();
     mp2.add_argument("-p", "--print").help("-- Output printing options.").default_value<std::vector<std::string>>({}).append();
 
-    // add positional arguments to the CI argument parser
+    // add positional arguments tinput001.outo the CI argument parser
     ci.add_argument("-e", "--excitations").help("-- Define what excitations to use in the CI calculation.").default_value("s");
     ci.add_argument("-h", "--help").help("-- Display this help message and exit.").default_value(false).implicit_value(true);
     ci.add_argument("-p", "--print").help("-- Output printing options.").default_value<std::vector<std::string>>({}).append();
@@ -164,7 +164,7 @@ void Distributor::run() {
     for (auto& element : print) std::transform(element.begin(), element.end(), element.begin(), [](auto c){return std::tolower(c);});
 
     // calculate the integrals
-    data = integrals(data);
+    data.system = integrals(data.system);
 
     // distribute the calculations
     if (program.is_subcommand_used("hf")) hfrun(data);
@@ -201,8 +201,8 @@ void Distributor::hfrun(Data& data) const {
         std::cout << "\n" + std::string(104, '-') + "\nCI CORRELATION ENERGY\n" << std::string(104, '-') + "\n";
 
         // transform the coulomb tensor
-        std::cout << "\nCOULOMB TENSOR IN MO BASIS: " << std::flush; TIME(data.intsmo.J = Transform::Coulomb(data.ints.J, data.hf.C))
-        if (CONTAINS(ciprint, "jmo") || CONTAINS(print, "all")) {std::cout << "\n" << data.intsmo.J;} std::cout << "\n";
+        std::cout << "\nCOULOMB TENSOR IN MO BASIS: " << std::flush; TIME(data.Jmo = Transform::Coulomb(data.system.ints.J, data.hf.C))
+        if (CONTAINS(ciprint, "jmo") || CONTAINS(print, "all")) {std::cout << "\n" << data.Jmo;} std::cout << "\n";
 
         // do the calculation
         if (ci.get("-e") == "s") data = CI(data).cis();
@@ -274,8 +274,8 @@ void Distributor::mp2run(Data& data) const {
     std::cout << "\n" + std::string(104, '-') + "\nRESTRICTED MP2 CORRELATION ENERGY\n" << std::string(104, '-') + "\n";
 
     // transform the coulomb tensor
-    std::cout << "\nCOULOMB TENSOR IN MO BASIS: " << std::flush; TIME(data.intsmo.J = Transform::Coulomb(data.ints.J, data.hf.C))
-    if (CONTAINS(mp2print, "jmo") || CONTAINS(print, "all")) {std::cout << "\n" << data.intsmo.J;} std::cout << "\n";
+    std::cout << "\nCOULOMB TENSOR IN MO BASIS: " << std::flush; TIME(data.Jmo = Transform::Coulomb(data.system.ints.J, data.hf.C))
+    if (CONTAINS(mp2print, "jmo") || CONTAINS(print, "all")) {std::cout << "\n" << data.Jmo;} std::cout << "\n";
 
     // do the MP2 calculation
     data = MP(data).mp2();
@@ -334,46 +334,46 @@ void Distributor::mp2o(Data& data) const {
     if (CONTAINS(print, "dist") || CONTAINS(print, "all")) std::cout << "\nOPTIMIZED DISTANCE MATRIX\n" << data.system.dists << std::endl;
 }
 
-Data Distributor::integrals(Data data) const {
+System Distributor::integrals(System system) const {
     // print the integral calculation header
     std::cout << "\n" + std::string(104, '-') + "\nINTEGRAL CALCULATION\n";
     std::cout << std::string(104, '-') << std::endl;
 
     // calculate the overlap integral
-    std::cout << "\nOVERLAP INTEGRAL: " << std::flush; TIME(data.ints.S = Integral::Overlap(data.system))
-    if (CONTAINS(print, "s") || CONTAINS(print, "all")) std::cout << "\n" << data.ints.S << std::endl;
+    std::cout << "\nOVERLAP INTEGRAL: " << std::flush; TIME(system.ints.S = Integral::Overlap(system))
+    if (CONTAINS(print, "s") || CONTAINS(print, "all")) std::cout << "\n" << system.ints.S << std::endl;
 
     // calculate the kinetic integral
-    std::cout << "\nKINETIC INTEGRAL: " << std::flush; TIME(data.ints.T = Integral::Kinetic(data.system))
-    if (CONTAINS(print, "t") || CONTAINS(print, "all")) std::cout << "\n" << data.ints.T << std::endl;
+    std::cout << "\nKINETIC INTEGRAL: " << std::flush; TIME(system.ints.T = Integral::Kinetic(system))
+    if (CONTAINS(print, "t") || CONTAINS(print, "all")) std::cout << "\n" << system.ints.T << std::endl;
 
     // calculate the nuclear-electron attraction integral
-    std::cout << "\nNUCLEAR INTEGRAL: " << std::flush; TIME(data.ints.V = Integral::Nuclear(data.system))
-    if (CONTAINS(print, "v") || CONTAINS(print, "all")) std::cout << "\n" << data.ints.V << std::endl;
+    std::cout << "\nNUCLEAR INTEGRAL: " << std::flush; TIME(system.ints.V = Integral::Nuclear(system))
+    if (CONTAINS(print, "v") || CONTAINS(print, "all")) std::cout << "\n" << system.ints.V << std::endl;
 
     // calculate the electron-electron repulsion integral
-    if (!data.nocoulomb) {std::cout << "\nCOULOMB INTEGRAL: " << std::flush; TIME(data.ints.J = Integral::Coulomb(data.system))}
-    if (!data.nocoulomb && (CONTAINS(print, "j") || CONTAINS(print, "all"))) {std::cout << "\n" << data.ints.J;} std::cout << "\n";
+    if (!program.get<bool>("--no-coulomb")) {std::cout << "\nCOULOMB INTEGRAL: " << std::flush; TIME(system.ints.J = Integral::Coulomb(system))}
+    if (!program.get<bool>("--no-coulomb") && (CONTAINS(print, "j") || CONTAINS(print, "all"))) {std::cout << "\n" << system.ints.J;} std::cout << "\n";
 
     // if derivatives of the integrals are needed
-    if ((hf.is_used("-g") || hf.is_used("-o")) && !data.hf.grad.numerical) {
+    if ((hf.is_used("-g") || hf.is_used("-o")) && !hf.get<std::vector<double>>("-g").at(0)) {
         // calculate the overlap integral
-        std::cout << "\nFIRST DERIVATIVE OF OVERLAP INTEGRAL: " << std::flush; TIME(data.ints.dS = Integral::dOverlap(data.system))
-        if (CONTAINS(print, "ds") || CONTAINS(print, "all")) std::cout << "\n" << data.ints.dS << std::endl;
+        std::cout << "\nFIRST DERIVATIVE OF OVERLAP INTEGRAL: " << std::flush; TIME(system.dints.dS = Integral::dOverlap(system))
+        if (CONTAINS(print, "ds") || CONTAINS(print, "all")) std::cout << "\n" << system.dints.dS << std::endl;
 
         // calculate the kinetic integral
-        std::cout << "\nFIRST DERIVATIVE OF KINETIC INTEGRAL: " << std::flush; TIME(data.ints.dT = Integral::dKinetic(data.system))
-        if (CONTAINS(print, "dt") || CONTAINS(print, "all")) std::cout << "\n" << data.ints.dT << std::endl;
+        std::cout << "\nFIRST DERIVATIVE OF KINETIC INTEGRAL: " << std::flush; TIME(system.dints.dT = Integral::dKinetic(system))
+        if (CONTAINS(print, "dt") || CONTAINS(print, "all")) std::cout << "\n" << system.dints.dT << std::endl;
 
         // calculate the nuclear-electron attraction integral
-        std::cout << "\nFIRST DERIVATIVE OF NUCLEAR INTEGRAL: " << std::flush; TIME(data.ints.dV = Integral::dNuclear(data.system))
-        if (CONTAINS(print, "dv") || CONTAINS(print, "all")) std::cout << "\n" << data.ints.dV << std::endl;
+        std::cout << "\nFIRST DERIVATIVE OF NUCLEAR INTEGRAL: " << std::flush; TIME(system.dints.dV = Integral::dNuclear(system))
+        if (CONTAINS(print, "dv") || CONTAINS(print, "all")) std::cout << "\n" << system.dints.dV << std::endl;
 
         // calculate the electron-electron repulsion integral
-        std::cout << "\nFIRST DERIVATIVE OF COULOMB INTEGRAL: " << std::flush; TIME(data.ints.dJ = Integral::dCoulomb(data.system))
-        if (CONTAINS(print, "dj") || CONTAINS(print, "all")) {std::cout << "\n" << data.ints.dJ;} std::cout << "\n";
+        std::cout << "\nFIRST DERIVATIVE OF COULOMB INTEGRAL: " << std::flush; TIME(system.dints.dJ = Integral::dCoulomb(system))
+        if (CONTAINS(print, "dj") || CONTAINS(print, "all")) {std::cout << "\n" << system.dints.dJ;} std::cout << "\n";
     }
 
     // return integrals
-    return data;
+    return system;
 }

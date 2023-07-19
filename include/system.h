@@ -19,4 +19,8 @@ struct System {
     libint2::BasisSet shells;
     Matrix coords, dists;
     std::string basis;
+
+    // containers for integrals
+    struct {Tensor<3> dT, dS, dV; Tensor<5> dJ;} dints;
+    struct {Matrix T, S, V; Tensor<4> J;} ints;
 };

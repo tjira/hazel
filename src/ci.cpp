@@ -14,15 +14,15 @@ Data CI::cid(bool) const {
             for (size_t j = 0; j < nocc; j++) {
                 for (size_t b = 0; b < nvirt; b++) {
                     // fill the double-double elements
-                    output.ci.H(i * nvirt + a + 1, j * nvirt + b + 1) = data.intsmo.J(nocc + b, nocc + a, nocc + a, nocc + b);
+                    output.ci.H(i * nvirt + a + 1, j * nvirt + b + 1) = data.Jmo(nocc + b, nocc + a, nocc + a, nocc + b);
 
                     // fill the ground-double elements
-                    output.ci.H(i * nvirt + a + 1, 0) = data.intsmo.J(nocc + a, i, i, nocc + a);
-                    output.ci.H(0, j * nvirt + b + 1) = data.intsmo.J(nocc + b, j, j, nocc + b);
+                    output.ci.H(i * nvirt + a + 1, 0) = data.Jmo(nocc + a, i, i, nocc + a);
+                    output.ci.H(0, j * nvirt + b + 1) = data.Jmo(nocc + b, j, j, nocc + b);
                 }
             }
             // fill the diagonal elements
-            output.ci.H(i * nvirt + a + 1, i * nvirt + a + 1) = output.ci.H(0, 0) + 2 * (data.hf.eps(nocc + a) - data.hf.eps(i)) + data.intsmo.J(i, i, i, i) + data.intsmo.J(nocc + a, nocc + a, nocc + a, nocc + a) - 4 * data.intsmo.J(nocc + a, nocc + a, i, i) + 2 * data.intsmo.J(nocc + a, i, i, nocc + a);
+            output.ci.H(i * nvirt + a + 1, i * nvirt + a + 1) = output.ci.H(0, 0) + 2 * (data.hf.eps(nocc + a) - data.hf.eps(i)) + data.Jmo(i, i, i, i) + data.Jmo(nocc + a, nocc + a, nocc + a, nocc + a) - 4 * data.Jmo(nocc + a, nocc + a, i, i) + 2 * data.Jmo(nocc + a, i, i, nocc + a);
         }
     }
 
@@ -46,7 +46,7 @@ Data CI::cis(bool) const {
             for (size_t j = 0; j < nocc; j++) {
                 for (size_t b = 0; b < nvirt; b++) {
                     // fill the non-diagonal elements
-                    output.ci.H(i * nvirt + a + 1, j * nvirt + b + 1) = 2 * data.intsmo.J(i, nocc + a, j, nocc + b) - data.intsmo.J(i, j, nocc + a, nocc + b);
+                    output.ci.H(i * nvirt + a + 1, j * nvirt + b + 1) = 2 * data.Jmo(i, nocc + a, j, nocc + b) - data.Jmo(i, j, nocc + a, nocc + b);
                 }
             }
             // fill the diagonal elements
@@ -60,7 +60,7 @@ Data CI::cis(bool) const {
             for (size_t j = 0; j < nocc; j++) {
                 for (size_t b = 0; b < nvirt; b++) {
                     // fill the non-diagonal elements
-                    output.ci.H(nocc * nvirt + i * nvirt + a + 1,nocc * nvirt +  j * nvirt + b + 1) -= data.intsmo.J(i, j, nocc + a, nocc + b);
+                    output.ci.H(nocc * nvirt + i * nvirt + a + 1,nocc * nvirt +  j * nvirt + b + 1) -= data.Jmo(i, j, nocc + a, nocc + b);
                 }
             }
             // fill the diagonal elements

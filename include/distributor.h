@@ -9,7 +9,7 @@ public:
     ~Distributor(); void run();
 
 private:
-    Data integrals(Data data) const;
+    System integrals(System system) const;
 
     // HF distribution
     void hfrun(Data& data) const; void hff(Data& data) const;

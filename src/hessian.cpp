@@ -37,7 +37,11 @@ Data Hessian<M>::get(bool print) const {
     if constexpr (std::is_same_v<HF, M>) {
         if (data.hf.freq.numerical) {
             auto efunc = [](Data data) {
-                return HF(data.noints()).rscf(false);
+                data.system.ints.J = Integral::Coulomb(data.system);
+                data.system.ints.S = Integral::Overlap(data.system);
+                data.system.ints.T = Integral::Kinetic(data.system);
+                data.system.ints.V = Integral::Nuclear(data.system);
+                return HF(data).rscf(false);
             };
             return get(efunc, print);
         } else throw std::runtime_error("ANALYTICAL HESSIAN FOR HF IS NOT IMPLEMENTED");
@@ -46,7 +50,13 @@ Data Hessian<M>::get(bool print) const {
     } else if constexpr (std::is_same_v<MP, M>) {
         if (data.mp.freq.numerical) {
             auto efunc = [](Data data) {
-                return MP(HF(data.noints()).rscf(false)).mp2(false);
+                data.system.ints.J = Integral::Coulomb(data.system);
+                data.system.ints.S = Integral::Overlap(data.system);
+                data.system.ints.T = Integral::Kinetic(data.system);
+                data.system.ints.V = Integral::Nuclear(data.system);
+                data = HF(data).rscf(false);
+                data.Jmo = Transform::Coulomb(data.system.ints.J, data.hf.C);
+                return MP(data).mp2(false);
             };
             return get(efunc, print);
         } else throw std::runtime_error("ANALYTICAL HESSIAN FOR MP2 IS NOT IMPLEMENTED");

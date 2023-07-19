@@ -43,13 +43,8 @@ struct Data {
             double thresh;
         } opt;
     } hf;
-    Integrals ints, intsmo;
     System system;
-
-public:
-    Data noints() const {
-        Data out = *this; out.ints = {}, out.intsmo = {}; return out;
-    }
+    Tensor<4> Jmo;
 };
 
 #include "transform.h"
