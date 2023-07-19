@@ -43,7 +43,6 @@ struct Data {
             double thresh;
         } opt;
     } hf;
-    System system;
     Tensor<4> Jmo;
 };
 

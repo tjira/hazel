@@ -1,4 +1,5 @@
 #include "distributor.h"
+#include "integral.h"
 
 #define LOCALTIME [](){auto t = std::time(nullptr); auto tm = *std::localtime(&t); std::stringstream ss; ss << std::put_time(&tm, "%a %b %e %T %Y"); return ss.str();}()
 #define CONTAINS(V, E) ([](std::vector<std::string> v, std::string e){return std::find(v.begin(), v.end(), e) != v.end();}(V, E))
@@ -82,11 +83,11 @@ Distributor::~Distributor() {
 
 void Distributor::run() {
     // initialize the system and create the guess density matrix
-    Data data; data.system = System(program.get("-f"), program.get("-b"), program.get<int>("-c"), 1);
-    data.hf.D = Matrix::Zero(data.system.shells.nbf(), data.system.shells.nbf());
+    Data data; system = System(program.get("-f"), program.get("-b"), program.get<int>("-c"), 1);
+    data.hf.D = Matrix::Zero(system.shells.nbf(), system.shells.nbf());
 
     // check if unrestricted calculation needed
-    if (data.system.charge % 2) throw std::runtime_error("SPIN UNRESTRICTED CALCULATIONS ARE NOT SUPPORTED YET");
+    if (system.charge % 2) throw std::runtime_error("SPIN UNRESTRICTED CALCULATIONS ARE NOT SUPPORTED YET");
 
     // extract printing and flag options
     print = program.get<std::vector<std::string>>("-p"), data.nocoulomb = program.get<bool>("--no-coulomb");
@@ -102,19 +103,19 @@ void Distributor::run() {
     std::printf("\nAVAILABLE CORES: %d\nUSED THREADS: %d\n", std::thread::hardware_concurrency(), nthread);
 
     // print the system block
-    std::cout << "\n" + std::string(104, '-') + "\nSYSTEM SPECIFICATION (" + data.system.basis + ")\n" << std::string(104, '-') + "\n\n";
-    std::printf("-- ATOMS: %d, ELECTRONS: %d, NBF: %d\n", (int)data.system.atoms.size(), data.system.electrons, (int)data.system.shells.nbf());
-    std::printf("-- CHARGE: %d, MULTIPLICITY: %d\n", data.system.charge, data.system.multi);
-    std::cout << "\nSYSTEM COORDINATES\n" << data.system.coords << std::endl; 
+    std::cout << "\n" + std::string(104, '-') + "\nSYSTEM SPECIFICATION (" + system.basis + ")\n" << std::string(104, '-') + "\n\n";
+    std::printf("-- ATOMS: %d, ELECTRONS: %d, NBF: %d\n", (int)system.atoms.size(), system.electrons, (int)system.shells.nbf());
+    std::printf("-- CHARGE: %d, MULTIPLICITY: %d\n", system.charge, system.multi);
+    std::cout << "\nSYSTEM COORDINATES\n" << system.coords << std::endl; 
 
     // center the molecule if requested
     if (program.get<bool>("--center")) {
-        Matrix dir(data.system.atoms.size(), 3); dir.rowwise() -= data.system.coords.colwise().sum() / data.system.atoms.size();
-        data.system.move(dir * A2BOHR); std::cout << "\nCENTERED SYSTEM COORDINATES\n" << data.system.coords << std::endl; 
+        Matrix dir(system.atoms.size(), 3); dir.rowwise() -= system.coords.colwise().sum() / system.atoms.size();
+        system.move(dir * A2BOHR); std::cout << "\nCENTERED SYSTEM COORDINATES\n" << system.coords << std::endl; 
     }
 
     // print the distances if requested
-    if (CONTAINS(print, "dist") || CONTAINS(print, "all")) std::cout << "\nDISTANCE MATRIX\n" << data.system.dists << std::endl; 
+    if (CONTAINS(print, "dist") || CONTAINS(print, "all")) std::cout << "\nDISTANCE MATRIX\n" << system.dists << std::endl; 
 
     // extract all the options
     if (program.is_subcommand_used("hf")) {
@@ -164,13 +165,13 @@ void Distributor::run() {
     for (auto& element : print) std::transform(element.begin(), element.end(), element.begin(), [](auto c){return std::tolower(c);});
 
     // calculate the integrals
-    data.system = integrals(data.system);
+    integrals();
 
     // distribute the calculations
     if (program.is_subcommand_used("hf")) hfrun(data);
 }
 
-void Distributor::hfrun(Data& data) const {
+void Distributor::hfrun(Data& data) {
     // optimize the gradient
     if (hf.is_used("-o")) hfo(data);
 
@@ -179,13 +180,14 @@ void Distributor::hfrun(Data& data) const {
     std::printf("-- MAXITER: %d, THRESH: %.2e\n-- DIIS: [START: %d, KEEP: %d]\n", data.hf.maxiter, data.hf.thresh, data.hf.diis.start, data.hf.diis.keep);
 
     // perform the Hartree-Fock calculation
-    data = HF(data).rscf();
+    data = HF(data).rscf(system);
+    rhfres = {data.hf.C, data.hf.D, data.hf.eps, data.hf.E, data.hf.E - Integral::Repulsion(system), Integral::Repulsion(system)};
 
     // print the resulting matrices and energies
     if (CONTAINS(hfprint, "eps") || CONTAINS(print, "all")) std::cout << "\nORBITAL ENERGIES\n" << Matrix(data.hf.eps) << std::endl;
     if (CONTAINS(hfprint, "c") || CONTAINS(print, "all")) std::cout << "\nCOEFFICIENT MATRIX\n" << data.hf.C << std::endl;
     if (CONTAINS(hfprint, "d") || CONTAINS(print, "all")) std::cout << "\nDENSITY MATRIX\n" << data.hf.D << std::endl;
-    std::cout << "\nTOTAL NUCLEAR REPULSION ENERGY: " << Integral::Repulsion(data.system) << std::endl;
+    std::cout << "\nTOTAL NUCLEAR REPULSION ENERGY: " << Integral::Repulsion(system) << std::endl;
     std::cout << "FINAL HARTREE-FOCK ENERGY: " << data.hf.E << std::endl;
 
     // gradient and hessian frequency
@@ -197,144 +199,148 @@ void Distributor::hfrun(Data& data) const {
 
     // calculate CI correlation
     if (hf.is_subcommand_used("ci")) {
-        // print the CI method header
-        std::cout << "\n" + std::string(104, '-') + "\nCI CORRELATION ENERGY\n" << std::string(104, '-') + "\n";
+        // print the CI method header and define J in MO basis
+        std::cout << "\n" + std::string(104, '-') + "\nCI CORRELATION ENERGY\n" << std::string(104, '-') + "\n"; Tensor<4> Jmo;
 
         // transform the coulomb tensor
-        std::cout << "\nCOULOMB TENSOR IN MO BASIS: " << std::flush; TIME(data.Jmo = Transform::Coulomb(data.system.ints.J, data.hf.C))
-        if (CONTAINS(ciprint, "jmo") || CONTAINS(print, "all")) {std::cout << "\n" << data.Jmo;} std::cout << "\n";
+        std::cout << "\nCOULOMB TENSOR IN MO BASIS: " << std::flush; TIME(Jmo = Transform::Coulomb(system.ints.J, rhfres.C))
+        if (CONTAINS(ciprint, "jmo") || CONTAINS(print, "all")) {std::cout << "\n" << Jmo;} std::cout << "\n";
 
         // do the calculation
-        if (ci.get("-e") == "s") data = CI(data).cis();
-        if (ci.get("-e") == "d") data = CI(data).cid();
+        if (ci.get("-e") == "s") rcires = CI({rhfres}).cis(system, Jmo);
+        if (ci.get("-e") == "d") rcires = CI({rhfres}).cid(system, Jmo);
 
         // print the result matrices
-        if (CONTAINS(ciprint, "cih") || CONTAINS(print, "all")) std::cout << "\nCI HAMILTONIAN\n" << data.ci.H << "\n";
-        if (CONTAINS(ciprint, "cie") || CONTAINS(print, "all")) std::cout << "\nCI ENERGIES\n" << Matrix(data.ci.eig) << "\n";
-        if (CONTAINS(ciprint, "cic") || CONTAINS(print, "all")) std::cout << "\nCI EXPANSION COEFFICIENTS\n" << data.ci.C << "\n";
+        if (CONTAINS(ciprint, "cih") || CONTAINS(print, "all")) std::cout << "\nCI HAMILTONIAN\n" << rcires.H << "\n";
+        if (CONTAINS(ciprint, "cie") || CONTAINS(print, "all")) std::cout << "\nCI ENERGIES\n" << Matrix(rcires.eig) << "\n";
+        if (CONTAINS(ciprint, "cic") || CONTAINS(print, "all")) std::cout << "\nCI EXPANSION COEFFICIENTS\n" << rcires.C << "\n";
 
         // print the gradient and norm
-        std::cout << "\nCI CORRELATION ENERGY: " << data.ci.Ecorr << std::endl;
-        std::cout << "FINAL CI ENERGY: " << data.hf.E + data.ci.Ecorr << std::endl;
+        std::cout << "\nCI CORRELATION ENERGY: " << rcires.Ecorr << std::endl;
+        std::cout << "FINAL CI ENERGY: " << rhfres.E + rcires.Ecorr << std::endl;
     }
 }
 
-void Distributor::hff(Data& data) const {
+void Distributor::hff(Data& data) {
     // print the hessian header
     if (data.hf.freq.numerical) std::cout << "\n" + std::string(104, '-') + "\nNUMERICAL HESSIAN FOR RESTRICTED HARTREE-FOCK\n";
     else std::cout << "\n" + std::string(104, '-') + "\nANALYTICAL HESSIAN FOR RESTRICTED HARTREE-FOCK\n";
     std::cout << std::string(104, '-') + "\n\n";
 
     // perform the hessian calculation
-    data = Hessian<HF>(data).get();
+    data = Hessian<HF>(data).get(system);
 
     // print the hessian results
     std::cout << "NUCLEAR HESSIAN\n" << data.hf.freq.H << "\n\nHESSIAN NORM: ";
     std::printf("%.2e\n", data.hf.freq.H.norm());
 
     // perform the frequency calculation
-    data = Hessian<HF>(data).frequency();
+    data = Hessian<HF>(data).frequency(system);
 
     // print the frequency reslts
     std::cout << "\n" + std::string(104, '-') + "\nHARTREE-FOCK FREQUENCY ANALYSIS\n" << std::string(104, '-');
     std::cout << "\n\nVIBRATIONAL FREQUENCIES\n" << Matrix(data.hf.freq.freq) << std::endl;
 }
 
-void Distributor::hfg(Data& data) const {
+void Distributor::hfg(Data& data) {
     // print the header
     if (data.hf.grad.numerical) std::cout << "\n" + std::string(104, '-') + "\nNUMERICAL GRADIENT FOR RESTRICTED HARTREE-FOCK\n";
     else std::cout << "\n" + std::string(104, '-') + "\nANALYTICAL GRADIENT FOR RESTRICTED HARTREE-FOCK\n";
     std::cout << std::string(104, '-') + "\n\n"; 
 
     // calculate the gradient
-    if (!hf.is_used("-o")) data = Gradient<HF>(data).get();
+    if (!hf.is_used("-o")) data = Gradient<HF>(data).get(system);
 
     // print the results
     std::cout << data.hf.grad.G << "\n\nGRADIENT NORM: ";
     std::printf("%.2e\n", data.hf.grad.G.norm());
 }
 
-void Distributor::hfo(Data& data) const {
+void Distributor::hfo(Data& data) {
     // print the header
     std::cout << "\n" + std::string(104, '-') + "\nRESTRICTED HARTREE-FOCK OPTIMIZATION\n" << std::string(104, '-') + "\n\n";
 
     // perform the optimization
-    data = Optimizer<HF>(data).optimize();
+    opthfres = Optimizer<HF>(data).optimize(system);
+    system = opthfres.system, data.hf.grad.G = opthfres.G;
+    // integrals();
 
     // print the results
-    std::cout << "\nOPTIMIZED SYSTEM COORDINATES\n" << data.system.coords << std::endl; 
-    if (CONTAINS(print, "dist") || CONTAINS(print, "all")) std::cout << "\nOPTIMIZED DISTANCE MATRIX\n" << data.system.dists << std::endl;
+    std::cout << "\nOPTIMIZED SYSTEM COORDINATES\n" << system.coords << std::endl; 
+    if (CONTAINS(print, "dist") || CONTAINS(print, "all")) std::cout << "\nOPTIMIZED DISTANCE MATRIX\n" << system.dists << std::endl;
 }
 
-void Distributor::mp2run(Data& data) const {
+void Distributor::mp2run(Data& data) {
     // optimize the molecule with MP2 method
-    if (mp2.is_used("-o")) mp2o(data);
+    if (mp2.is_used("-o")) mp2o(data), data = HF(data).rscf(system, false);
 
     // print the MP2 correlation method header
-    std::cout << "\n" + std::string(104, '-') + "\nRESTRICTED MP2 CORRELATION ENERGY\n" << std::string(104, '-') + "\n";
+    std::cout << "\n" + std::string(104, '-') + "\nRESTRICTED MP2 CORRELATION ENERGY\n" << std::string(104, '-') + "\n"; Tensor<4> Jmo;
 
     // transform the coulomb tensor
-    std::cout << "\nCOULOMB TENSOR IN MO BASIS: " << std::flush; TIME(data.Jmo = Transform::Coulomb(data.system.ints.J, data.hf.C))
+    std::cout << "\nCOULOMB TENSOR IN MO BASIS: " << std::flush; TIME(Jmo = Transform::Coulomb(system.ints.J, rhfres.C))
     if (CONTAINS(mp2print, "jmo") || CONTAINS(print, "all")) {std::cout << "\n" << data.Jmo;} std::cout << "\n";
 
     // do the MP2 calculation
-    data = MP(data).mp2();
+    rmpres = MP({rhfres}).mp2(system, Jmo);
 
     // print the gradient and norm
-    std::cout << "\nMP2 CORRELATION ENERGY: " << data.mp.Ecorr << std::endl << "FINAL ";
-    std::cout << "MP2 ENERGY: " << data.hf.E + data.mp.Ecorr << std::endl;
+    std::cout << "\nMP2 CORRELATION ENERGY: " << rmpres.Ecorr << std::endl << "FINAL ";
+    std::cout << "MP2 ENERGY: " << rhfres.E + rmpres.Ecorr << std::endl;
 
     // calculate the MP2 nuclear gradient
     if (mp2.is_used("-g")) mp2g(data);
     if (mp2.is_used("-f")) mp2f(data);
 }
 
-void Distributor::mp2f(Data& data) const {
+void Distributor::mp2f(Data& data) {
     // print the frequency calculation header
     if (data.mp.freq.numerical) std::cout << "\n" + std::string(104, '-') + "\nNUMERICAL HESSIAN FOR RESTRICTED MP2 METHOD\n";
     else std::cout << "\n" + std::string(104, '-') + "\nANALYTICAL HESSIAN FOR RESTRICTED MP2 METHOD\n";
     std::cout << std::string(104, '-') + "\n\n";
 
     // perform the hessian calculation
-    data = Hessian<MP>(data).get();
+    data = Hessian<MP>(data).get(system);
 
     // print the hessian resuls
     std::cout << "NUCLEAR HESSIAN\n" << data.mp.freq.H << "\n\nHESSIAN NORM: "; std::printf("%.2e\n", data.mp.freq.H.norm());
 
     // perform the frequency calculation
-    data = Hessian<MP>(data).frequency();
+    data = Hessian<MP>(data).frequency(system);
 
     // print the frequency analysis results
     std::cout << "\n" + std::string(104, '-') + "\nRESTRICTED MP2 FREQUENCY ANALYSIS\n" << std::string(104, '-') + "\n";
     std::cout << "\nVIBRATIONAL FREQUENCIES\n" << Matrix(data.mp.freq.freq) << std::endl;
 }
 
-void Distributor::mp2g(Data& data) const {
+void Distributor::mp2g(Data& data) {
     // print the MP2 gradient method header and perform the calculation
     if (data.mp.grad.numerical) std::cout << "\n" + std::string(104, '-') + "\nNUMERICAL GRADIENT FOR RESTRICTED MP2 METHOD\n" << std::string(104, '-') << "\n\n";
     else std::cout << "\n" + std::string(104, '-') + "\nANALYTICAL GRADIENT FOR RESTRICTED MP2 METHOD\n" << std::string(104, '-') << "\n\n";
 
     // perform the calculation
-    if (!mp2.is_used("-o")) data = Gradient<MP>(data).get();
+    if (!mp2.is_used("-o")) data = Gradient<MP>(data).get(system);
 
     // print the gradient results
     std::cout << data.mp.grad.G << "\n\nGRADIENT NORM: ";
     std::printf("%.2e\n", data.mp.grad.G.norm());
 }
 
-void Distributor::mp2o(Data& data) const {
+void Distributor::mp2o(Data& data) {
     // print the MP2 optimization method header and optimize the molecule
     std::cout << "\n" + std::string(104, '-') + "\nRESTRICTED MP2 OPTIMIZATION\n" << std::string(104, '-') << "\n\n";
 
     // perform the optimization
-    data = Optimizer<MP>(data).optimize();
+    optmpres = Optimizer<MP>(data).optimize(system);
+    system = optmpres.system, data.mp.grad.G = optmpres.G;
+    // integrals();
 
     // print the optimization results
-    std::cout << "\nOPTIMIZED SYSTEM COORDINATES\n" << data.system.coords << std::endl;
-    if (CONTAINS(print, "dist") || CONTAINS(print, "all")) std::cout << "\nOPTIMIZED DISTANCE MATRIX\n" << data.system.dists << std::endl;
+    std::cout << "\nOPTIMIZED SYSTEM COORDINATES\n" << system.coords << std::endl;
+    if (CONTAINS(print, "dist") || CONTAINS(print, "all")) std::cout << "\nOPTIMIZED DISTANCE MATRIX\n" << system.dists << std::endl;
 }
 
-System Distributor::integrals(System system) const {
+void Distributor::integrals() {
     // print the integral calculation header
     std::cout << "\n" + std::string(104, '-') + "\nINTEGRAL CALCULATION\n";
     std::cout << std::string(104, '-') << std::endl;
@@ -373,7 +379,4 @@ System Distributor::integrals(System system) const {
         std::cout << "\nFIRST DERIVATIVE OF COULOMB INTEGRAL: " << std::flush; TIME(system.dints.dJ = Integral::dCoulomb(system))
         if (CONTAINS(print, "dj") || CONTAINS(print, "all")) {std::cout << "\n" << system.dints.dJ;} std::cout << "\n";
     }
-
-    // return integrals
-    return system;
 }

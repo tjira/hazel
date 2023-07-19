@@ -6,11 +6,21 @@
 template <class M>
 class Optimizer {
 public:
+    struct Options {
+        double thresh;
+    };
+    struct Results {
+        System system; Matrix G;
+    };
+public:
+    // constructor
     Optimizer(const Data& data) : data(data) {}
-    Data optimize(bool print = true) const;
+
+    // methods
+    Results optimize(const System& system, bool print = true) const;
 
 private:
-    Data optimize(const std::function<Data(Data)>& egfunc, bool print) const;
+    Results optimize(const System& system, const std::function<Data(System&, Data)>& egfunc, bool print) const;
 
 private:
     Data data;

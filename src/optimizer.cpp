@@ -1,37 +1,40 @@
 #include "optimizer.h"
 
 template <class M>
-Data Optimizer<M>::optimize(bool print) const {
+Optimizer<M>::Results Optimizer<M>::optimize(const System& system, bool print) const {
     // run the HF optimizer
     if constexpr (std::is_same_v<HF, M>) {
-        auto egfunc = [](Data data) {
-            data.system.dints.dS = Integral::dOverlap(data.system), data.system.dints.dT = Integral::dKinetic(data.system);
-            data.system.dints.dV = Integral::dNuclear(data.system), data.system.dints.dJ = Integral::dCoulomb(data.system);
-            data.system.ints.S = Integral::Overlap(data.system), data.system.ints.T = Integral::Kinetic(data.system);
-            data.system.ints.V = Integral::Nuclear(data.system), data.system.ints.J = Integral::Coulomb(data.system);
-            return Gradient<HF>(HF(data).rscf(false)).get(false);
+        auto egfunc = [](System& system, Data data) {
+            system.dints.dS = Integral::dOverlap(system), system.dints.dT = Integral::dKinetic(system);
+            system.dints.dV = Integral::dNuclear(system), system.dints.dJ = Integral::dCoulomb(system);
+            system.ints.S = Integral::Overlap(system), system.ints.T = Integral::Kinetic(system);
+            system.ints.V = Integral::Nuclear(system), system.ints.J = Integral::Coulomb(system);
+            return Gradient<HF>(HF(data).rscf(system, false)).get(system, false);
         };
-        return optimize(egfunc, print);
+        return optimize(system, egfunc, print);
 
     // run the MP optimizer
     } else if constexpr (std::is_same_v<MP, M>) {
-        auto egfunc = [](Data data) {
-            data.system.ints.J = Integral::Coulomb(data.system);
-            data.system.ints.S = Integral::Overlap(data.system);
-            data.system.ints.T = Integral::Kinetic(data.system);
-            data.system.ints.V = Integral::Nuclear(data.system);
-            data = HF(data).rscf(false);
-            data.Jmo = Transform::Coulomb(data.system.ints.J, data.hf.C);
-            return Gradient<MP>(MP(data).mp2(false)).get(false);
+        auto egfunc = [](System& system, Data data) {
+            system.ints.J = Integral::Coulomb(system);
+            system.ints.S = Integral::Overlap(system);
+            system.ints.T = Integral::Kinetic(system);
+            system.ints.V = Integral::Nuclear(system);
+            data = HF(data).rscf(system, false);
+            HF::ResultsRestricted rhfres = {data.hf.C, data.hf.D, data.hf.eps, data.hf.E, data.hf.E - Integral::Repulsion(system), Integral::Repulsion(system)};
+            Tensor<4> Jmo = Transform::Coulomb(system.ints.J, data.hf.C);
+            data.mp.Ecorr = MP({rhfres}).mp2(system, Jmo, false).Ecorr;
+            return Gradient<MP>(data).get(system, false);
         };
-        return optimize(egfunc, print);
+        return optimize(system, egfunc, print);
     }
 }
 
 template <class M>
-Data Optimizer<M>::optimize(const std::function<Data(Data)>& egfunc, bool print) const {
+Optimizer<M>::Results Optimizer<M>::optimize(const System& system, const std::function<Data(System&, Data)>& egfunc, bool print) const {
+    System tempsys = system;
     // create the output and perform the SCF and gradient calculation
-    Data output = data; output = egfunc(data); Matrix G; double thresh, E;
+    Data output = data; output = egfunc(tempsys, data); Matrix G; double thresh, E;
 
     // assign the correct threshond
     if constexpr (std::is_same_v<MP, M>) G = output.mp.grad.G, thresh = data.mp.opt.thresh, E = output.hf.E + output.mp.Ecorr;
@@ -43,16 +46,17 @@ Data Optimizer<M>::optimize(const std::function<Data(Data)>& egfunc, bool print)
     // print the initial state info
     if (print) std::printf("%4d %20.14f %.2e %s\n", 0, E, G.norm(), "00:00:00.000");
 
-    // move the data.system while gradient is big
+
+    // move the system while gradient is big
     for (int i = 1; G.norm() > thresh; i++) {
         // start the timer
         Timer::Timepoint start = Timer::Now();
 
         // move the system
-        output.system.move(-G);
+        tempsys.move(-G);
 
         // perform HF and calculate gradient
-        output = egfunc(output);
+        output = egfunc(tempsys, output);
 
         // extract the correct energy and gradient
         if constexpr (std::is_same_v<MP, M>) G = output.mp.grad.G, E = output.hf.E + output.mp.Ecorr;
@@ -63,7 +67,7 @@ Data Optimizer<M>::optimize(const std::function<Data(Data)>& egfunc, bool print)
     }
 
     // return results
-    return output;
+    return {tempsys, G};
 }
 
 template class Optimizer<HF>;

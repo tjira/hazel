@@ -4,41 +4,43 @@ template <class M>
 Gradient<M>::Gradient(const Data& data) : data(data) {}
 
 template <class M>
-Data Gradient<M>::get(bool print) const {
+Data Gradient<M>::get(const System& system, bool print) const {
     // calculate the HF gradient
     if constexpr (std::is_same_v<HF, M>) {
         if (data.hf.grad.numerical) {
-            auto efunc = [](Data data) {
-                data.system.ints.J = Integral::Coulomb(data.system);
-                data.system.ints.S = Integral::Overlap(data.system);
-                data.system.ints.T = Integral::Kinetic(data.system);
-                data.system.ints.V = Integral::Nuclear(data.system);
-                return HF(data).rscf(false);
+            auto efunc = [](System system, Data data) {
+                system.ints.J = Integral::Coulomb(system);
+                system.ints.S = Integral::Overlap(system);
+                system.ints.T = Integral::Kinetic(system);
+                system.ints.V = Integral::Nuclear(system);
+                return HF(data).rscf(system, false);
             };
-            return get(efunc, print);
-        } else return getHF(print);
+            return get(system, efunc, print);
+        } else return getHF(system, print);
 
     // calculate the MP gradient
     } else if constexpr (std::is_same_v<MP, M>) {
         if (data.mp.grad.numerical) {
-            auto efunc = [](Data data) {
-                data.system.ints.J = Integral::Coulomb(data.system);
-                data.system.ints.S = Integral::Overlap(data.system);
-                data.system.ints.T = Integral::Kinetic(data.system);
-                data.system.ints.V = Integral::Nuclear(data.system);
-                data = HF(data).rscf(false);
-                data.Jmo = Transform::Coulomb(data.system.ints.J, data.hf.C);
-                return MP(data).mp2(false);
+            auto efunc = [](System system, Data data) {
+                system.ints.J = Integral::Coulomb(system);
+                system.ints.S = Integral::Overlap(system);
+                system.ints.T = Integral::Kinetic(system);
+                system.ints.V = Integral::Nuclear(system);
+                data = HF(data).rscf(system, false);
+                HF::ResultsRestricted rhfres = {data.hf.C, data.hf.D, data.hf.eps, data.hf.E, data.hf.E - Integral::Repulsion(system), Integral::Repulsion(system)};
+                Tensor<4> Jmo = Transform::Coulomb(system.ints.J, data.hf.C);
+                data.mp.Ecorr = MP({rhfres}).mp2(system, Jmo, false).Ecorr;
+                return data;
             };
-            return get(efunc, print);
+            return get(system, efunc, print);
         } else throw std::runtime_error("ANALYTICAL GRADIENT FOR MP2 IS NOT IMPLEMENTED");
     }
 }
 
 template <class M>
-Data Gradient<M>::get(const std::function<Data(Data)>& efunc, bool print) const {
+Data Gradient<M>::get(const System& system, const std::function<Data(System, Data)>& efunc, bool print) const {
     // create the output data and define the gradient and step size
-    Data output = data; Matrix G = Matrix::Zero(data.system.atoms.size(), 3); double step;
+    Data output = data; Matrix G = Matrix::Zero(system.atoms.size(), 3); double step;
 
     // get the step value according to the method
     if constexpr (std::is_same_v<HF, M>) step = data.hf.grad.step;
@@ -56,20 +58,20 @@ Data Gradient<M>::get(const std::function<Data(Data)>& efunc, bool print) const 
             // start the timer
             Timer::Timepoint start = Timer::Now();
 
-            // define the direction matrices, temporary data.systems and integrals
-            Matrix dirMinus(data.system.atoms.size(), 3); Data dataMinus = data;
-            Matrix dirPlus(data.system.atoms.size(), 3); Data dataPlus = data;
+            // define the direction matrices, temporary systems and integrals
+            Matrix dirMinus(system.atoms.size(), 3); Data dataMinus = data; System sysMinus = system;
+            Matrix dirPlus(system.atoms.size(), 3); Data dataPlus = data; System sysPlus = system;
 
             // fill the direction matrices
             dirMinus(i, j) -= step * A2BOHR; dirPlus(i, j) += step * A2BOHR;
 
             // move the systems
-            dataMinus.system.move(dirMinus), dataPlus.system.move(dirPlus);
             dataMinus.hf.D = data.hf.D, dataPlus.hf.D = data.hf.D;
+            sysMinus.move(dirMinus), sysPlus.move(dirPlus);
 
             // calculate the energies
-            dataMinus = efunc(dataMinus); double energyMinus = dataMinus.hf.E;
-            dataPlus = efunc(dataPlus); double energyPlus = dataPlus.hf.E;
+            dataMinus = efunc(sysMinus, dataMinus); double energyMinus = dataMinus.hf.E;
+            dataPlus = efunc(sysPlus, dataPlus); double energyPlus = dataPlus.hf.E;
 
             // add the correlation energy
             if constexpr (std::is_same_v<MP, M>) energyMinus += dataMinus.mp.Ecorr, energyPlus += dataPlus.mp.Ecorr;
@@ -94,16 +96,16 @@ Data Gradient<M>::get(const std::function<Data(Data)>& efunc, bool print) const 
 }
 
 template <class M>
-Data Gradient<M>::getHF(bool) const {
+Data Gradient<M>::getHF(const System& system, bool) const {
     // extract the useful stuff from the calculated integrals and define all the contractio axes
-    Tensor<3> dS1 = data.system.dints.dS.slice<Index<3>, Index<3>>({0, 0, 0}, {data.system.dints.dS.dimension(0), data.system.dints.dS.dimension(1), 3});
-    Tensor<3> dT1 = data.system.dints.dT.slice<Index<3>, Index<3>>({0, 0, 0}, {data.system.dints.dT.dimension(0), data.system.dints.dT.dimension(1), 3});
-    Tensor<3> dV1 = data.system.dints.dV.slice<Index<3>, Index<3>>({0, 0, 0}, {data.system.dints.dV.dimension(0), data.system.dints.dV.dimension(1), 3});
-    Pair first(2, 0), second(3, 1), third(0, 0), fourth(1, 1); int nocc = data.system.electrons / 2;
+    Tensor<3> dS1 = system.dints.dS.slice<Index<3>, Index<3>>({0, 0, 0}, {system.dints.dS.dimension(0), system.dints.dS.dimension(1), 3});
+    Tensor<3> dT1 = system.dints.dT.slice<Index<3>, Index<3>>({0, 0, 0}, {system.dints.dT.dimension(0), system.dints.dT.dimension(1), 3});
+    Tensor<3> dV1 = system.dints.dV.slice<Index<3>, Index<3>>({0, 0, 0}, {system.dints.dV.dimension(0), system.dints.dV.dimension(1), 3});
+    Pair first(2, 0), second(3, 1), third(0, 0), fourth(1, 1); int nocc = system.electrons / 2;
 
     // define the density, weighed density, gradient matrix and ouptut
-    Data output = data; output.hf.grad.G = Matrix::Zero(data.system.atoms.size(), 3);
-    auto atom2shell = data.system.shells.atom2shell(data.system.atoms);
+    Data output = data; output.hf.grad.G = Matrix::Zero(system.atoms.size(), 3);
+    auto atom2shell = system.shells.atom2shell(system.atoms);
     Tensor<2> W(data.hf.C.rows(), data.hf.C.cols());
 
     // fill the energy weighted density matrix
@@ -114,15 +116,15 @@ Data Gradient<M>::getHF(bool) const {
     }
 
     // calculate the derivative of the ERI tensor
-    Tensor<3> dERI = (data.system.dints.dJ - 0.5 * data.system.dints.dJ.shuffle(Array<5>{0, 3, 2, 1, 4})).contract(toTensor(data.hf.D), Axes<2>{first, second});
+    Tensor<3> dERI = (system.dints.dJ - 0.5 * system.dints.dJ.shuffle(Array<5>{0, 3, 2, 1, 4})).contract(toTensor(data.hf.D), Axes<2>{first, second});
 
     // for every gradient row (atom)
     for (int i = 0, si = 0, ss = 0; i < output.hf.grad.G.rows(); i++, si += ss, ss = 0) {
         // calculate number of shells for current atom
-        for (long shell : atom2shell.at(i)) ss += data.system.shells.at(shell).size();
+        for (long shell : atom2shell.at(i)) ss += system.shells.at(shell).size();
 
         // define the Hcore derivative and atomic slices for overlap tensor and density matrix
-        Tensor<3> dHcore = data.system.dints.dV.slice<Index<3>, Index<3>>({0, 0, 6 + i * 3}, {data.hf.D.rows(), data.hf.D.cols(), 3});
+        Tensor<3> dHcore = system.dints.dV.slice<Index<3>, Index<3>>({0, 0, 6 + i * 3}, {data.hf.D.rows(), data.hf.D.cols(), 3});
         Eigen::array<Eigen::Index, 3> Soff = {si, 0, 0}, Sext = {ss, data.hf.D.cols(), 3};
         Eigen::array<Eigen::Index, 2> Doff = {si, 0}, Dext = {ss, data.hf.D.cols()};
 
@@ -137,7 +139,7 @@ Data Gradient<M>::getHF(bool) const {
     }
 
     // add the nuclear repulsion contribution
-    output.hf.grad.G += Integral::dRepulsion(data.system);
+    output.hf.grad.G += Integral::dRepulsion(system);
 
     // return the result
     return output;

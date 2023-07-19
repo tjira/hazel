@@ -2,21 +2,21 @@
 
 HF::HF(const Data& data) : data(data) {}
 
-Data HF::rscf(bool print) const {
+Data HF::rscf(const System& system, bool print) const {
     // create the output data
     Data output = data;
 
     // create all the necessary matrices, calculate ERI and initialize DIIS
-    Matrix H = data.system.ints.T + data.system.ints.V, F; int nocc = data.system.electrons / 2;
-    Tensor<4> ERI = data.system.ints.J - 0.5 * data.system.ints.J.shuffle(Array<4>{0, 3, 2, 1});
+    Matrix H = system.ints.T + system.ints.V, F; int nocc = system.electrons / 2;
+    Tensor<4> ERI = system.ints.J - 0.5 * system.ints.J.shuffle(Array<4>{0, 3, 2, 1});
     libint2::DIIS<Matrix> diis(data.hf.diis.start, data.hf.diis.keep);
 
     // specify the ERI contraction indices
     Eigen::IndexPair<int> first(2, 0), second(3, 1);
 
     // calculate the Fock matrix
-    if (data.system.ints.J.size()) F = H + toMatrix(ERI.contract(toTensor(output.hf.D), Axes<2>{first, second}));
-    else F = H + Integral::Coulomb(data.system, data.hf.D);
+    if (system.ints.J.size()) F = H + toMatrix(ERI.contract(toTensor(output.hf.D), Axes<2>{first, second}));
+    else F = H + Integral::Coulomb(system, data.hf.D);
 
     // calculate the energy
     output.hf.E = 0.5 * output.hf.D.cwiseProduct(H + F).sum();
@@ -30,15 +30,15 @@ Data HF::rscf(bool print) const {
         Timer::Timepoint start = Timer::Now();
         
         // calculate the Fock matrix
-        if (data.system.ints.J.size()) F = H + toMatrix(ERI.contract(toTensor(output.hf.D), Axes<2>{first, second}));
-        else F = H + Integral::Coulomb(data.system, output.hf.D);
+        if (system.ints.J.size()) F = H + toMatrix(ERI.contract(toTensor(output.hf.D), Axes<2>{first, second}));
+        else F = H + Integral::Coulomb(system, output.hf.D);
 
         // exrapolate the fock matrix
-        Matrix e = data.system.ints.S * output.hf.D * F - F * output.hf.D * data.system.ints.S;
+        Matrix e = system.ints.S * output.hf.D * F - F * output.hf.D * system.ints.S;
         if (i > 1) diis.extrapolate(F, e);
 
         // solve the roothan equations
-        Eigen::GeneralizedSelfAdjointEigenSolver<Matrix> solver(F, data.system.ints.S);
+        Eigen::GeneralizedSelfAdjointEigenSolver<Matrix> solver(F, system.ints.S);
 
         // exteract the eigenvalues and eigenvectors and save previous values of D and E
         output.hf.C = solver.eigenvectors(), output.hf.eps = solver.eigenvalues();
@@ -63,7 +63,7 @@ Data HF::rscf(bool print) const {
     }
 
     // add the nuclear repultion energy
-    output.hf.E += Integral::Repulsion(data.system);
+    output.hf.E += Integral::Repulsion(system);
 
     // return the results
     return output;

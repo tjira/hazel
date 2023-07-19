@@ -1,15 +1,22 @@
 #pragma once
 
-#include "data.h"
+#include "hf.h"
 
 class CI {
 public:
-    CI(const Data& data) : data(data) {}
+    struct OptionsRestricted {
+        HF::ResultsRestricted rhfres;
+    };
+    struct ResultsRestricted {
+        Matrix C, H; Vector eig; double Ecorr;
+    };
+public:
+    CI(const OptionsRestricted& ropt) : ropt(ropt) {}
 
     // order methods
-    Data cid(bool print = true) const;
-    Data cis(bool print = true) const;
+    ResultsRestricted cid(const System& system, const Tensor<4>& Jmo, bool print = true) const;
+    ResultsRestricted cis(const System& system, const Tensor<4>& Jmo, bool print = true) const;
 
 private:
-    const Data data;
+    OptionsRestricted ropt;
 };

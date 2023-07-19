@@ -7,15 +7,22 @@
 template <class M>
 class Gradient {
 public:
+    struct Options {
+        bool numerical; double step;
+    };
+    struct Results {
+        Matrix G;
+    };
+public:
     // constructor
     Gradient(const Data& data);
 
     // methods
-    Data get(bool print = true) const;
+    Data get(const System& system, bool print = true) const;
 
 private:
-    Data get(const std::function<Data(Data)>& efunc, bool print) const;
-    Data getHF(bool print) const;
+    Data get(const System& system, const std::function<Data(System, Data)>& efunc, bool print) const;
+    Data getHF(const System& system, bool print) const;
 
 private:
     Data data;

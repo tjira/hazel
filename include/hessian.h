@@ -7,12 +7,22 @@
 template <class M>
 class Hessian {
 public:
+    struct Options {
+        bool numerical; double step;
+    };
+    struct Results {
+        Matrix H; Vector freq;
+    };
+public:
+    // constructor
     Hessian(const Data& data) : data(data) {}
-    Data frequency(bool print = true) const;
-    Data get(bool print = true) const;
+
+    // methods
+    Data frequency(const System& system, bool print = true) const;
+    Data get(const System& system, bool print = true) const;
 
 private:
-    Data get(const std::function<Data(Data)>& efunc, bool print) const;
+    Data get(const System& system, const std::function<Data(System, Data)>& efunc, bool print) const;
 
 private:
     Data data;

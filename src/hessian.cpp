@@ -1,7 +1,7 @@
 #include "hessian.h"
 
 template <class M>
-Data Hessian<M>::frequency(bool) const {
+Data Hessian<M>::frequency(const System& system, bool) const {
     // declare the output, hessian and frequencies
     Data output = data; Matrix H; Vector freq;
 
@@ -13,9 +13,9 @@ Data Hessian<M>::frequency(bool) const {
     if (!H.size()) throw std::runtime_error("YOU HAVE NOT CALCULATED THE NUCLEAR HESSIAN MATRIX");
 
     // create the mass matrix
-    Matrix MM(3 * data.system.atoms.size(), 3 * data.system.atoms.size());
+    Matrix MM(3 * system.atoms.size(), 3 * system.atoms.size());
     for (int i = 0; i < MM.rows(); i++) {
-        MM(i, i) = std::sqrt(1 / masses.at(data.system.atoms.at(i / 3).atomic_number));
+        MM(i, i) = std::sqrt(1 / masses.at(system.atoms.at(i / 3).atomic_number));
     }
 
     // calculate the frequencies in atomic units and exract them
@@ -32,41 +32,43 @@ Data Hessian<M>::frequency(bool) const {
 }
 
 template <class M>
-Data Hessian<M>::get(bool print) const {
+Data Hessian<M>::get(const System& system, bool print) const {
     // calculate the HF hessian
     if constexpr (std::is_same_v<HF, M>) {
         if (data.hf.freq.numerical) {
-            auto efunc = [](Data data) {
-                data.system.ints.J = Integral::Coulomb(data.system);
-                data.system.ints.S = Integral::Overlap(data.system);
-                data.system.ints.T = Integral::Kinetic(data.system);
-                data.system.ints.V = Integral::Nuclear(data.system);
-                return HF(data).rscf(false);
+            auto efunc = [](System system, Data data) {
+                system.ints.J = Integral::Coulomb(system);
+                system.ints.S = Integral::Overlap(system);
+                system.ints.T = Integral::Kinetic(system);
+                system.ints.V = Integral::Nuclear(system);
+                return HF(data).rscf(system, false);
             };
-            return get(efunc, print);
+            return get(system, efunc, print);
         } else throw std::runtime_error("ANALYTICAL HESSIAN FOR HF IS NOT IMPLEMENTED");
 
     // calculate the MP hessian
     } else if constexpr (std::is_same_v<MP, M>) {
         if (data.mp.freq.numerical) {
-            auto efunc = [](Data data) {
-                data.system.ints.J = Integral::Coulomb(data.system);
-                data.system.ints.S = Integral::Overlap(data.system);
-                data.system.ints.T = Integral::Kinetic(data.system);
-                data.system.ints.V = Integral::Nuclear(data.system);
-                data = HF(data).rscf(false);
-                data.Jmo = Transform::Coulomb(data.system.ints.J, data.hf.C);
-                return MP(data).mp2(false);
+            auto efunc = [](System system, Data data) {
+                system.ints.J = Integral::Coulomb(system);
+                system.ints.S = Integral::Overlap(system);
+                system.ints.T = Integral::Kinetic(system);
+                system.ints.V = Integral::Nuclear(system);
+                data = HF(data).rscf(system, false);
+                HF::ResultsRestricted rhfres = {data.hf.C, data.hf.D, data.hf.eps, data.hf.E, data.hf.E - Integral::Repulsion(system), Integral::Repulsion(system)};
+                Tensor<4> Jmo = Transform::Coulomb(system.ints.J, data.hf.C);
+                data.mp.Ecorr = MP({rhfres}).mp2(system, Jmo, false).Ecorr;
+                return data;
             };
-            return get(efunc, print);
+            return get(system, efunc, print);
         } else throw std::runtime_error("ANALYTICAL HESSIAN FOR MP2 IS NOT IMPLEMENTED");
     }
 }
 
 template <class M>
-Data Hessian<M>::get(const std::function<Data(Data)>& efunc, bool print) const {
+Data Hessian<M>::get(const System& system, const std::function<Data(System, Data)>& efunc, bool print) const {
     // create the output data and define the gradient and step size
-    Data output = data; Matrix H(3 * data.system.atoms.size(), 3 * data.system.atoms.size()); double step;
+    Data output = data; Matrix H(3 * system.atoms.size(), 3 * system.atoms.size()); double step;
 
     // get the step value according to the method
     if constexpr (std::is_same_v<HF, M>) step = data.hf.freq.step;
@@ -85,23 +87,24 @@ Data Hessian<M>::get(const std::function<Data(Data)>& efunc, bool print) const {
             Timer::Timepoint start = Timer::Now();
 
             // define the direction matrices and temporary systems
+            System sysMinusMinus = system, sysMinusPlus = system, sysPlusMinus = system, sysPlusPlus = system;
             Data dataMinusMinus = data, dataMinusPlus = data, dataPlusMinus = data, dataPlusPlus = data;
-            Matrix dir1(data.system.atoms.size(), 3), dir2(data.system.atoms.size(), 3);
+            Matrix dir1(system.atoms.size(), 3), dir2(system.atoms.size(), 3);
 
             // fill the direction matrices
             dir1(i / 3, i % 3) = step * A2BOHR; dir2(j / 3, j % 3) = step * A2BOHR;
 
             // move the systems
-            dataMinusMinus.system.move(-dir1 - dir2), dataMinusPlus.system.move(-dir1 + dir2);
-            dataPlusMinus.system.move(dir1 - dir2), dataPlusPlus.system.move(dir1 + dir2);
+            sysMinusMinus.move(-dir1 - dir2), sysMinusPlus.move(-dir1 + dir2);
+            sysPlusMinus.move(dir1 - dir2), sysPlusPlus.move(dir1 + dir2);
             dataMinusMinus.hf.D = data.hf.D, dataMinusPlus.hf.D = data.hf.D;
             dataPlusMinus.hf.D = data.hf.D, dataPlusPlus.hf.D = data.hf.D;
 
             // calculate the energies
-            dataMinusMinus = efunc(dataMinusMinus); double energyMinusMinus = dataMinusMinus.hf.E;
-            dataMinusPlus = efunc(dataMinusPlus); double energyMinusPlus = dataMinusPlus.hf.E;
-            dataPlusMinus = efunc(dataPlusMinus); double energyPlusMinus = dataPlusMinus.hf.E;
-            dataPlusPlus = efunc(dataPlusPlus); double energyPlusPlus = dataPlusPlus.hf.E;
+            dataMinusMinus = efunc(sysMinusMinus, dataMinusMinus); double energyMinusMinus = dataMinusMinus.hf.E;
+            dataMinusPlus = efunc(sysMinusPlus, dataMinusPlus); double energyMinusPlus = dataMinusPlus.hf.E;
+            dataPlusMinus = efunc(sysPlusMinus, dataPlusMinus); double energyPlusMinus = dataPlusMinus.hf.E;
+            dataPlusPlus = efunc(sysPlusPlus, dataPlusPlus); double energyPlusPlus = dataPlusPlus.hf.E;
 
             // add the correlation energy if needed
             if constexpr (std::is_same_v<MP, M>) {
