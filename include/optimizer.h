@@ -6,22 +6,21 @@
 template <class M>
 class Optimizer {
 public:
-    struct Options {
+    struct OptionsRestricted {
+        HF::OptionsRestricted rhfopt;
+        Gradient<M>::OptionsRestricted gradopt;
         double thresh;
-    };
-    struct Results {
-        System system; Matrix G;
     };
 public:
     // constructor
-    Optimizer(const Data& data) : data(data) {}
+    Optimizer(const OptionsRestricted& ropt) : ropt(ropt) {}
 
     // methods
-    Results optimize(const System& system, bool print = true) const;
+    System optimize(const System& system, bool print = true) const;
 
 private:
-    Results optimize(const System& system, const std::function<Data(System&, Data)>& egfunc, bool print) const;
+    System optimize(const System& system, const std::function<std::tuple<double, Matrix>(System&)>& egfunc, bool print) const;
 
 private:
-    Data data;
+    OptionsRestricted ropt;
 };

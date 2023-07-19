@@ -12,24 +12,21 @@ private:
     void integrals();
 
     // HF distribution
-    void hfrun(Data& data); void hff(Data& data);
-    void hfg(Data& data); void hfo(Data& data);
+    void hfrun(); void hff();
+    void hfg(); void hfo();
 
     // MP2 distribution
-    void mp2run(Data& data); void mp2f(Data& data);
-    void mp2g(Data& data); void mp2o(Data& data);
+    void mp2run(); void mp2f();
+    void mp2g(); void mp2o();
 
 private:
     std::vector<std::string> print, ciprint, hfprint, mp2print;
     argparse::ArgumentParser program, hf, ci, mp2;
     Timer::Timepoint start;
 
-    Optimizer<HF>::Options opthfopt; Optimizer<HF>::Results opthfres;
-    Optimizer<MP>::Options optmpopt; Optimizer<MP>::Results optmpres;
-    Gradient<HF>::Options gradhfopt; Gradient<HF>::Results gradhfres;
-    Gradient<MP>::Options gradmpopt; Gradient<MP>::Results gradmpres;
-    Hessian<HF>::Options hesshfopt; Hessian<HF>::Results hesshfres;
-    Hessian<MP>::Options hessmpopt; Hessian<MP>::Results hessmpres;
+    Optimizer<HF>::OptionsRestricted opthfopt; Optimizer<MP>::OptionsRestricted optmpopt;
+    Gradient<HF>::OptionsRestricted gradhfopt; Gradient<MP>::OptionsRestricted gradmpopt;
+    Hessian<HF>::OptionsRestricted hesshfopt; Hessian<MP>::OptionsRestricted hessmpopt;
     CI::OptionsRestricted rciopt; CI::ResultsRestricted rcires;
     HF::OptionsRestricted rhfopt; HF::ResultsRestricted rhfres;
     MP::OptionsRestricted rmpopt; MP::ResultsRestricted rmpres;

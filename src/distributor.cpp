@@ -80,17 +80,13 @@ Distributor::~Distributor() {
     std::cout << std::string(104, '-') << std::endl;
 }
 
-
 void Distributor::run() {
-    // initialize the system and create the guess density matrix
-    Data data; system = System(program.get("-f"), program.get("-b"), program.get<int>("-c"), 1);
-    data.hf.D = Matrix::Zero(system.shells.nbf(), system.shells.nbf());
+    // initialize the system and extract flags
+    system = System(program.get("-f"), program.get("-b"), program.get<int>("-c"), 1);
+    print = program.get<std::vector<std::string>>("-p");
 
     // check if unrestricted calculation needed
     if (system.charge % 2) throw std::runtime_error("SPIN UNRESTRICTED CALCULATIONS ARE NOT SUPPORTED YET");
-
-    // extract printing and flag options
-    print = program.get<std::vector<std::string>>("-p"), data.nocoulomb = program.get<bool>("--no-coulomb");
 
     // print the title with number of threads
     std::cout << "QUANTUM HAZEL" << std::endl;
@@ -123,34 +119,34 @@ void Distributor::run() {
         hfprint = hf.get<std::vector<std::string>>("-p");
 
         // scf options
-        data.hf.diis = {hf.get<std::vector<int>>("-d").at(0), hf.get<std::vector<int>>("-d").at(1)};
-        data.hf.maxiter = hf.get<int>("-m"), data.hf.thresh = hf.get<double>("-t");
+        rhfopt.diis = {hf.get<std::vector<int>>("-d").at(0), hf.get<std::vector<int>>("-d").at(1)};
+        rhfopt.maxiter = hf.get<int>("-m"), rhfopt.thresh = hf.get<double>("-t");
 
         // gradient options
-        data.hf.grad.numerical = hf.get<std::vector<double>>("-g").at(0);
-        data.hf.grad.step = hf.get<std::vector<double>>("-g").at(1);
+        gradhfopt.numerical = hf.get<std::vector<double>>("-g").at(0);
+        gradhfopt.step = hf.get<std::vector<double>>("-g").at(1);
 
         // frequency options
-        data.hf.freq.numerical = hf.get<std::vector<double>>("-f").at(0);
-        data.hf.freq.step = hf.get<std::vector<double>>("-f").at(1);
+        hesshfopt.numerical = hf.get<std::vector<double>>("-f").at(0);
+        hesshfopt.step = hf.get<std::vector<double>>("-f").at(1);
 
         // optimization options
-        data.hf.opt.thresh = hf.get<double>("-o");
+        opthfopt.thresh = hf.get<double>("-o");
 
         if (hf.is_subcommand_used("mp2")) {
             // printing options
             mp2print = mp2.get<std::vector<std::string>>("-p");
 
             // gradient options
-            data.mp.grad.numerical = mp2.get<std::vector<double>>("-g").at(0);
-            data.mp.grad.step = mp2.get<std::vector<double>>("-g").at(1);
+            gradmpopt.numerical = mp2.get<std::vector<double>>("-g").at(0);
+            gradmpopt.step = mp2.get<std::vector<double>>("-g").at(1);
 
             // frequency options
-            data.mp.freq.numerical = mp2.get<std::vector<double>>("-f").at(0);
-            data.mp.freq.step = mp2.get<std::vector<double>>("-g").at(1);
+            gradmpopt.numerical = mp2.get<std::vector<double>>("-f").at(0);
+            gradmpopt.step = mp2.get<std::vector<double>>("-g").at(1);
 
             // optimization options
-            data.mp.opt.thresh = mp2.get<double>("-o");
+            optmpopt.thresh = mp2.get<double>("-o");
 
         } else if (hf.is_subcommand_used("ci")) {
             // printing options
@@ -168,34 +164,33 @@ void Distributor::run() {
     integrals();
 
     // distribute the calculations
-    if (program.is_subcommand_used("hf")) hfrun(data);
+    if (program.is_subcommand_used("hf")) hfrun();
 }
 
-void Distributor::hfrun(Data& data) {
+void Distributor::hfrun() {
     // optimize the gradient
-    if (hf.is_used("-o")) hfo(data);
+    if (hf.is_used("-o")) hfo();
 
     // print the RHF method header
     std::cout << "\n" + std::string(104, '-') + "\nRESTRICTED HARTREE-FOCK METHOD\n" << std::string(104, '-') + "\n\n";
-    std::printf("-- MAXITER: %d, THRESH: %.2e\n-- DIIS: [START: %d, KEEP: %d]\n", data.hf.maxiter, data.hf.thresh, data.hf.diis.start, data.hf.diis.keep);
+    std::printf("-- MAXITER: %d, THRESH: %.2e\n-- DIIS: [START: %d, KEEP: %d]\n", rhfopt.maxiter, rhfopt.thresh, rhfopt.diis.start, rhfopt.diis.keep);
 
     // perform the Hartree-Fock calculation
-    data = HF(data).rscf(system);
-    rhfres = {data.hf.C, data.hf.D, data.hf.eps, data.hf.E, data.hf.E - Integral::Repulsion(system), Integral::Repulsion(system)};
+    rhfres = HF(rhfopt).rscf(system, Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
 
     // print the resulting matrices and energies
-    if (CONTAINS(hfprint, "eps") || CONTAINS(print, "all")) std::cout << "\nORBITAL ENERGIES\n" << Matrix(data.hf.eps) << std::endl;
-    if (CONTAINS(hfprint, "c") || CONTAINS(print, "all")) std::cout << "\nCOEFFICIENT MATRIX\n" << data.hf.C << std::endl;
-    if (CONTAINS(hfprint, "d") || CONTAINS(print, "all")) std::cout << "\nDENSITY MATRIX\n" << data.hf.D << std::endl;
+    if (CONTAINS(hfprint, "eps") || CONTAINS(print, "all")) std::cout << "\nORBITAL ENERGIES\n" << Matrix(rhfres.eps) << std::endl;
+    if (CONTAINS(hfprint, "c") || CONTAINS(print, "all")) std::cout << "\nCOEFFICIENT MATRIX\n" << rhfres.C << std::endl;
+    if (CONTAINS(hfprint, "d") || CONTAINS(print, "all")) std::cout << "\nDENSITY MATRIX\n" << rhfres.D << std::endl;
     std::cout << "\nTOTAL NUCLEAR REPULSION ENERGY: " << Integral::Repulsion(system) << std::endl;
-    std::cout << "FINAL HARTREE-FOCK ENERGY: " << data.hf.E << std::endl;
+    std::cout << "FINAL HARTREE-FOCK ENERGY: " << rhfres.E << std::endl;
 
     // gradient and hessian frequency
-    if (hf.is_used("-g")) hfg(data);
-    if (hf.is_used("-f")) hff(data);
+    if (hf.is_used("-g")) hfg();
+    if (hf.is_used("-f")) hff();
 
     // calculate the MP2 correlation;
-    if (hf.is_subcommand_used("mp2")) mp2run(data);
+    if (hf.is_subcommand_used("mp2")) mp2run();
 
     // calculate CI correlation
     if (hf.is_subcommand_used("ci")) {
@@ -221,65 +216,60 @@ void Distributor::hfrun(Data& data) {
     }
 }
 
-void Distributor::hff(Data& data) {
+void Distributor::hff() {
     // print the hessian header
-    if (data.hf.freq.numerical) std::cout << "\n" + std::string(104, '-') + "\nNUMERICAL HESSIAN FOR RESTRICTED HARTREE-FOCK\n";
+    if (hesshfopt.numerical) std::cout << "\n" + std::string(104, '-') + "\nNUMERICAL HESSIAN FOR RESTRICTED HARTREE-FOCK\n";
     else std::cout << "\n" + std::string(104, '-') + "\nANALYTICAL HESSIAN FOR RESTRICTED HARTREE-FOCK\n";
     std::cout << std::string(104, '-') + "\n\n";
 
-    // perform the hessian calculation
-    data = Hessian<HF>(data).get(system);
+    // perform the frequency calculation
+    auto[H, freq] = Hessian<HF>({rhfopt, rhfres, hf.get<std::vector<double>>("-f").at(0) == 1, hf.get<std::vector<double>>("-f").at(1)}).frequency(system);
 
     // print the hessian results
-    std::cout << "NUCLEAR HESSIAN\n" << data.hf.freq.H << "\n\nHESSIAN NORM: ";
-    std::printf("%.2e\n", data.hf.freq.H.norm());
-
-    // perform the frequency calculation
-    data = Hessian<HF>(data).frequency(system);
+    std::cout << "NUCLEAR HESSIAN\n" << H << "\n\nHESSIAN NORM: "; std::printf("%.2e\n", H.norm());
 
     // print the frequency reslts
     std::cout << "\n" + std::string(104, '-') + "\nHARTREE-FOCK FREQUENCY ANALYSIS\n" << std::string(104, '-');
-    std::cout << "\n\nVIBRATIONAL FREQUENCIES\n" << Matrix(data.hf.freq.freq) << std::endl;
+    std::cout << "\n\nVIBRATIONAL FREQUENCIES\n" << Matrix(freq) << std::endl;
 }
 
-void Distributor::hfg(Data& data) {
+void Distributor::hfg() {
     // print the header
-    if (data.hf.grad.numerical) std::cout << "\n" + std::string(104, '-') + "\nNUMERICAL GRADIENT FOR RESTRICTED HARTREE-FOCK\n";
+    if (gradhfopt.numerical) std::cout << "\n" + std::string(104, '-') + "\nNUMERICAL GRADIENT FOR RESTRICTED HARTREE-FOCK\n";
     else std::cout << "\n" + std::string(104, '-') + "\nANALYTICAL GRADIENT FOR RESTRICTED HARTREE-FOCK\n";
     std::cout << std::string(104, '-') + "\n\n"; 
 
     // calculate the gradient
-    if (!hf.is_used("-o")) data = Gradient<HF>(data).get(system);
+    Matrix G = Gradient<HF>({rhfopt, rhfres, hf.get<std::vector<double>>("-g").at(0) == 1, hf.get<std::vector<double>>("-g").at(1)}).get(system);
 
     // print the results
-    std::cout << data.hf.grad.G << "\n\nGRADIENT NORM: ";
-    std::printf("%.2e\n", data.hf.grad.G.norm());
+    std::cout << G << "\n\nGRADIENT NORM: ";
+    std::printf("%.2e\n", G.norm());
 }
 
-void Distributor::hfo(Data& data) {
+void Distributor::hfo() {
     // print the header
     std::cout << "\n" + std::string(104, '-') + "\nRESTRICTED HARTREE-FOCK OPTIMIZATION\n" << std::string(104, '-') + "\n\n";
 
     // perform the optimization
-    opthfres = Optimizer<HF>(data).optimize(system);
-    system = opthfres.system, data.hf.grad.G = opthfres.G;
-    // integrals();
+    Gradient<HF>::OptionsRestricted gradrhfopt = {rhfopt, rhfres, hf.get<std::vector<double>>("-g").at(0) == 1, hf.get<std::vector<double>>("-g").at(1)};
+    system = Optimizer<HF>({rhfopt, gradrhfopt, hf.get<double>("-o")}).optimize(system);
 
     // print the results
     std::cout << "\nOPTIMIZED SYSTEM COORDINATES\n" << system.coords << std::endl; 
     if (CONTAINS(print, "dist") || CONTAINS(print, "all")) std::cout << "\nOPTIMIZED DISTANCE MATRIX\n" << system.dists << std::endl;
 }
 
-void Distributor::mp2run(Data& data) {
+void Distributor::mp2run() {
     // optimize the molecule with MP2 method
-    if (mp2.is_used("-o")) mp2o(data), data = HF(data).rscf(system, false);
+    if (mp2.is_used("-o")) mp2o();
 
     // print the MP2 correlation method header
     std::cout << "\n" + std::string(104, '-') + "\nRESTRICTED MP2 CORRELATION ENERGY\n" << std::string(104, '-') + "\n"; Tensor<4> Jmo;
 
     // transform the coulomb tensor
     std::cout << "\nCOULOMB TENSOR IN MO BASIS: " << std::flush; TIME(Jmo = Transform::Coulomb(system.ints.J, rhfres.C))
-    if (CONTAINS(mp2print, "jmo") || CONTAINS(print, "all")) {std::cout << "\n" << data.Jmo;} std::cout << "\n";
+    if (CONTAINS(mp2print, "jmo") || CONTAINS(print, "all")) {std::cout << "\n" << Jmo;} std::cout << "\n";
 
     // do the MP2 calculation
     rmpres = MP({rhfres}).mp2(system, Jmo);
@@ -289,51 +279,46 @@ void Distributor::mp2run(Data& data) {
     std::cout << "MP2 ENERGY: " << rhfres.E + rmpres.Ecorr << std::endl;
 
     // calculate the MP2 nuclear gradient
-    if (mp2.is_used("-g")) mp2g(data);
-    if (mp2.is_used("-f")) mp2f(data);
+    if (mp2.is_used("-g")) mp2g();
+    if (mp2.is_used("-f")) mp2f();
 }
 
-void Distributor::mp2f(Data& data) {
+void Distributor::mp2f() {
     // print the frequency calculation header
-    if (data.mp.freq.numerical) std::cout << "\n" + std::string(104, '-') + "\nNUMERICAL HESSIAN FOR RESTRICTED MP2 METHOD\n";
+    if (hessmpopt.numerical) std::cout << "\n" + std::string(104, '-') + "\nNUMERICAL HESSIAN FOR RESTRICTED MP2 METHOD\n";
     else std::cout << "\n" + std::string(104, '-') + "\nANALYTICAL HESSIAN FOR RESTRICTED MP2 METHOD\n";
     std::cout << std::string(104, '-') + "\n\n";
 
     // perform the hessian calculation
-    data = Hessian<MP>(data).get(system);
+    auto[H, freq] = Hessian<MP>({rhfopt, rhfres, mp2.get<std::vector<double>>("-f").at(0) == 1, mp2.get<std::vector<double>>("-f").at(1)}).frequency(system);
 
     // print the hessian resuls
-    std::cout << "NUCLEAR HESSIAN\n" << data.mp.freq.H << "\n\nHESSIAN NORM: "; std::printf("%.2e\n", data.mp.freq.H.norm());
-
-    // perform the frequency calculation
-    data = Hessian<MP>(data).frequency(system);
+    std::cout << "NUCLEAR HESSIAN\n" << H << "\n\nHESSIAN NORM: "; std::printf("%.2e\n", H.norm());
 
     // print the frequency analysis results
     std::cout << "\n" + std::string(104, '-') + "\nRESTRICTED MP2 FREQUENCY ANALYSIS\n" << std::string(104, '-') + "\n";
-    std::cout << "\nVIBRATIONAL FREQUENCIES\n" << Matrix(data.mp.freq.freq) << std::endl;
+    std::cout << "\nVIBRATIONAL FREQUENCIES\n" << Matrix(freq) << std::endl;
 }
 
-void Distributor::mp2g(Data& data) {
+void Distributor::mp2g() {
     // print the MP2 gradient method header and perform the calculation
-    if (data.mp.grad.numerical) std::cout << "\n" + std::string(104, '-') + "\nNUMERICAL GRADIENT FOR RESTRICTED MP2 METHOD\n" << std::string(104, '-') << "\n\n";
+    if (gradmpopt.numerical) std::cout << "\n" + std::string(104, '-') + "\nNUMERICAL GRADIENT FOR RESTRICTED MP2 METHOD\n" << std::string(104, '-') << "\n\n";
     else std::cout << "\n" + std::string(104, '-') + "\nANALYTICAL GRADIENT FOR RESTRICTED MP2 METHOD\n" << std::string(104, '-') << "\n\n";
 
     // perform the calculation
-    if (!mp2.is_used("-o")) data = Gradient<MP>(data).get(system);
+    Matrix G = Gradient<MP>({rhfopt, rhfres, mp2.get<std::vector<double>>("-g").at(0) == 1, mp2.get<std::vector<double>>("-g").at(1)}).get(system);
 
     // print the gradient results
-    std::cout << data.mp.grad.G << "\n\nGRADIENT NORM: ";
-    std::printf("%.2e\n", data.mp.grad.G.norm());
+    std::cout << G << "\n\nGRADIENT NORM: "; std::printf("%.2e\n", G.norm());
 }
 
-void Distributor::mp2o(Data& data) {
+void Distributor::mp2o() {
     // print the MP2 optimization method header and optimize the molecule
     std::cout << "\n" + std::string(104, '-') + "\nRESTRICTED MP2 OPTIMIZATION\n" << std::string(104, '-') << "\n\n";
 
     // perform the optimization
-    optmpres = Optimizer<MP>(data).optimize(system);
-    system = optmpres.system, data.mp.grad.G = optmpres.G;
-    // integrals();
+    Gradient<MP>::OptionsRestricted gradrmpopt = {rhfopt, rhfres, mp2.get<std::vector<double>>("-g").at(0) == 1, mp2.get<std::vector<double>>("-g").at(1)};
+    system = Optimizer<MP>({rhfopt, gradrmpopt, mp2.get<double>("-o")}).optimize(system);
 
     // print the optimization results
     std::cout << "\nOPTIMIZED SYSTEM COORDINATES\n" << system.coords << std::endl;

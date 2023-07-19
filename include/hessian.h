@@ -7,23 +7,25 @@
 template <class M>
 class Hessian {
 public:
-    struct Options {
+    struct OptionsRestricted {
+        HF::OptionsRestricted rhfopt;
+        HF::ResultsRestricted rhfres;
         bool numerical; double step;
-    };
-    struct Results {
-        Matrix H; Vector freq;
     };
 public:
     // constructor
-    Hessian(const Data& data) : data(data) {}
+    Hessian(const OptionsRestricted& ropt) : ropt(ropt) {}
 
     // methods
-    Data frequency(const System& system, bool print = true) const;
-    Data get(const System& system, bool print = true) const;
+    std::tuple<Matrix, Vector> frequency(const System& system, bool print = true) const;
 
 private:
-    Data get(const System& system, const std::function<Data(System, Data)>& efunc, bool print) const;
+    // general function
+    Matrix get(const System& system, bool print = true) const;
+
+    // specialized functions
+    Matrix get(const System& system, const std::function<double(System)>& efunc, bool print) const;
 
 private:
-    Data data;
+    OptionsRestricted ropt;
 };

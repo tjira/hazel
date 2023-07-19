@@ -7,23 +7,22 @@
 template <class M>
 class Gradient {
 public:
-    struct Options {
+    struct OptionsRestricted {
+        HF::OptionsRestricted rhfopt;
+        HF::ResultsRestricted rhfres;
         bool numerical; double step;
-    };
-    struct Results {
-        Matrix G;
     };
 public:
     // constructor
-    Gradient(const Data& data);
+    Gradient(const OptionsRestricted& ropt) : ropt(ropt) {}
 
     // methods
-    Data get(const System& system, bool print = true) const;
+    Matrix get(const System& system, bool print = true) const;
 
 private:
-    Data get(const System& system, const std::function<Data(System, Data)>& efunc, bool print) const;
-    Data getHF(const System& system, bool print) const;
+    Matrix get(const System& system, const std::function<double(System)>& efunc, bool print) const;
+    Matrix getHF(const System& system, bool print) const;
 
 private:
-    Data data;
+    OptionsRestricted ropt;
 };

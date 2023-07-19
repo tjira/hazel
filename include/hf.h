@@ -14,11 +14,11 @@ public:
     };
 public:
     // constructor
-    HF(const Data& data);
+    HF(const OptionsRestricted& ropt) : ropt(ropt) {}
 
     // methods
-    Data rscf(const System& system, bool print = true) const;
+    ResultsRestricted rscf(const System& system, Matrix D, bool print = true) const;
 
 private:
-    Data data;
+    OptionsRestricted ropt;
 };
