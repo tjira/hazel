@@ -1,6 +1,7 @@
 #pragma once
 
-#include "data.h"
+#include "integral.h"
+#include "system.h"
 
 class HF {
 public:

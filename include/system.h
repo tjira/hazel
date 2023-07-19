@@ -1,6 +1,7 @@
 #pragma once
 
 #include "eigen.h"
+#include "timer.h"
 
 inline std::unordered_map<int, double> masses = {
     {1, 1.0078400},

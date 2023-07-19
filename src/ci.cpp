@@ -8,10 +8,10 @@ CI::ResultsRestricted CI::cid(const System& system, const Tensor<4>& Jmo, bool) 
     Matrix H(1 * nocc * nvirt + 1, 1 * nocc * nvirt + 1); H(0, 0) = ropt.rhfres.Eel;
 
     // fill the singlet double excitations
-    for (size_t i = 0; i < nocc; i++) {
-        for (size_t a = 0; a < nvirt; a++) {
-            for (size_t j = 0; j < nocc; j++) {
-                for (size_t b = 0; b < nvirt; b++) {
+    for (int i = 0; i < nocc; i++) {
+        for (int a = 0; a < nvirt; a++) {
+            for (int j = 0; j < nocc; j++) {
+                for (int b = 0; b < nvirt; b++) {
                     // fill the double-double elements
                     H(i * nvirt + a + 1, j * nvirt + b + 1) = Jmo(nocc + b, nocc + a, nocc + a, nocc + b);
 
@@ -42,10 +42,10 @@ CI::ResultsRestricted CI::cis(const System& system, const Tensor<4>& Jmo, bool) 
     Matrix H(2 * nocc * nvirt + 1, 2 * nocc * nvirt + 1); H(0, 0) = ropt.rhfres.Eel;
 
     // fill the singlet singles in CI Hamiltonian
-    for (size_t i = 0; i < nocc; i++) {
-        for (size_t a = 0; a < nvirt; a++) {
-            for (size_t j = 0; j < nocc; j++) {
-                for (size_t b = 0; b < nvirt; b++) {
+    for (int i = 0; i < nocc; i++) {
+        for (int a = 0; a < nvirt; a++) {
+            for (int j = 0; j < nocc; j++) {
+                for (int b = 0; b < nvirt; b++) {
                     // fill the non-diagonal elements
                     H(i * nvirt + a + 1, j * nvirt + b + 1) = 2 * Jmo(i, nocc + a, j, nocc + b) - Jmo(i, j, nocc + a, nocc + b);
                 }
@@ -56,10 +56,10 @@ CI::ResultsRestricted CI::cis(const System& system, const Tensor<4>& Jmo, bool) 
     }
 
     // fill the triplet singles in CI Hamiltonian
-    for (size_t i = 0; i < nocc; i++) {
-        for (size_t a = 0; a < nvirt; a++) {
-            for (size_t j = 0; j < nocc; j++) {
-                for (size_t b = 0; b < nvirt; b++) {
+    for (int i = 0; i < nocc; i++) {
+        for (int a = 0; a < nvirt; a++) {
+            for (int j = 0; j < nocc; j++) {
+                for (int b = 0; b < nvirt; b++) {
                     // fill the non-diagonal elements
                     H(nocc * nvirt + i * nvirt + a + 1,nocc * nvirt +  j * nvirt + b + 1) -= Jmo(i, j, nocc + a, nocc + b);
                 }
