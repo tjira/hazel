@@ -13,6 +13,12 @@ std::string Timer::Format(long ms) {
     return ss.str();
 }
 
+std::string Timer::Local() {
+    auto t = std::time(nullptr); auto tm = *std::localtime(&t);
+    std::stringstream ss; ss << std::put_time(&tm, "%a %b %e %T %Y");
+    return ss.str();
+}
+
 Timer::Timepoint Timer::Now() {
     return std::chrono::high_resolution_clock().now();
 };

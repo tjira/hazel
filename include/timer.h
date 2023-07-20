@@ -11,6 +11,7 @@ namespace Timer {
 
     // getters
     long Elapsed(Timepoint start);
+    std::string Local();
     Timepoint Now();
 
     // utilities

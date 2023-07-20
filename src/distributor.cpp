@@ -1,10 +1,7 @@
 #include "distributor.h"
 
-#define LOCALTIME [](){auto t = std::time(nullptr); auto tm = *std::localtime(&t); std::stringstream ss; ss << std::put_time(&tm, "%a %b %e %T %Y"); return ss.str();}()
 #define CONTAINS(V, E) ([](std::vector<std::string> v, std::string e){return std::find(v.begin(), v.end(), e) != v.end();}(V, E))
 #define TIME(W) {Timer::Timepoint start = Timer::Now(); W; std::cout << Timer::Format(Timer::Elapsed(start)) << std::flush;}
-#define ZERO Matrix::Zero(system.shells.nbf(), system.shells.nbf())
-#define UNAME [](){utsname unr; uname(&unr); return unr;}()
 
 Distributor::Distributor(int argc, char** argv) : program("hazel", "0.1", argparse::default_arguments::none), start(Timer::Now()) {
     // initialize subcommands
@@ -20,6 +17,7 @@ Distributor::Distributor(int argc, char** argv) : program("hazel", "0.1", argpar
     program.add_argument("-p", "--print").help("-- Printing options.").default_value<std::vector<std::string>>({}).append();
     program.add_argument("--no-center").help("-- Disable the molecule centering.").default_value(false).implicit_value(true);
     program.add_argument("--no-coulomb").help("-- Disable calculation of the coulomb tensor.").default_value(false).implicit_value(true);
+    program.add_argument("--show-bases").help("-- Print all the available bases.").default_value(false).implicit_value(true);
 
     // add positional arguments to the HF argument parser
     hf.add_argument("-d", "--diis").help("-- Start iteration and history length for DIIS algorithm.").default_value(std::vector<int>{3, 5}).nargs(2).scan<'i', int>();
@@ -64,6 +62,14 @@ Distributor::Distributor(int argc, char** argv) : program("hazel", "0.1", argpar
         std::cout << ci.help().str(); exit(EXIT_SUCCESS);
     }
 
+    // print all tha available bases if requested
+    if (program.get<bool>("--show-bases")) {
+        for (const auto& file : std::filesystem::directory_iterator(std::string(DATADIR) + "/basis")) {
+            if (file.path().filename() != "basis.sh") std::cout << file.path().filename().replace_extension().c_str() << std::endl;
+        }
+        exit(EXIT_SUCCESS);
+    }
+
     // set the path to the basis functions
     if (!std::filesystem::is_directory(std::string(DATADIR) + "/basis")) {
         std::string path = std::filesystem::weakly_canonical(std::filesystem::path(argv[0])).parent_path();
@@ -94,8 +100,8 @@ void Distributor::run() {
 
     // print the general info block
     std::cout << "\n" + std::string(104, '-') + "\nGENERAL INFO\n" << std::string(104, '-') + "\n\n";
-    std::printf("COMPILATION TIMESTAMP: %s\nEXECUTION TIMESTAMP: %s\n", __TIMESTAMP__, LOCALTIME.c_str());
-    std::printf("\nCOMPILER VERSION AND FLAGS: MACHINE %s, GCC %d.%d.%d (%s)", UNAME.machine, __GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__, CXXFLAGS);
+    std::printf("COMPILATION TIMESTAMP: %s\nEXECUTION TIMESTAMP: %s\n", __TIMESTAMP__, Timer::Local().c_str());
+    std::printf("\nCOMPILER VERSION AND FLAGS: MACHINE %s, GCC %d.%d.%d (%s)", []{utsname unr; uname(&unr); return unr;}().machine, __GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__, CXXFLAGS);
     std::printf("\nLIBRARIES: EIGEN %d.%d.%d, LIBINT %d.%d.%d, LIBXC %s\n", EIGEN_WORLD_VERSION, EIGEN_MAJOR_VERSION, EIGEN_MINOR_VERSION, LIBINT_MAJOR_VERSION, LIBINT_MINOR_VERSION, LIBINT_MICRO_VERSION, XC_VERSION);
     std::printf("\nAVAILABLE CORES: %d\nUSED THREADS: %d\n", std::thread::hardware_concurrency(), nthread);
 
@@ -180,7 +186,7 @@ void Distributor::rhfrun() {
     std::printf("-- MAXITER: %d, THRESH: %.2e\n-- DIIS: [START: %d, KEEP: %d]\n", rhfopt.maxiter, rhfopt.thresh, rhfopt.diis.start, rhfopt.diis.keep);
 
     // perform the RHF calculation
-    rhfres = HF(rhfopt).rscf(system, ZERO);
+    rhfres = HF(rhfopt).rscf(system, Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
 
     // print the resulting RHF matrices and energies
     if (CONTAINS(hfprint, "eps") || CONTAINS(print, "all")) std::cout << "\nORBITAL ENERGIES\n" << Matrix(rhfres.eps) << std::endl;
@@ -254,7 +260,7 @@ void Distributor::rhfo() {
     // define energy-gradient function
     auto egfunc = [this, efunc](System& system) {
         // delete the calculated integrals and recalculate Hartree-Fock
-        HF::ResultsRestricted rhfres = HF(rhfopt).rscf(system.clearints(), ZERO, false);
+        HF::ResultsRestricted rhfres = HF(rhfopt).rscf(system.clearints(), Matrix::Zero(system.shells.nbf(), system.shells.nbf()), false);
 
         // calculate the numerical or analytical gradient
         if (hf.get<std::vector<double>>("-g").at(0)) return std::tuple{rhfres.E, Gradient({hf.get<std::vector<double>>("-g").at(1)}).get(system, efunc, false)};
@@ -339,14 +345,14 @@ void Distributor::rmp2o() {
 
     // define the energy function for numerical gradient
     auto efunc = [this](System system) {
-        HF::ResultsRestricted rhfres = HF(rhfopt).rscf(system.clearints(), ZERO, false);
+        HF::ResultsRestricted rhfres = HF(rhfopt).rscf(system.clearints(), Matrix::Zero(system.shells.nbf(), system.shells.nbf()), false);
         return rhfres.E + MP({rhfres}).rmp2(system, Tensor<4>(), false);
     };
 
     // define the energy-gradient function
     auto egfunc = [this, efunc](System& system) {
         // delete the calculated integrals and recalculate Hartree-Fock
-        HF::ResultsRestricted rhfres = HF(rhfopt).rscf(system.clearints(), ZERO, false);
+        HF::ResultsRestricted rhfres = HF(rhfopt).rscf(system.clearints(), Matrix::Zero(system.shells.nbf(), system.shells.nbf()), false);
 
         // calculate the MP2 gradient and energy
         Matrix G = Gradient({mp2.get<std::vector<double>>("-g").at(1)}).get(system, efunc, false);
