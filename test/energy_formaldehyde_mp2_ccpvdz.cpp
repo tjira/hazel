@@ -20,8 +20,8 @@ int test_energy_formaldehyde_mp2_ccpvdz(int, char**) {
 
     // print the results
     std::cout << std::fixed << std::setprecision(14) << "COMPUTED ENERGY: " << rhfres.E + Ecorr << std::endl;
-    std::cout << std::fixed << std::setprecision(14) << "EXPECTED ENERGY: " << -114.19754586038205 << std::endl;
+    std::cout << std::fixed << std::setprecision(14) << "EXPECTED ENERGY: " << -114.19754586038211 << std::endl;
 
     // return success or failure based on the error
-    return std::abs(rhfres.E + Ecorr - -114.19754586038205) > 1e-8;
+    return std::abs(rhfres.E + Ecorr - -114.19754586038211) > 1e-8;
 }

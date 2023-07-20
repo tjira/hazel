@@ -17,8 +17,8 @@ int test_energy_methane_hf_sto3g(int, char**) {
 
     // print the results
     std::cout << std::fixed << std::setprecision(14) << "COMPUTED ENERGY: " << rhfres.E << std::endl;
-    std::cout << std::fixed << std::setprecision(14) << "EXPECTED ENERGY: " << -39.72686367740145 << std::endl;
+    std::cout << std::fixed << std::setprecision(14) << "EXPECTED ENERGY: " << -39.72686367740141 << std::endl;
 
     // return success or failure based on the error
-    return std::abs(rhfres.E - -39.72686367740145) > 1e-8;
+    return std::abs(rhfres.E - -39.72686367740141) > 1e-8;
 }

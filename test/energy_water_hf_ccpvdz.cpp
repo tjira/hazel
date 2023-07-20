@@ -17,8 +17,8 @@ int test_energy_water_hf_ccpvdz(int, char**) {
 
     // print the results
     std::cout << std::fixed << std::setprecision(14) << "COMPUTED ENERGY: " << rhfres.E << std::endl;
-    std::cout << std::fixed << std::setprecision(14) << "EXPECTED ENERGY: " << -76.02312305534630 << std::endl;
+    std::cout << std::fixed << std::setprecision(14) << "EXPECTED ENERGY: " << -76.02312305534628 << std::endl;
 
     // return success or failure based on the error
-    return std::abs(rhfres.E - -76.02312305534630) > 1e-8;
+    return std::abs(rhfres.E - -76.02312305534628) > 1e-8;
 }

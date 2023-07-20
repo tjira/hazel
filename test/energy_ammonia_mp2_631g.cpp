@@ -20,8 +20,8 @@ int test_energy_ammonia_mp2_631g(int, char**) {
 
     // print the results
     std::cout << std::fixed << std::setprecision(14) << "COMPUTED ENERGY: " << rhfres.E + Ecorr << std::endl;
-    std::cout << std::fixed << std::setprecision(14) << "EXPECTED ENERGY: " << -56.27598095149965 << std::endl;
+    std::cout << std::fixed << std::setprecision(14) << "EXPECTED ENERGY: " << -56.27598095149967 << std::endl;
 
     // return success or failure based on the error
-    return std::abs(rhfres.E + Ecorr - -56.27598095149965) > 1e-8;
+    return std::abs(rhfres.E + Ecorr - -56.27598095149967) > 1e-8;
 }

@@ -17,8 +17,8 @@ int test_energy_water_hf_sto3g(int, char**) {
 
     // print the results
     std::cout << std::fixed << std::setprecision(14) << "COMPUTED ENERGY: " << rhfres.E << std::endl;
-    std::cout << std::fixed << std::setprecision(14) << "EXPECTED ENERGY: " << -74.96590121731511 << std::endl;
+    std::cout << std::fixed << std::setprecision(14) << "EXPECTED ENERGY: " << -74.96590121731514 << std::endl;
 
     // return success or failure based on the error
-    return std::abs(rhfres.E - -74.96590121731511) > 1e-8;
+    return std::abs(rhfres.E - -74.96590121731514) > 1e-8;
 }

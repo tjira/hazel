@@ -3,7 +3,7 @@
 SYSTEMS=("ammonia" "ethane" "ethylene" "formaldehyde" "methane" "water")
 BASES=("mini" "3-21g" "sto-3g" "6-31g" "6-31g*" "cc-pvdz")
 
-CORES=16
+CORES=64
 
 # Hartree-Fock
 for SYSTEM in "${SYSTEMS[@]}"; do

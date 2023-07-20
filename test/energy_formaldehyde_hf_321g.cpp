@@ -17,8 +17,8 @@ int test_energy_formaldehyde_hf_321g(int, char**) {
 
     // print the results
     std::cout << std::fixed << std::setprecision(14) << "COMPUTED ENERGY: " << rhfres.E << std::endl;
-    std::cout << std::fixed << std::setprecision(14) << "EXPECTED ENERGY: " << -113.22119680543560 << std::endl;
+    std::cout << std::fixed << std::setprecision(14) << "EXPECTED ENERGY: " << -113.22119680543565 << std::endl;
 
     // return success or failure based on the error
-    return std::abs(rhfres.E - -113.22119680543560) > 1e-8;
+    return std::abs(rhfres.E - -113.22119680543565) > 1e-8;
 }

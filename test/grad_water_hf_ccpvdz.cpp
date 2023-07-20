@@ -17,7 +17,7 @@ int test_grad_water_hf_ccpvdz(int, char**) {
     libint2::finalize();
 
     // create the expectation gradient
-    Matrix Gexp(system.atoms.size(), 3); Gexp << -0.05407514741733, -0.01873523524766, -0.02162753164509, 0.03202849803628, -0.01656203979787, 0.02079435456153, 0.02204664938103, 0.03529727504556, 0.00083317708357;
+    Matrix Gexp(system.atoms.size(), 3); Gexp << -0.05407514741736, -0.01873523524749, -0.02162753164505, 0.03202849803628, -0.01656203979787, 0.02079435456153, 0.02204664938103, 0.03529727504555, 0.00083317708357;
 
     // print the results
     std::cout << std::fixed << std::setprecision(14) << "COMPUTED GRADIENT: " << G << std::endl;

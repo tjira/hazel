@@ -17,7 +17,7 @@ int test_grad_water_hf_321g(int, char**) {
     libint2::finalize();
 
     // create the expectation gradient
-    Matrix Gexp(system.atoms.size(), 3); Gexp << -0.03508825565899, -0.01215729813484, -0.01403355041804, 0.01817317883600, 0.00280859395850, 0.00827526909125, 0.01691507682299, 0.00934870417633, 0.00575828132678;
+    Matrix Gexp(system.atoms.size(), 3); Gexp << -0.03508825565802, -0.01215729813466, -0.01403355041790, 0.01817317883601, 0.00280859395850, 0.00827526909126, 0.01691507682300, 0.00934870417633, 0.00575828132678;
 
     // print the results
     std::cout << std::fixed << std::setprecision(14) << "COMPUTED GRADIENT: " << G << std::endl;

@@ -20,8 +20,8 @@ int test_energy_methane_mp2_631g(int, char**) {
 
     // print the results
     std::cout << std::fixed << std::setprecision(14) << "COMPUTED ENERGY: " << rhfres.E + Ecorr << std::endl;
-    std::cout << std::fixed << std::setprecision(14) << "EXPECTED ENERGY: " << -40.28000276258776 << std::endl;
+    std::cout << std::fixed << std::setprecision(14) << "EXPECTED ENERGY: " << -40.28000276258779 << std::endl;
 
     // return success or failure based on the error
-    return std::abs(rhfres.E + Ecorr - -40.28000276258776) > 1e-8;
+    return std::abs(rhfres.E + Ecorr - -40.28000276258779) > 1e-8;
 }

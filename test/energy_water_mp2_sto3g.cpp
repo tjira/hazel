@@ -20,8 +20,8 @@ int test_energy_water_mp2_sto3g(int, char**) {
 
     // print the results
     std::cout << std::fixed << std::setprecision(14) << "COMPUTED ENERGY: " << rhfres.E + Ecorr << std::endl;
-    std::cout << std::fixed << std::setprecision(14) << "EXPECTED ENERGY: " << -75.00485494802197 << std::endl;
+    std::cout << std::fixed << std::setprecision(14) << "EXPECTED ENERGY: " << -75.00485494802200 << std::endl;
 
     // return success or failure based on the error
-    return std::abs(rhfres.E + Ecorr - -75.00485494802197) > 1e-8;
+    return std::abs(rhfres.E + Ecorr - -75.00485494802200) > 1e-8;
 }

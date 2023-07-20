@@ -17,8 +17,8 @@ int test_energy_water_hf_mini(int, char**) {
 
     // print the results
     std::cout << std::fixed << std::setprecision(14) << "COMPUTED ENERGY: " << rhfres.E << std::endl;
-    std::cout << std::fixed << std::setprecision(14) << "EXPECTED ENERGY: " << -75.46449227216466 << std::endl;
+    std::cout << std::fixed << std::setprecision(14) << "EXPECTED ENERGY: " << -75.46449227216470 << std::endl;
 
     // return success or failure based on the error
-    return std::abs(rhfres.E - -75.46449227216466) > 1e-8;
+    return std::abs(rhfres.E - -75.46449227216470) > 1e-8;
 }

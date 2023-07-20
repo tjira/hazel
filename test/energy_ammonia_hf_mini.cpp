@@ -17,8 +17,8 @@ int test_energy_ammonia_hf_mini(int, char**) {
 
     // print the results
     std::cout << std::fixed << std::setprecision(14) << "COMPUTED ENERGY: " << rhfres.E << std::endl;
-    std::cout << std::fixed << std::setprecision(14) << "EXPECTED ENERGY: " << -55.73779960924800 << std::endl;
+    std::cout << std::fixed << std::setprecision(14) << "EXPECTED ENERGY: " << -55.73779960924806 << std::endl;
 
     // return success or failure based on the error
-    return std::abs(rhfres.E - -55.73779960924800) > 1e-8;
+    return std::abs(rhfres.E - -55.73779960924806) > 1e-8;
 }

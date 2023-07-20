@@ -20,8 +20,8 @@ int test_energy_water_mp2_mini(int, char**) {
 
     // print the results
     std::cout << std::fixed << std::setprecision(14) << "COMPUTED ENERGY: " << rhfres.E + Ecorr << std::endl;
-    std::cout << std::fixed << std::setprecision(14) << "EXPECTED ENERGY: " << -75.49944113287052 << std::endl;
+    std::cout << std::fixed << std::setprecision(14) << "EXPECTED ENERGY: " << -75.49944113287056 << std::endl;
 
     // return success or failure based on the error
-    return std::abs(rhfres.E + Ecorr - -75.49944113287052) > 1e-8;
+    return std::abs(rhfres.E + Ecorr - -75.49944113287056) > 1e-8;
 }

@@ -20,8 +20,8 @@ int test_energy_ethylene_mp2_mini(int, char**) {
 
     // print the results
     std::cout << std::fixed << std::setprecision(14) << "COMPUTED ENERGY: " << rhfres.E + Ecorr << std::endl;
-    std::cout << std::fixed << std::setprecision(14) << "EXPECTED ENERGY: " << -77.43938048039905 << std::endl;
+    std::cout << std::fixed << std::setprecision(14) << "EXPECTED ENERGY: " << -77.43938048039908 << std::endl;
 
     // return success or failure based on the error
-    return std::abs(rhfres.E + Ecorr - -77.43938048039905) > 1e-8;
+    return std::abs(rhfres.E + Ecorr - -77.43938048039908) > 1e-8;
 }

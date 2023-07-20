@@ -20,8 +20,8 @@ int test_energy_methane_mp2_ccpvdz(int, char**) {
 
     // print the results
     std::cout << std::fixed << std::setprecision(14) << "COMPUTED ENERGY: " << rhfres.E + Ecorr << std::endl;
-    std::cout << std::fixed << std::setprecision(14) << "EXPECTED ENERGY: " << -40.36238873624114 << std::endl;
+    std::cout << std::fixed << std::setprecision(14) << "EXPECTED ENERGY: " << -40.36238873624104 << std::endl;
 
     // return success or failure based on the error
-    return std::abs(rhfres.E + Ecorr - -40.36238873624114) > 1e-8;
+    return std::abs(rhfres.E + Ecorr - -40.36238873624104) > 1e-8;
 }

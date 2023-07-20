@@ -17,8 +17,8 @@ int test_energy_ethane_hf_ccpvdz(int, char**) {
 
     // print the results
     std::cout << std::fixed << std::setprecision(14) << "COMPUTED ENERGY: " << rhfres.E << std::endl;
-    std::cout << std::fixed << std::setprecision(14) << "EXPECTED ENERGY: " << -79.23464790630857 << std::endl;
+    std::cout << std::fixed << std::setprecision(14) << "EXPECTED ENERGY: " << -79.23464790630865 << std::endl;
 
     // return success or failure based on the error
-    return std::abs(rhfres.E - -79.23464790630857) > 1e-8;
+    return std::abs(rhfres.E - -79.23464790630865) > 1e-8;
 }

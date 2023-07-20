@@ -17,8 +17,8 @@ int test_energy_ammonia_hf_sto3g(int, char**) {
 
     // print the results
     std::cout << std::fixed << std::setprecision(14) << "COMPUTED ENERGY: " << rhfres.E << std::endl;
-    std::cout << std::fixed << std::setprecision(14) << "EXPECTED ENERGY: " << -55.45541979669015 << std::endl;
+    std::cout << std::fixed << std::setprecision(14) << "EXPECTED ENERGY: " << -55.45541979669014 << std::endl;
 
     // return success or failure based on the error
-    return std::abs(rhfres.E - -55.45541979669015) > 1e-8;
+    return std::abs(rhfres.E - -55.45541979669014) > 1e-8;
 }

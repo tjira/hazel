@@ -17,8 +17,8 @@ int test_energy_ethylene_hf_631gs(int, char**) {
 
     // print the results
     std::cout << std::fixed << std::setprecision(14) << "COMPUTED ENERGY: " << rhfres.E << std::endl;
-    std::cout << std::fixed << std::setprecision(14) << "EXPECTED ENERGY: " << -78.03145105205030 << std::endl;
+    std::cout << std::fixed << std::setprecision(14) << "EXPECTED ENERGY: " << -78.03145105205013 << std::endl;
 
     // return success or failure based on the error
-    return std::abs(rhfres.E - -78.03145105205030) > 1e-8;
+    return std::abs(rhfres.E - -78.03145105205013) > 1e-8;
 }

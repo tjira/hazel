@@ -17,7 +17,7 @@ int test_grad_water_hf_mini(int, char**) {
     libint2::finalize();
 
     // create the expectation gradient
-    Matrix Gexp(system.atoms.size(), 3); Gexp << 0.06358605904820, 0.02202760469783, 0.02543227285246, -0.04193340317247, 0.04166135261254, -0.03299208531194, -0.02165265587575, -0.06368895731038, 0.00755981245940;
+    Matrix Gexp(system.atoms.size(), 3); Gexp << 0.06358605904810, 0.02202760469782, 0.02543227285254, -0.04193340317247, 0.04166135261254, -0.03299208531194, -0.02165265587575, -0.06368895731038, 0.00755981245940;
 
     // print the results
     std::cout << std::fixed << std::setprecision(14) << "COMPUTED GRADIENT: " << G << std::endl;
