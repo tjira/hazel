@@ -12,35 +12,35 @@ Distributor::Distributor(int argc, char** argv) : program("hazel", "0.1", argpar
 
     // add positional arguments to the main argument parser
     program.add_argument("-b", "--basis").help("-- Basis set used to approximate atomic orbitals.").default_value(std::string("STO-3G"));
-    program.add_argument("-c", "--charge").help("-- Molecular charge.").default_value(0).scan<'i', int>();
-    program.add_argument("-f", "--file").help("-- Quantum system to use in .xyz file format.").default_value("molecule.xyz");
-    program.add_argument("-h", "--help").help("-- Display this help message and exit.").default_value(false).implicit_value(true);
+    program.add_argument("-c", "--charge").help("-- Charge of the system.").default_value(0).scan<'i', int>();
+    program.add_argument("-f", "--file").help("-- Path to the system to use in the .xyz format.").default_value("molecule.xyz");
+    program.add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
     program.add_argument("-n", "--nthread").help("-- Number of threads to use.").default_value(1).scan<'i', int>();
-    program.add_argument("-p", "--print").help("-- Output printing options.").default_value<std::vector<std::string>>({}).append();
+    program.add_argument("-p", "--print").help("-- Printing options.").default_value<std::vector<std::string>>({}).append();
     program.add_argument("--center").help("-- Center the molecule before doing any calculation.").default_value(false).implicit_value(true);
     program.add_argument("--no-coulomb").help("-- Disable calculation of the coulomb tensor.").default_value(false).implicit_value(true);
 
     // add positional arguments to the HF argument parser
-    hf.add_argument("-d", "--diis").help("-- Start iteration and Fock history length for DIIS.").default_value(std::vector<int>{3, 5}).nargs(2).scan<'i', int>();
-    hf.add_argument("-f", "--frequency").help("-- Enable analytical (0) or numerical (1) frequency calculation.").default_value(std::vector<double>{1, 1e-5}).nargs(2).scan<'g', double>();
-    hf.add_argument("-g", "--gradient").help("-- Enable analytical (0) or numerical (1) gradient calculation.").default_value(std::vector<double>{0, 1e-5}).nargs(2).scan<'g', double>();
-    hf.add_argument("-h", "--help").help("-- Display this help message and exit.").default_value(false).implicit_value(true);
-    hf.add_argument("-m", "--maxiter").help("-- Maximum number of iterations to do in iterative calculations.").default_value(100).scan<'i', int>();
-    hf.add_argument("-p", "--print").help("-- Output printing options.").default_value<std::vector<std::string>>({}).append();
-    hf.add_argument("-o", "--optimize").help("-- Optimize the provided system.").default_value(1e-8).scan<'g', double>();
-    hf.add_argument("-t", "--thresh").help("-- Threshold for conververgence.").default_value(1e-12).scan<'g', double>();
+    hf.add_argument("-d", "--diis").help("-- Start iteration and history length for DIIS algorithm.").default_value(std::vector<int>{3, 5}).nargs(2).scan<'i', int>();
+    hf.add_argument("-f", "--frequency").help("-- Analytical (0) or numerical (1) frequency calculation with step size.").default_value(std::vector<double>{1, 1e-5}).nargs(2).scan<'g', double>();
+    hf.add_argument("-g", "--gradient").help("-- Analytical (0) or numerical (1) gradient calculation with step size.").default_value(std::vector<double>{0, 1e-5}).nargs(2).scan<'g', double>();
+    hf.add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
+    hf.add_argument("-m", "--maxiter").help("-- Maximum number of iterations in SCF loop.").default_value(100).scan<'i', int>();
+    hf.add_argument("-p", "--print").help("-- Printing options.").default_value<std::vector<std::string>>({}).append();
+    hf.add_argument("-o", "--optimize").help("-- Optimization with gradient threshold.").default_value(1e-8).scan<'g', double>();
+    hf.add_argument("-t", "--thresh").help("-- Threshold for conververgence in SCF loop.").default_value(1e-12).scan<'g', double>();
 
     // add positional arguments to the MP2 argument parser
-    mp2.add_argument("-f", "--frequency").help("-- Enable analytical (0) or numerical (1) frequency calculation.").default_value(std::vector<double>{1, 1e-5}).nargs(2).scan<'g', double>();
-    mp2.add_argument("-g", "--gradient").help("-- Enable analytical (0) or numerical (1) gradient calculation.").default_value(std::vector<double>{1, 1e-5}).nargs(2).scan<'g', double>();
-    mp2.add_argument("-h", "--help").help("-- Display this help message and exit.").default_value(false).implicit_value(true);
+    mp2.add_argument("-f", "--frequency").help("-- Analytical (0) or numerical (1) frequency calculation with step size.").default_value(std::vector<double>{1, 1e-5}).nargs(2).scan<'g', double>();
+    mp2.add_argument("-g", "--gradient").help("-- Analytical (0) or numerical (1) gradient calculation with step size.").default_value(std::vector<double>{1, 1e-5}).nargs(2).scan<'g', double>();
+    mp2.add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
     mp2.add_argument("-o", "--optimize").help("-- Optimize the provided system.").default_value(1e-8).scan<'g', double>();
     mp2.add_argument("-p", "--print").help("-- Output printing options.").default_value<std::vector<std::string>>({}).append();
 
     // add positional arguments tinput001.outo the CI argument parser
-    ci.add_argument("-e", "--excitations").help("-- Define what excitations to use in the CI calculation.").default_value("s");
-    ci.add_argument("-h", "--help").help("-- Display this help message and exit.").default_value(false).implicit_value(true);
-    ci.add_argument("-p", "--print").help("-- Output printing options.").default_value<std::vector<std::string>>({}).append();
+    ci.add_argument("-e", "--excitations").help("-- Excitations to consider.").default_value("d");
+    ci.add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
+    ci.add_argument("-p", "--print").help("-- Printing options.").default_value<std::vector<std::string>>({}).append();
 
     // add the parsers
     program.add_subparser(hf); hf.add_subparser(mp2), hf.add_subparser(ci);

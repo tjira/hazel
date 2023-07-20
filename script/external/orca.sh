@@ -4,19 +4,19 @@ if [[ $# -eq 0 ]]; then
     echo "No molecule file provided."; exit 1
 fi
 
-if [[ $# -eq 0 ]]; then
+if [[ $# -eq 1 ]]; then
     echo "No charge provided."; exit 1
 fi
 
-if [[ $# -eq 0 ]]; then
+if [[ $# -eq 2 ]]; then
     echo "No multiplicity provided."; exit 1
 fi
 
-if [[ $# -eq 0 ]]; then
+if [[ $# -eq 3 ]]; then
     echo "No method name provided."; exit 1
 fi
 
-if [[ $# -eq 0 ]]; then
+if [[ $# -eq 4 ]]; then
     echo "No basis name provided."; exit 1
 fi
 
