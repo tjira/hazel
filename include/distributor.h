@@ -3,6 +3,8 @@
 #include "argparse.hpp"
 #include "optimizer.h"
 
+#include <xc.h>
+
 class Distributor {
 public:
     Distributor(int argc, char** argv);

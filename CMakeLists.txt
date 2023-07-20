@@ -25,7 +25,7 @@ find_package(OpenMP REQUIRED)
 # add hazel executable
 add_executable(hazel src/ci.cpp src/distributor.cpp src/eigen.cpp src/gradient.cpp src/hessian.cpp src/hf.cpp src/integral.cpp src/main.cpp src/mp.cpp src/optimizer.cpp src/system.cpp src/timer.cpp src/transform.cpp)
 target_compile_definitions(hazel PRIVATE CXXFLAGS="${CXXFLAGS}" DATADIR="${PROJECT_SOURCE_DIR}")
-target_link_libraries(hazel Eigen3::Eigen int2.a)
+target_link_libraries(hazel Eigen3::Eigen int2.a xc.a)
 
 # link OpenMP on build type
 if (CMAKE_BUILD_TYPE STREQUAL Release AND OPENMP_FOUND)
@@ -43,7 +43,7 @@ create_test_sourcelist(TEST_LIST test_hazel.cpp ${SRC_TEST})
 add_executable(test_hazel EXCLUDE_FROM_ALL src/eigen.cpp src/gradient.cpp src/hessian.cpp src/hf.cpp src/integral.cpp src/mp.cpp src/optimizer.cpp src/system.cpp src/transform.cpp src/timer.cpp ${TEST_LIST})
 set_target_properties(test_hazel PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin/test)
 target_compile_definitions(test_hazel PRIVATE DATADIR="${PROJECT_SOURCE_DIR}")
-target_link_libraries(test_hazel Eigen3::Eigen int2.a)
+target_link_libraries(test_hazel Eigen3::Eigen int2.a xc.a)
 
 # extract energy test name
 foreach (FILE ${SRC_TEST})
