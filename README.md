@@ -38,8 +38,9 @@ Below are all the important features of Hazel divided into categories.
 
 ### Quantum Mechanical Methods
 
-* Hartree-Fock Method
 * Møller–Plesset Perturbation Theory
+* Configuration Interaction (S, D)
+* Hartree-Fock Method
 
 ### Convergence Accelerators
 
@@ -47,9 +48,9 @@ Below are all the important features of Hazel divided into categories.
 
 ### Additional Calculations
 
-* Gradients for HF (analytical) and MP2 (numerical)
-* Numerical hessians and frequency analysis for HF and MP2
-* HF and MP2 steepest descent optimization
+* Numerical Hessians and Frequency Analysis for HF and MP2
+* Gradients for HF (Analytical) and MP2 (Numerical)
+* HF and MP2 Steepest Descent Optimization
 
 ## 🛠️ Compilation
 

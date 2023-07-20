@@ -27,6 +27,12 @@ namespace Eigen {
     // custom functions
     void Write(const std::string& fname, const Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>& A);
     void Write(const std::string& fname, const Tensor<double, 4, Eigen::ColMajor>& A);
+
+    // memory getters
+    std::string MemMatrix(const Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>& A);
+    std::string MemTensor(const Tensor<double, 3, Eigen::ColMajor>& A);
+    std::string MemTensor(const Tensor<double, 4, Eigen::ColMajor>& A);
+    std::string MemTensor(const Tensor<double, 5, Eigen::ColMajor>& A);
 }
 
 inline Tensor<2> toTensor(Matrix A) {return Eigen::TensorMap<Tensor<2>>(A.data(), A.rows(), A.cols());}
@@ -36,4 +42,5 @@ inline Matrix toMatrix(Tensor<2> A) {return Eigen::Map<Matrix>(A.data(), A.dimen
 inline Vector toVector(Tensor<1> A) {return Eigen::Map<Vector>(A.data(), A.dimension(0));}
 
 #include <libint2/diis.h>
+#include <sys/utsname.h>
 #include <filesystem>

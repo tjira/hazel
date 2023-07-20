@@ -4,6 +4,7 @@
 #define CONTAINS(V, E) ([](std::vector<std::string> v, std::string e){return std::find(v.begin(), v.end(), e) != v.end();}(V, E))
 #define TIME(W) {Timer::Timepoint start = Timer::Now(); W; std::cout << Timer::Format(Timer::Elapsed(start)) << std::flush;}
 #define ZERO Matrix::Zero(system.shells.nbf(), system.shells.nbf())
+#define UNAME [](){utsname unr; uname(&unr); return unr;}()
 
 Distributor::Distributor(int argc, char** argv) : program("hazel", "0.1", argparse::default_arguments::none), start(Timer::Now()) {
     // initialize subcommands
@@ -17,7 +18,7 @@ Distributor::Distributor(int argc, char** argv) : program("hazel", "0.1", argpar
     program.add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
     program.add_argument("-n", "--nthread").help("-- Number of threads to use.").default_value(1).scan<'i', int>();
     program.add_argument("-p", "--print").help("-- Printing options.").default_value<std::vector<std::string>>({}).append();
-    program.add_argument("--center").help("-- Center the molecule before doing any calculation.").default_value(false).implicit_value(true);
+    program.add_argument("--no-center").help("-- Disable the molecule centering.").default_value(false).implicit_value(true);
     program.add_argument("--no-coulomb").help("-- Disable calculation of the coulomb tensor.").default_value(false).implicit_value(true);
 
     // add positional arguments to the HF argument parser
@@ -69,7 +70,7 @@ Distributor::Distributor(int argc, char** argv) : program("hazel", "0.1", argpar
         setenv("LIBINT_DATA_PATH", path.c_str(), true);
     }
     
-    // set number of cores to use and number of threads
+    // set number of threads to use and cout flags
     std::cout << std::fixed << std::setprecision(14);
     nthread = program.get<int>("--nthread");
 }
@@ -94,8 +95,8 @@ void Distributor::run() {
     // print the general info block
     std::cout << "\n" + std::string(104, '-') + "\nGENERAL INFO\n" << std::string(104, '-') + "\n\n";
     std::printf("COMPILATION TIMESTAMP: %s\nEXECUTION TIMESTAMP: %s\n", __TIMESTAMP__, LOCALTIME.c_str());
-    std::printf("\nLIBRARIES: EIGEN %d.%d.%d, LIBINT %d.%d.%d, LIBXC %s", EIGEN_WORLD_VERSION, EIGEN_MAJOR_VERSION, EIGEN_MINOR_VERSION, LIBINT_MAJOR_VERSION, LIBINT_MINOR_VERSION, LIBINT_MICRO_VERSION, XC_VERSION);
-    std::printf("\nCOMPILER VERSION: GCC %d.%d.%d\nCOMPILER FLAGS: %s\n", __GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__, CXXFLAGS);
+    std::printf("\nCOMPILER VERSION AND FLAGS: MACHINE %s, GCC %d.%d.%d (%s)", UNAME.machine, __GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__, CXXFLAGS);
+    std::printf("\nLIBRARIES: EIGEN %d.%d.%d, LIBINT %d.%d.%d, LIBXC %s\n", EIGEN_WORLD_VERSION, EIGEN_MAJOR_VERSION, EIGEN_MINOR_VERSION, LIBINT_MAJOR_VERSION, LIBINT_MINOR_VERSION, LIBINT_MICRO_VERSION, XC_VERSION);
     std::printf("\nAVAILABLE CORES: %d\nUSED THREADS: %d\n", std::thread::hardware_concurrency(), nthread);
 
     // print the system block
@@ -104,8 +105,8 @@ void Distributor::run() {
     std::printf("-- CHARGE: %d, MULTIPLICITY: %d\n", system.charge, system.multi);
     std::cout << "\nSYSTEM COORDINATES\n" << system.coords << std::endl; 
 
-    // center the molecule if requested
-    if (program.get<bool>("--center")) {
+    // center the molecule if not disabled
+    if (!program.get<bool>("--no-center")) {
         Matrix dir(system.atoms.size(), 3); dir.rowwise() -= system.coords.colwise().sum() / system.atoms.size();
         system.move(dir * A2BOHR); std::cout << "\nCENTERED SYSTEM COORDINATES\n" << system.coords << std::endl; 
     }
@@ -370,36 +371,44 @@ void Distributor::integrals() {
 
     // calculate the overlap integral
     std::cout << "\nOVERLAP INTEGRAL: " << std::flush; TIME(system.ints.S = Integral::Overlap(system))
+    std::cout << " " << Eigen::MemMatrix(system.ints.S);
     if (CONTAINS(print, "s") || CONTAINS(print, "all")) std::cout << "\n" << system.ints.S << std::endl;
 
     // calculate the kinetic integral
     std::cout << "\nKINETIC INTEGRAL: " << std::flush; TIME(system.ints.T = Integral::Kinetic(system))
+    std::cout << " " << Eigen::MemMatrix(system.ints.T);
     if (CONTAINS(print, "t") || CONTAINS(print, "all")) std::cout << "\n" << system.ints.T << std::endl;
 
     // calculate the nuclear-electron attraction integral
     std::cout << "\nNUCLEAR INTEGRAL: " << std::flush; TIME(system.ints.V = Integral::Nuclear(system))
+    std::cout << " " << Eigen::MemMatrix(system.ints.V);
     if (CONTAINS(print, "v") || CONTAINS(print, "all")) std::cout << "\n" << system.ints.V << std::endl;
 
     // calculate the electron-electron repulsion integral
     if (!program.get<bool>("--no-coulomb")) {std::cout << "\nCOULOMB INTEGRAL: " << std::flush; TIME(system.ints.J = Integral::Coulomb(system))}
+    std::cout << " " << Eigen::MemTensor(system.ints.J);
     if (!program.get<bool>("--no-coulomb") && (CONTAINS(print, "j") || CONTAINS(print, "all"))) {std::cout << "\n" << system.ints.J;} std::cout << "\n";
 
     // if derivatives of the integrals are needed
     if ((hf.is_used("-g") || hf.is_used("-o")) && !hf.get<std::vector<double>>("-g").at(0)) {
         // calculate the derivative of overlap integral
         std::cout << "\nFIRST DERIVATIVE OF OVERLAP INTEGRAL: " << std::flush; TIME(system.dints.dS = Integral::dOverlap(system))
+        std::cout << " " << Eigen::MemTensor(system.dints.dS);
         if (CONTAINS(print, "ds") || CONTAINS(print, "all")) std::cout << "\n" << system.dints.dS << std::endl;
 
         // calculate the derivative of kinetic integral
         std::cout << "\nFIRST DERIVATIVE OF KINETIC INTEGRAL: " << std::flush; TIME(system.dints.dT = Integral::dKinetic(system))
+        std::cout << " " << Eigen::MemTensor(system.dints.dT);
         if (CONTAINS(print, "dt") || CONTAINS(print, "all")) std::cout << "\n" << system.dints.dT << std::endl;
 
         // calculate the derivative of nuclear-electron attraction integral
         std::cout << "\nFIRST DERIVATIVE OF NUCLEAR INTEGRAL: " << std::flush; TIME(system.dints.dV = Integral::dNuclear(system))
+        std::cout << " " << Eigen::MemTensor(system.dints.dV);
         if (CONTAINS(print, "dv") || CONTAINS(print, "all")) std::cout << "\n" << system.dints.dV << std::endl;
 
         // calculate the derivative of electron-electron repulsion integral
         std::cout << "\nFIRST DERIVATIVE OF COULOMB INTEGRAL: " << std::flush; TIME(system.dints.dJ = Integral::dCoulomb(system))
+        std::cout << " " << Eigen::MemTensor(system.dints.dJ);
         if (CONTAINS(print, "dj") || CONTAINS(print, "all")) {std::cout << "\n" << system.dints.dJ;} std::cout << "\n";
     }
 }
