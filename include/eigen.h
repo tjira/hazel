@@ -5,7 +5,7 @@
 #define BOHR2A 0.529177249
 #define A2BOHR 1.889725989
 
-inline int nthread;
+inline int nthread = 1;
 
 #include <unsupported/Eigen/MatrixFunctions>
 #include <unsupported/Eigen/CXX11/Tensor>
