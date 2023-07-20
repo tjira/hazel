@@ -75,6 +75,7 @@ After the compilation the bin folder will be created along with the executable.
 
 ## ⭐ Credits
 
-* [argparse](https://github.com/p-ranav/argparse) - Argument Parser for Modern C++.
-* [eigen](https://gitlab.com/libeigen/eigen) - Eigen is a C++ template library for linear algebra.
 * [libint](https://github.com/evaleev/libint) - High-performance library for computing Gaussian integrals in quantum mechanics.
+* [libxc](https://gitlab.com/libxc/libxc) - Library of exchange-correlation functionals for density-functional theory.
+* [eigen](https://gitlab.com/libeigen/eigen) - Eigen is a C++ template library for linear algebra.
+* [argparse](https://github.com/p-ranav/argparse) - Argument Parser for Modern C++.
