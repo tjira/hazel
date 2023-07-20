@@ -392,7 +392,7 @@ void Distributor::integrals() {
 
     // calculate the electron-electron repulsion integral
     if (!program.get<bool>("--no-coulomb")) {std::cout << "\nCOULOMB INTEGRAL: " << std::flush; TIME(system.ints.J = Integral::Coulomb(system))}
-    std::cout << " " << Eigen::MemTensor(system.ints.J);
+    if (!program.get<bool>("--no-coulomb")) std::cout << " " << Eigen::MemTensor(system.ints.J);
     if (!program.get<bool>("--no-coulomb") && (CONTAINS(print, "j") || CONTAINS(print, "all"))) {std::cout << "\n" << system.ints.J;} std::cout << "\n";
 
     // if derivatives of the integrals are needed

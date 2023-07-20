@@ -42,5 +42,3 @@ inline Matrix toMatrix(Tensor<2> A) {return Eigen::Map<Matrix>(A.data(), A.dimen
 inline Vector toVector(Tensor<1> A) {return Eigen::Map<Vector>(A.data(), A.dimension(0));}
 
 #include <libint2/diis.h>
-#include <sys/utsname.h>
-#include <filesystem>

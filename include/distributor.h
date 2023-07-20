@@ -1,5 +1,8 @@
 #pragma once
 
+#include <sys/utsname.h>
+#include <filesystem>
+
 #include "argparse.hpp"
 #include "optimizer.h"
 
