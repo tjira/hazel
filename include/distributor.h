@@ -31,7 +31,7 @@ private:
 private:
     // printing options and parsers
     std::vector<std::string> print, ciprint, hfprint, mp2print;
-    argparse::ArgumentParser program, hf, ci, mp2;
+    argparse::ArgumentParser program, ints, hf, ci, mp2;
 
     // options and results
     CI::OptionsRestricted rciopt; CI::ResultsRestricted rcires;

@@ -1,6 +1,6 @@
 #include "../include/mp.h"
 
-int test_energy_SYSTEM_mp2_BNAME(int, char**) {
+int test_energy_mp2_SYSTEM(int, char**) {
     // initialize the system
     System system("../example/molecule/SYSTEM.xyz", "BASIS", 0, 1);
 
@@ -10,7 +10,7 @@ int test_energy_SYSTEM_mp2_BNAME(int, char**) {
     // initialize the guess density matrix
     Matrix D(system.shells.nbf(), system.shells.nbf());
 
-    // calculate HF energy
+    // perform the SCF cycle
     libint2::initialize();
     HF::ResultsRestricted rhfres = HF(rhfopt).rscf(system, D, false);
     libint2::finalize();

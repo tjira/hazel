@@ -1,6 +1,6 @@
 #include "../include/hf.h"
 
-int test_energy_SYSTEM_hf_BNAME(int, char**) {
+int test_energy_hf_SYSTEM(int, char**) {
     // initialize the system
     System system("../example/molecule/SYSTEM.xyz", "BASIS", 0, 1);
 

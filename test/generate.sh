@@ -2,63 +2,29 @@
 
 SYSTEMS=("ammonia" "ethane" "ethylene" "formaldehyde" "methane" "water")
 BASES=("mini" "3-21g" "sto-3g" "6-31g" "6-31g*" "cc-pvdz")
+INTEGRALS=("overlap" "kinetic" "nuclear")
 
 CORES=64
 
-# overlap matrix
-for SYSTEM in "${SYSTEMS[@]}"; do
-    for BASIS in "${BASES[@]}"; do
-        # echo the source file name
-        FILE="int_overlap_${SYSTEM,,}_$BASIS.cpp"; echo "$FILE"
+# integral matrices
+for INTEGRAL in "${INTEGRALS[@]}"; do
+    for SYSTEM in "${SYSTEMS[@]}"; do
+        for BASIS in "${BASES[@]}"; do
+            # echo the source file name
+            FILE="integral_${INTEGRAL}_${SYSTEM,,}_$BASIS.cpp"; echo "$FILE"
 
-        # create the source file
-        cat template/int_overlap.in > "$FILE"
+            # create the source file
+            cat "template/integral.in" > "$FILE"
 
-        # calculate the expected energy
-        S=$(../bin/hazel -b "$BASIS" -f "../example/molecule/$SYSTEM.xyz" -n $CORES -p s | ../script/extract/overlap.sh)
-        S=$(echo "$S" | tr "\n" " " | tr -s " " | sed "s/^ // ; s/\s*$//g ; s/ /, /g")
+            # calculate the expected energy
+            I=$(../bin/hazel -b "$BASIS" -f "../example/molecule/$SYSTEM.xyz" -n $CORES -p s -p t -p v ints | ../script/extract/$INTEGRAL.sh)
+            I=$(echo "$I" | tr "\n" " " | tr -s " " | sed "s/^ // ; s/\s*$//g ; s/ /, /g")
 
-        # replace values in the source file
-        sed -i "s/BNAME/$(echo "$BASIS" | sed -e 's/*/s/g' -e 's/-//g')/g" "$FILE" && sed -i "s/BASIS/${BASIS^^}/g" "$FILE"
-        sed -i "s/SYSTEM/$SYSTEM/g" "$FILE" && sed -i "s/SVAL/$S/g" "$FILE"
-    done
-done
-
-# kinetic matrix
-for SYSTEM in "${SYSTEMS[@]}"; do
-    for BASIS in "${BASES[@]}"; do
-        # echo the source file name
-        FILE="int_kinetic_${SYSTEM,,}_$BASIS.cpp"; echo "$FILE"
-
-        # create the source file
-        cat template/int_kinetic.in > "$FILE"
-
-        # calculate the expected energy
-        T=$(../bin/hazel -b "$BASIS" -f "../example/molecule/$SYSTEM.xyz" -n $CORES -p t | ../script/extract/kinetic.sh)
-        T=$(echo "$T" | tr "\n" " " | tr -s " " | sed "s/^ // ; s/\s*$//g ; s/ /, /g")
-
-        # replace values in the source file
-        sed -i "s/BNAME/$(echo "$BASIS" | sed -e 's/*/s/g' -e 's/-//g')/g" "$FILE" && sed -i "s/BASIS/${BASIS^^}/g" "$FILE"
-        sed -i "s/SYSTEM/$SYSTEM/g" "$FILE" && sed -i "s/TVAL/$T/g" "$FILE"
-    done
-done
-
-# nuclear matrix
-for SYSTEM in "${SYSTEMS[@]}"; do
-    for BASIS in "${BASES[@]}"; do
-        # echo the source file name
-        FILE="int_nuclear_${SYSTEM,,}_$BASIS.cpp"; echo "$FILE"
-
-        # create the source file
-        cat template/int_nuclear.in > "$FILE"
-
-        # calculate the expected energy
-        V=$(../bin/hazel -b "$BASIS" -f "../example/molecule/$SYSTEM.xyz" -n $CORES -p v | ../script/extract/nuclear.sh)
-        V=$(echo "$V" | tr "\n" " " | tr -s " " | sed "s/^ // ; s/\s*$//g ; s/ /, /g")
-
-        # replace values in the source file
-        sed -i "s/BNAME/$(echo "$BASIS" | sed -e 's/*/s/g' -e 's/-//g')/g" "$FILE" && sed -i "s/BASIS/${BASIS^^}/g" "$FILE"
-        sed -i "s/SYSTEM/$SYSTEM/g" "$FILE" && sed -i "s/VVAL/$V/g" "$FILE"
+            # replace values in the source file
+            sed -i "s/(int/_$(echo "$BASIS" | sed -e 's/*/s/g' -e 's/-//g')(int/g" "$FILE" && sed -i "s/BASIS/${BASIS^^}/g" "$FILE"
+            sed -i "s/Integral::/Integral::${INTEGRAL^}/g" "$FILE" && sed -i "s/_INTEGRAL/_$INTEGRAL/g" "$FILE"
+            sed -i "s/SYSTEM/$SYSTEM/g" "$FILE" && sed -i "s/IVAL/$I/g" "$FILE"
+        done
     done
 done
 
@@ -66,7 +32,7 @@ done
 for SYSTEM in "${SYSTEMS[@]}"; do
     for BASIS in "${BASES[@]}"; do
         # echo the source file name
-        FILE="energy_${SYSTEM,,}_hf_$BASIS.cpp"; echo "$FILE"
+        FILE="energy_hf_${SYSTEM,,}_$BASIS.cpp"; echo "$FILE"
 
         # create the source file
         cat template/energy_hf.in > "$FILE"
@@ -75,7 +41,7 @@ for SYSTEM in "${SYSTEMS[@]}"; do
         ENERGY=$(../bin/hazel -b "$BASIS" -f "../example/molecule/$SYSTEM.xyz" -n $CORES hf -d 3 5 -m 1000 -t 1e-8 | grep FINAL | awk '{print $4}')
 
         # replace values in the source file
-        sed -i "s/BNAME/$(echo "$BASIS" | sed -e 's/*/s/g' -e 's/-//g')/g" "$FILE" && sed -i "s/BASIS/${BASIS^^}/g" "$FILE"
+        sed -i "s/(int/_$(echo "$BASIS" | sed -e 's/*/s/g' -e 's/-//g')(int/g" "$FILE" && sed -i "s/BASIS/${BASIS^^}/g" "$FILE"
         sed -i "s/SYSTEM/$SYSTEM/g" "$FILE" && sed -i "s/EVALUE/$ENERGY/g" "$FILE"
     done
 done
@@ -84,17 +50,17 @@ done
 for SYSTEM in "${SYSTEMS[@]}"; do
     for BASIS in "${BASES[@]}"; do
         # echo the source file name
-        FILE="grad_${SYSTEM,,}_hf_$BASIS.cpp"; echo "$FILE"
+        FILE="gradient_hf_${SYSTEM,,}_$BASIS.cpp"; echo "$FILE"
 
         # create the source file
-        cat template/grad_hf.in > "$FILE"
+        cat template/gradient_hf.in > "$FILE"
 
         # calculate the expected energy
         GRAD=$(../bin/hazel -b "$BASIS" -f "../example/molecule/$SYSTEM.xyz" -n $CORES hf -d 3 5 -m 1000 -t 1e-8 -g | sed -n "/ANAL/,/GRAD/p" | tail -n +5 | head -n -2)
         GRAD=$(echo "$GRAD" | tr "\n" " " | tr -s " " | sed "s/^ // ; s/\s*$//g ; s/ /, /g")
 
         # replace values in the source file
-        sed -i "s/BNAME/$(echo "$BASIS" | sed -e 's/*/s/g' -e 's/-//g')/g" "$FILE" && sed -i "s/BASIS/${BASIS^^}/g" "$FILE"
+        sed -i "s/(int/_$(echo "$BASIS" | sed -e 's/*/s/g' -e 's/-//g')(int/g" "$FILE" && sed -i "s/BASIS/${BASIS^^}/g" "$FILE"
         sed -i "s/SYSTEM/$SYSTEM/g" "$FILE" && sed -i "s/GRADVAL/$GRAD/g" "$FILE"
     done
 done
@@ -103,7 +69,7 @@ done
 for SYSTEM in "${SYSTEMS[@]}"; do
     for BASIS in "${BASES[@]}"; do
         # echo the source file name
-        FILE="energy_${SYSTEM,,}_mp2_$BASIS.cpp"; echo "$FILE"
+        FILE="energy_mp2_${SYSTEM,,}_$BASIS.cpp"; echo "$FILE"
 
         # create the source file
         cat template/energy_mp2.in > "$FILE"
@@ -112,7 +78,7 @@ for SYSTEM in "${SYSTEMS[@]}"; do
         ENERGY=$(../bin/hazel -b "$BASIS" -f "../example/molecule/$SYSTEM.xyz" -n $CORES hf -d 3 5 -m 1000 -t 1e-8 mp2 | grep "FINAL MP2" | awk '{print $4}')
 
         # replace values in the source file
-        sed -i "s/BNAME/$(echo "$BASIS" | sed -e 's/*/s/g' -e 's/-//g')/g" "$FILE" && sed -i "s/BASIS/${BASIS^^}/g" "$FILE"
+        sed -i "s/(int/_$(echo "$BASIS" | sed -e 's/*/s/g' -e 's/-//g')(int/g" "$FILE" && sed -i "s/BASIS/${BASIS^^}/g" "$FILE"
         sed -i "s/SYSTEM/$SYSTEM/g" "$FILE" && sed -i "s/EVALUE/$ENERGY/g" "$FILE"
     done
 done

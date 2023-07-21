@@ -8,5 +8,5 @@ SIZE=$(echo "$MATRIX" | head -n 1 | awk -F'[^0-9]+' '{print $2}')
 rm -f .J* && echo "$MATRIX" | split -l $(( $SIZE + 1 )) - .J
 
 # define the AWK command and paste the splits
-AWK='{for(C=1;C<=NF;C++)printf"% 19.14f ",$C;print""}'
+AWK='{for(C=1;C<=NF;C++)printf"% 20.14f ",$C;print""}'
 paste .J* | tail -n +2 | awk "$AWK" && rm -f .J*

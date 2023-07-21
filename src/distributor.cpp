@@ -5,8 +5,8 @@
 
 Distributor::Distributor(int argc, char** argv) : program("hazel", "0.1", argparse::default_arguments::none), start(Timer::Now()) {
     // initialize subcommands
-    hf = argparse::ArgumentParser("hf", "0.1", argparse::default_arguments::none); mp2 = argparse::ArgumentParser("mp2", "0.1", argparse::default_arguments::none);
-    ci = argparse::ArgumentParser("ci", "0.1", argparse::default_arguments::none);
+    ints = argparse::ArgumentParser("ints", "0.1", argparse::default_arguments::none), hf = argparse::ArgumentParser("hf", "0.1", argparse::default_arguments::none);
+    mp2 = argparse::ArgumentParser("mp2", "0.1", argparse::default_arguments::none), ci = argparse::ArgumentParser("ci", "0.1", argparse::default_arguments::none);
 
     // add positional arguments to the main argument parser
     program.add_argument("-b", "--basis").help("-- Basis set used to approximate atomic orbitals.").default_value(std::string("STO-3G"));
@@ -18,6 +18,9 @@ Distributor::Distributor(int argc, char** argv) : program("hazel", "0.1", argpar
     program.add_argument("--no-center").help("-- Disable the molecule centering.").default_value(false).implicit_value(true);
     program.add_argument("--no-coulomb").help("-- Disable calculation of the coulomb tensor.").default_value(false).implicit_value(true);
     program.add_argument("--show-bases").help("-- Print all the available bases.").default_value(false).implicit_value(true);
+
+    // add positional arguments to the integral argument parser
+    ints.add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
 
     // add positional arguments to the HF argument parser
     hf.add_argument("-d", "--diis").help("-- Start iteration and history length for DIIS algorithm.").default_value(std::vector<int>{3, 5}).nargs(2).scan<'i', int>();
@@ -42,7 +45,7 @@ Distributor::Distributor(int argc, char** argv) : program("hazel", "0.1", argpar
     ci.add_argument("-p", "--print").help("-- Printing options.").default_value<std::vector<std::string>>({}).append();
 
     // add the parsers
-    program.add_subparser(hf); hf.add_subparser(mp2), hf.add_subparser(ci);
+    program.add_subparser(ints), program.add_subparser(hf), hf.add_subparser(mp2), hf.add_subparser(ci);
 
     // parse the arguments
     try {
@@ -54,6 +57,8 @@ Distributor::Distributor(int argc, char** argv) : program("hazel", "0.1", argpar
     // print help if requested
     if (program.get<bool>("-h")) {
         std::cout << program.help().str(); exit(EXIT_SUCCESS);
+    } else if (program.is_subcommand_used(ints) && ints.get<bool>("-h")) {
+        std::cout << ints.help().str(); exit(EXIT_SUCCESS);
     } else if (program.is_subcommand_used(hf) && hf.get<bool>("-h")) {
         std::cout << hf.help().str(); exit(EXIT_SUCCESS);
     } else if (program.is_subcommand_used(hf) && hf.is_subcommand_used(mp2) && mp2.get<bool>("-h")) {
@@ -143,8 +148,8 @@ void Distributor::run() {
     for (auto& element : ciprint) std::transform(element.begin(), element.end(), element.begin(), [](auto c){return std::tolower(c);});
     for (auto& element : print) std::transform(element.begin(), element.end(), element.begin(), [](auto c){return std::tolower(c);});
 
-    // calculate the integrals
-    integrals();
+    // calculate the integrals if needed
+    if (program.is_subcommand_used("ints") || program.is_subcommand_used("hf")) integrals();
 
     // optimize the molecule
     if (program.is_subcommand_used("hf")) {
@@ -396,7 +401,7 @@ void Distributor::integrals() {
     if (!program.get<bool>("--no-coulomb") && (CONTAINS(print, "j") || CONTAINS(print, "all"))) {std::cout << "\n" << system.ints.J;} std::cout << "\n";
 
     // if derivatives of the integrals are needed
-    if ((hf.is_used("-g") || hf.is_used("-o")) && !hf.get<std::vector<double>>("-g").at(0)) {
+    if (program.is_subcommand_used("ints") || ((hf.is_used("-g") || hf.is_used("-o")) && !hf.get<std::vector<double>>("-g").at(0))) {
         // calculate the derivative of overlap integral
         std::cout << "\nFIRST DERIVATIVE OF OVERLAP INTEGRAL: " << std::flush; TIME(system.dints.dS = Integral::dOverlap(system))
         std::cout << " " << Eigen::MemTensor(system.dints.dS);
