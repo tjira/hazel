@@ -34,7 +34,7 @@ jobs:
         run: |
           export CPLUS_INCLUDE_PATH="$PWD/libint/install/include:$PWD/libxc/install/include:$CPLUS_INCLUDE_PATH"
           export LIBRARY_PATH="$PWD/libint/install/lib:$PWD/libxc/install/lib:$LIBRARY_PATH"
-          cmake --build build
+          cmake --build build --parallel 2
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v3

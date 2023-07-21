@@ -33,7 +33,7 @@ inputOrca() {
 ATOMS=$(echo "$(wc -l < "$1") - 2" | bc)
 
 # cd to the input directory and run orca
-cd "$(dirname "$1")" && inputOrca "$(basename "$1")" "$2" "$3" "$4" "$5" > orca.inp && orca orca.inp > orca.out && cleanup
+cd "$(dirname "$1")" && inputOrca "$(basename "$1")" "$2" "$3" "$4" "$5" > orca.inp && orca orca.inp > orca.out && mv orca.out - && cleanup
 
 # extract gradient and energy
 [[ "$4" == "cisd" ]] && GRADIENT=$(grep -A $((ATOMS + 1)) "GRADIENT" orca.out | tail -n "$ATOMS" | awk '{printf("% 16.12f % 16.12f % 16.12f\n", $4, $5, $6)}')
