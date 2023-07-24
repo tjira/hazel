@@ -53,9 +53,9 @@ void System::move(const Matrix& dir) {
     }
 }
 
-void System::save(const std::string& fname) const {
+void System::save(const std::string& fname, std::ios::openmode mode) const {
     // open the file, write number of atoms and set output stream flags
-    std::ofstream file(fname); file << fname << "\n" << atoms.size();
+    std::ofstream file(fname, mode); file << atoms.size() << "\n" << fname;
     file << std::fixed << std::setprecision(14) << "\n";
 
     // print all the atom coordinates
@@ -63,7 +63,6 @@ void System::save(const std::string& fname) const {
         file << an2sm.at(atoms.at(i).atomic_number) << " "
              << std::setw(20) << coords(i, 0) << " "
              << std::setw(20) << coords(i, 1) << " "
-             << std::setw(20) << coords(i, 2) << " "
-             << std::endl;
+             << std::setw(20) << coords(i, 2) << std::endl;
     }
 }

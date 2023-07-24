@@ -8,6 +8,9 @@ Distributor::Distributor(int argc, char** argv) : program("hazel", "0.1", argpar
     ints = argparse::ArgumentParser("ints", "0.1", argparse::default_arguments::none), hf = argparse::ArgumentParser("hf", "0.1", argparse::default_arguments::none);
     mp2 = argparse::ArgumentParser("mp2", "0.1", argparse::default_arguments::none), ci = argparse::ArgumentParser("ci", "0.1", argparse::default_arguments::none);
 
+    md = argparse::ArgumentParser("md", "0.1", argparse::default_arguments::none), mdhf = argparse::ArgumentParser("hf", "0.1", argparse::default_arguments::none);
+    mdmp2 = argparse::ArgumentParser("mp2", "0.1", argparse::default_arguments::none);
+
     // add positional arguments to the main argument parser
     program.add_argument("-b", "--basis").help("-- Basis set used to approximate atomic orbitals.").default_value(std::string("STO-3G"));
     program.add_argument("-c", "--charge").help("-- Charge of the system.").default_value(0).scan<'i', int>();
@@ -39,13 +42,31 @@ Distributor::Distributor(int argc, char** argv) : program("hazel", "0.1", argpar
     mp2.add_argument("-o", "--optimize").help("-- Optimize the provided system.").default_value(1e-8).scan<'g', double>();
     mp2.add_argument("-p", "--print").help("-- Output printing options.").default_value<std::vector<std::string>>({}).append();
 
-    // add positional arguments tinput001.outo the CI argument parser
+    // add positional arguments to the CI argument parser
     ci.add_argument("-e", "--excitations").help("-- Excitations to consider.").default_value("d");
     ci.add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
     ci.add_argument("-p", "--print").help("-- Printing options.").default_value<std::vector<std::string>>({}).append();
 
+    // add positional arguments to the MD argument parser
+    md.add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
+    md.add_argument("-s", "--step").help("-- Dynamics time step in atomic units.").default_value(0.5).scan<'g', double>();
+    md.add_argument("-i", "--iters").help("-- Number of iterations in dynamics.").default_value(100).scan<'i', int>();
+    md.add_argument("-o", "--output").help("-- Output of the trajectory.").default_value("trajectory.xyz");
+
+    // add positional arguments to the MD HF argument parser
+    mdhf.add_argument("-d", "--diis").help("-- Start iteration and history length for DIIS algorithm.").default_value(std::vector<int>{3, 5}).nargs(2).scan<'i', int>();
+    mdhf.add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
+    mdhf.add_argument("-m", "--maxiter").help("-- Maximum number of iterations in SCF loop.").default_value(100).scan<'i', int>();
+    mdhf.add_argument("-t", "--thresh").help("-- Threshold for conververgence in SCF loop.").default_value(1e-12).scan<'g', double>();
+    mdhf.add_argument("-g", "--gradient").help("-- Analytical (0) or numerical (1) gradient calculation with step size.").default_value(std::vector<double>{0, 1e-5}).nargs(2).scan<'g', double>();
+
+    // add positional arguments to the MD MP2 argument parser
+    mdmp2.add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
+    mdmp2.add_argument("-g", "--gradient").help("-- Analytical (0) or numerical (1) gradient calculation with step size.").default_value(std::vector<double>{0, 1e-5}).nargs(2).scan<'g', double>();
+
     // add the parsers
     program.add_subparser(ints), program.add_subparser(hf), hf.add_subparser(mp2), hf.add_subparser(ci);
+    program.add_subparser(md), md.add_subparser(mdhf), mdhf.add_subparser(mdmp2);
 
     // parse the arguments
     try {
@@ -65,6 +86,12 @@ Distributor::Distributor(int argc, char** argv) : program("hazel", "0.1", argpar
         std::cout << mp2.help().str(); exit(EXIT_SUCCESS);
     } else if (program.is_subcommand_used(hf) && hf.is_subcommand_used(ci) && ci.get<bool>("-h")) {
         std::cout << ci.help().str(); exit(EXIT_SUCCESS);
+    } else if (program.is_subcommand_used(md) && md.get<bool>("-h")) {
+        std::cout << md.help().str(); exit(EXIT_SUCCESS);
+    } else if (program.is_subcommand_used(md) && md.is_subcommand_used(mdhf) && mdhf.get<bool>("-h")) {
+        std::cout << mdhf.help().str(); exit(EXIT_SUCCESS);
+    } else if (program.is_subcommand_used(md) && md.is_subcommand_used(mdhf) && mdhf.is_subcommand_used(mdmp2) && mdhf.get<bool>("-h")) {
+        std::cout << mdmp2.help().str(); exit(EXIT_SUCCESS);
     }
 
     // print all tha available bases if requested
@@ -135,10 +162,14 @@ void Distributor::run() {
         }
     }
 
-    // extract method options
+    // extract HF options
     if (program.is_subcommand_used("hf")) {
         rhfopt.diis = {hf.get<std::vector<int>>("-d").at(0), hf.get<std::vector<int>>("-d").at(1)};
         rhfopt.maxiter = hf.get<int>("-m"), rhfopt.thresh = hf.get<double>("-t");
+        rhfopt.nocoulomb = program.get<bool>("--no-coulomb");
+    } else if (program.is_subcommand_used("md") && md.is_subcommand_used("hf")) {
+        rhfopt.diis = {mdhf.get<std::vector<int>>("-d").at(0), mdhf.get<std::vector<int>>("-d").at(1)};
+        rhfopt.maxiter = mdhf.get<int>("-m"), rhfopt.thresh = mdhf.get<double>("-t");
         rhfopt.nocoulomb = program.get<bool>("--no-coulomb");
     }
 
@@ -160,6 +191,7 @@ void Distributor::run() {
     }
 
     // distribute the calculations
+    if (program.is_subcommand_used("md")) dynamics();
     if (program.is_subcommand_used("hf")) rhfrun();
 }
 
@@ -257,7 +289,7 @@ void Distributor::rhfo() {
     // print the RHF optimization header
     std::cout << "\n" + std::string(104, '-') + "\nRESTRICTED HARTREE-FOCK OPTIMIZATION\n" << std::string(104, '-') + "\n\n";
 
-    // define the energy function formnumerical gradient
+    // define the energy function for numerical gradient
     auto efunc = [this](System system) {
         return HF(rhfopt).rscf(system.clearints(), Matrix::Zero(system.shells.nbf(), system.shells.nbf()), false).E;
     };
@@ -373,6 +405,57 @@ void Distributor::rmp2o() {
     // print the optimized coordinates and distances
     std::cout << "\nOPTIMIZED SYSTEM COORDINATES\n" << system.coords << std::endl;
     if (CONTAINS(print, "dist") || CONTAINS(print, "all")) std::cout << "\nOPTIMIZED DISTANCE MATRIX\n" << system.dists << std::endl;
+}
+
+void Distributor::dynamics() {
+    // print the dyncmics header
+    std::cout << "\n" + std::string(104, '-') + "\nMOLECULAR DYNAMICS\n" << std::string(104, '-') + "\n\n";
+
+    // define the anonymous function for energy and gradient
+    std::function<std::tuple<double, Matrix>(System&)> egfunc;
+    std::function<double(System)> efunc;
+
+    // if MP2 specified
+    if (md.is_subcommand_used("hf") && mdhf.is_subcommand_used("mp2")) {
+        // define the energy function for numerical gradient
+        efunc = [this](System system) {
+            HF::ResultsRestricted rhfres = HF(rhfopt).rscf(system.clearints(), Matrix::Zero(system.shells.nbf(), system.shells.nbf()), false);
+            return rhfres.E + MP({rhfres}).rmp2(system, Tensor<4>(), false);
+        };
+
+        // define the energy-gradient function
+        egfunc = [this, efunc](System& system) {
+            // delete the calculated integrals and recalculate Hartree-Fock
+            HF::ResultsRestricted rhfres = HF(rhfopt).rscf(system.clearints(), Matrix::Zero(system.shells.nbf(), system.shells.nbf()), false);
+
+            // calculate the MP2 gradient and energy
+            Matrix G = Gradient({mdmp2.get<std::vector<double>>("-g").at(1)}).get(system, efunc, false);
+            double Ecorr = MP({rhfres}).rmp2(system, Tensor<4>(), false);
+
+            // return the tuple containing energy and gradient
+            return std::tuple{rhfres.E + Ecorr, G};
+        };
+
+    // if only HF method specified
+    } else if (md.is_subcommand_used("hf")) {
+        // define the energy function for numerical gradient
+        efunc = [this](System system) {
+            return HF(rhfopt).rscf(system.clearints(), Matrix::Zero(system.shells.nbf(), system.shells.nbf()), false).E;
+        };
+
+        // define energy-gradient function
+        egfunc = [this, efunc](System& system) {
+            // delete the calculated integrals and recalculate Hartree-Fock
+            HF::ResultsRestricted rhfres = HF(rhfopt).rscf(system.clearints(), Matrix::Zero(system.shells.nbf(), system.shells.nbf()), false);
+
+            // calculate the numerical or analytical gradient
+            if (mdhf.get<std::vector<double>>("-g").at(0)) return std::tuple{rhfres.E, Gradient({mdhf.get<std::vector<double>>("-g").at(1)}).get(system, efunc, false)};
+            else return std::tuple{rhfres.E, Gradient({mdhf.get<std::vector<double>>("-g").at(1)}).get(system, rhfres, false)};
+        };
+    } else throw std::runtime_error("NO METHOD FOR DYNAMICS SPECIFIED");
+
+    // perform the dynamics
+    Dynamics({md.get<int>("-i"), md.get<double>("-s"), md.get("-o")}).run(system, egfunc);
 }
 
 void Distributor::integrals() {
