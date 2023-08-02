@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # extract the matrix lines and it's size
-MATRIX=$(sed -n '/KINETIC/,/NUCLEAR/p' | head -n -4 | tail -n +2)
+MATRIX=$(sed -n '/^KINETIC/,/^NUCLEAR/p' | head -n -2 | tail -n +2)
 SIZE=$(echo "$MATRIX" | head -n 1 | awk -F'[^0-9]+' '{print $2}')
 
 # remove previous splits and split the matrix

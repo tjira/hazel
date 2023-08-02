@@ -24,6 +24,7 @@ Distributor::Distributor(int argc, char** argv) : program("hazel", "0.1", argpar
 
     // add positional arguments to the integral argument parser
     ints.add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
+    ints.add_argument("-p", "--print").help("-- Output printing options.").default_value<std::vector<std::string>>({}).append();
 
     // add positional arguments to the HF argument parser
     hf.add_argument("-d", "--diis").help("-- Start iteration and history length for DIIS algorithm.").default_value(std::vector<int>{3, 5}).nargs(2).scan<'i', int>();
@@ -78,19 +79,19 @@ Distributor::Distributor(int argc, char** argv) : program("hazel", "0.1", argpar
     // print help if requested
     if (program.get<bool>("-h")) {
         std::cout << program.help().str(); exit(EXIT_SUCCESS);
-    } else if (program.is_subcommand_used(ints) && ints.get<bool>("-h")) {
+    } else if (program.is_subcommand_used("ints") && ints.get<bool>("-h")) {
         std::cout << ints.help().str(); exit(EXIT_SUCCESS);
-    } else if (program.is_subcommand_used(hf) && hf.get<bool>("-h")) {
+    } else if (program.is_subcommand_used("hf") && hf.get<bool>("-h")) {
         std::cout << hf.help().str(); exit(EXIT_SUCCESS);
-    } else if (program.is_subcommand_used(hf) && hf.is_subcommand_used(mp2) && mp2.get<bool>("-h")) {
+    } else if (program.is_subcommand_used("hf") && hf.is_subcommand_used("mp2") && mp2.get<bool>("-h")) {
         std::cout << mp2.help().str(); exit(EXIT_SUCCESS);
-    } else if (program.is_subcommand_used(hf) && hf.is_subcommand_used(ci) && ci.get<bool>("-h")) {
+    } else if (program.is_subcommand_used("hf") && hf.is_subcommand_used("ci") && ci.get<bool>("-h")) {
         std::cout << ci.help().str(); exit(EXIT_SUCCESS);
-    } else if (program.is_subcommand_used(md) && md.get<bool>("-h")) {
+    } else if (program.is_subcommand_used("md") && md.get<bool>("-h")) {
         std::cout << md.help().str(); exit(EXIT_SUCCESS);
-    } else if (program.is_subcommand_used(md) && md.is_subcommand_used(mdhf) && mdhf.get<bool>("-h")) {
+    } else if (program.is_subcommand_used("md") && md.is_subcommand_used("hf") && mdhf.get<bool>("-h")) {
         std::cout << mdhf.help().str(); exit(EXIT_SUCCESS);
-    } else if (program.is_subcommand_used(md) && md.is_subcommand_used(mdhf) && mdhf.is_subcommand_used(mdmp2) && mdhf.get<bool>("-h")) {
+    } else if (program.is_subcommand_used("md") && md.is_subcommand_used("hf") && mdhf.is_subcommand_used("mp2") && mdhf.get<bool>("-h")) {
         std::cout << mdmp2.help().str(); exit(EXIT_SUCCESS);
     }
 
@@ -153,7 +154,9 @@ void Distributor::run() {
     if (CONTAINS(print, "dist") || CONTAINS(print, "all")) std::cout << "\nDISTANCE MATRIX\n" << system.dists << std::endl; 
 
     // extract printing options
-    if (program.is_subcommand_used("hf")) {
+    if (program.is_subcommand_used("ints")) {
+        intsprint = ints.get<std::vector<std::string>>("-p");
+    } else if (program.is_subcommand_used("hf")) {
         hfprint = hf.get<std::vector<std::string>>("-p");
         if (hf.is_subcommand_used("mp2")) {
             mp2print = mp2.get<std::vector<std::string>>("-p");
@@ -466,43 +469,51 @@ void Distributor::integrals() {
     // calculate the overlap integral
     std::cout << "\nOVERLAP INTEGRAL: " << std::flush; TIME(system.ints.S = Integral::Overlap(system))
     std::cout << " " << Eigen::MemMatrix(system.ints.S);
-    if (CONTAINS(print, "s") || CONTAINS(print, "all")) std::cout << "\n" << system.ints.S << std::endl;
+    if (CONTAINS(intsprint, "s") || CONTAINS(intsprint, "all")) std::cout << "\n" << system.ints.S << std::endl;
+    if (CONTAINS(hfprint, "s") || CONTAINS(hfprint, "all")) std::cout << "\n" << system.ints.S << std::endl;
 
     // calculate the kinetic integral
     std::cout << "\nKINETIC INTEGRAL: " << std::flush; TIME(system.ints.T = Integral::Kinetic(system))
     std::cout << " " << Eigen::MemMatrix(system.ints.T);
-    if (CONTAINS(print, "t") || CONTAINS(print, "all")) std::cout << "\n" << system.ints.T << std::endl;
+    if (CONTAINS(intsprint, "t") || CONTAINS(intsprint, "all")) std::cout << "\n" << system.ints.T << std::endl;
+    if (CONTAINS(hfprint, "t") || CONTAINS(hfprint, "all")) std::cout << "\n" << system.ints.T << std::endl;
 
     // calculate the nuclear-electron attraction integral
     std::cout << "\nNUCLEAR INTEGRAL: " << std::flush; TIME(system.ints.V = Integral::Nuclear(system))
     std::cout << " " << Eigen::MemMatrix(system.ints.V);
-    if (CONTAINS(print, "v") || CONTAINS(print, "all")) std::cout << "\n" << system.ints.V << std::endl;
+    if (CONTAINS(intsprint, "v") || CONTAINS(intsprint, "all")) std::cout << "\n" << system.ints.V << std::endl;
+    if (CONTAINS(hfprint, "v") || CONTAINS(hfprint, "all")) std::cout << "\n" << system.ints.V << std::endl;
 
     // calculate the electron-electron repulsion integral
     if (!program.get<bool>("--no-coulomb")) {std::cout << "\nCOULOMB INTEGRAL: " << std::flush; TIME(system.ints.J = Integral::Coulomb(system))}
     if (!program.get<bool>("--no-coulomb")) std::cout << " " << Eigen::MemTensor(system.ints.J);
-    if (!program.get<bool>("--no-coulomb") && (CONTAINS(print, "j") || CONTAINS(print, "all"))) {std::cout << "\n" << system.ints.J;} std::cout << "\n";
+    if (!program.get<bool>("--no-coulomb") && (CONTAINS(intsprint, "j") || CONTAINS(intsprint, "all"))) {std::cout << "\n" << system.ints.J;}
+    if (!program.get<bool>("--no-coulomb") && (CONTAINS(hfprint, "j") || CONTAINS(hfprint, "all"))) {std::cout << "\n" << system.ints.J;} std::cout << "\n";
 
     // if derivatives of the integrals are needed
     if (program.is_subcommand_used("ints") || ((hf.is_used("-g") || hf.is_used("-o")) && !hf.get<std::vector<double>>("-g").at(0))) {
         // calculate the derivative of overlap integral
         std::cout << "\nFIRST DERIVATIVE OF OVERLAP INTEGRAL: " << std::flush; TIME(system.dints.dS = Integral::dOverlap(system))
         std::cout << " " << Eigen::MemTensor(system.dints.dS);
-        if (CONTAINS(print, "ds") || CONTAINS(print, "all")) std::cout << "\n" << system.dints.dS << std::endl;
+        if (CONTAINS(intsprint, "ds") || CONTAINS(intsprint, "all")) std::cout << "\n" << system.dints.dS << std::endl;
+        if (CONTAINS(hfprint, "ds") || CONTAINS(hfprint, "all")) std::cout << "\n" << system.dints.dS << std::endl;
 
         // calculate the derivative of kinetic integral
         std::cout << "\nFIRST DERIVATIVE OF KINETIC INTEGRAL: " << std::flush; TIME(system.dints.dT = Integral::dKinetic(system))
         std::cout << " " << Eigen::MemTensor(system.dints.dT);
-        if (CONTAINS(print, "dt") || CONTAINS(print, "all")) std::cout << "\n" << system.dints.dT << std::endl;
+        if (CONTAINS(intsprint, "dt") || CONTAINS(intsprint, "all")) std::cout << "\n" << system.dints.dT << std::endl;
+        if (CONTAINS(hfprint, "dt") || CONTAINS(hfprint, "all")) std::cout << "\n" << system.dints.dT << std::endl;
 
         // calculate the derivative of nuclear-electron attraction integral
         std::cout << "\nFIRST DERIVATIVE OF NUCLEAR INTEGRAL: " << std::flush; TIME(system.dints.dV = Integral::dNuclear(system))
         std::cout << " " << Eigen::MemTensor(system.dints.dV);
-        if (CONTAINS(print, "dv") || CONTAINS(print, "all")) std::cout << "\n" << system.dints.dV << std::endl;
+        if (CONTAINS(intsprint, "dv") || CONTAINS(intsprint, "all")) std::cout << "\n" << system.dints.dV << std::endl;
+        if (CONTAINS(hfprint, "dv") || CONTAINS(hfprint, "all")) std::cout << "\n" << system.dints.dV << std::endl;
 
         // calculate the derivative of electron-electron repulsion integral
         std::cout << "\nFIRST DERIVATIVE OF COULOMB INTEGRAL: " << std::flush; TIME(system.dints.dJ = Integral::dCoulomb(system))
         std::cout << " " << Eigen::MemTensor(system.dints.dJ);
-        if (CONTAINS(print, "dj") || CONTAINS(print, "all")) {std::cout << "\n" << system.dints.dJ;} std::cout << "\n";
+        if (CONTAINS(intsprint, "dj") || CONTAINS(intsprint, "all")) {std::cout << "\n" << system.dints.dJ;}
+        if (CONTAINS(hfprint, "dj") || CONTAINS(hfprint, "all")) {std::cout << "\n" << system.dints.dJ;} std::cout << "\n";
     }
 }

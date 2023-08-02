@@ -15,6 +15,7 @@ public:
     ~Distributor(); void run();
 
 private:
+    // compute integrals
     void integrals();
 
     // HF distribution
@@ -34,8 +35,8 @@ private:
 
 private:
     // printing options and parsers
-    argparse::ArgumentParser program, ints, hf, ci, md, mp2, mdhf, mdmp2;
-    std::vector<std::string> print, ciprint, hfprint, mdprint, mp2print;
+    std::vector<std::string> print, ciprint, intsprint, hfprint, mdprint, mp2print;
+    argparse::ArgumentParser program, ci, hf, ints, md, mdhf, mdmp2, mp2;
 
     // options and results of quantum methods
     CI::OptionsRestricted rciopt; CI::ResultsRestricted rcires;

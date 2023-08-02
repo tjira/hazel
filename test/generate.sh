@@ -19,7 +19,7 @@ for INTEGRAL in "${INTEGRALS[@]}"; do
             cat "template/integral.in" > "$FILE"
 
             # calculate the expected energy
-            I=$(../bin/hazel -b "$BASIS" -f "../example/molecule/$SYSTEM.xyz" -n $CORES -p s -p t -p v ints | "../script/extract/$INTEGRAL.sh")
+            I=$(../bin/hazel -b "$BASIS" -f "../example/molecule/$SYSTEM.xyz" -n $CORES ints -p all | "../script/extract/$INTEGRAL.sh")
             I=$(echo "$I" | tr "\n" " " | tr -s " " | sed "s/^ // ; s/\s*$//g ; s/ /, /g")
 
             # replace values in the source file
