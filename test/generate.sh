@@ -4,6 +4,8 @@ SYSTEMS=("ammonia" "ethane" "ethylene" "formaldehyde" "methane" "water")
 BASES=("mini" "3-21g" "sto-3g" "6-31g" "6-31g*" "cc-pvdz")
 INTEGRALS=("overlap" "kinetic" "nuclear")
 
+HF="-d 3 5 -m 1000 -t 1e-8"
+
 CORES=64
 
 # integral matrices
@@ -38,7 +40,7 @@ for SYSTEM in "${SYSTEMS[@]}"; do
         cat template/energy_hf.in > "$FILE"
 
         # calculate the expected energy
-        ENERGY=$(../bin/hazel -b "$BASIS" -f "../example/molecule/$SYSTEM.xyz" -n $CORES hf -d 3 5 -m 1000 -t 1e-8 | grep FINAL | awk '{print $4}')
+        ENERGY=$(../bin/hazel -b "$BASIS" -f "../example/molecule/$SYSTEM.xyz" -n $CORES hf $HF | grep FINAL | awk '{print $4}')
 
         # replace values in the source file
         sed -i "s/(int/_$(echo "$BASIS" | sed -e 's/*/s/g' -e 's/-//g')(int/g" "$FILE" && sed -i "s/BASIS/${BASIS^^}/g" "$FILE"
@@ -56,7 +58,7 @@ for SYSTEM in "${SYSTEMS[@]}"; do
         cat template/gradient_hf.in > "$FILE"
 
         # calculate the expected energy
-        GRAD=$(../bin/hazel -b "$BASIS" -f "../example/molecule/$SYSTEM.xyz" -n $CORES hf -d 3 5 -m 1000 -t 1e-8 -g | sed -n "/ANAL/,/GRAD/p" | tail -n +5 | head -n -2)
+        GRAD=$(../bin/hazel -b "$BASIS" -f "../example/molecule/$SYSTEM.xyz" -n $CORES hf $HF -g | sed -n "/ANAL/,/GRAD/p" | tail -n +5 | head -n -2)
         GRAD=$(echo "$GRAD" | tr "\n" " " | tr -s " " | sed "s/^ // ; s/\s*$//g ; s/ /, /g")
 
         # replace values in the source file
@@ -75,7 +77,7 @@ for SYSTEM in "${SYSTEMS[@]}"; do
         cat template/energy_mp2.in > "$FILE"
 
         # calculate the expected energy
-        ENERGY=$(../bin/hazel -b "$BASIS" -f "../example/molecule/$SYSTEM.xyz" -n $CORES hf -d 3 5 -m 1000 -t 1e-8 mp2 | grep "FINAL MP2" | awk '{print $4}')
+        ENERGY=$(../bin/hazel -b "$BASIS" -f "../example/molecule/$SYSTEM.xyz" -n $CORES hf $HF mp2 | grep "FINAL MP2" | awk '{print $4}')
 
         # replace values in the source file
         sed -i "s/(int/_$(echo "$BASIS" | sed -e 's/*/s/g' -e 's/-//g')(int/g" "$FILE" && sed -i "s/BASIS/${BASIS^^}/g" "$FILE"
