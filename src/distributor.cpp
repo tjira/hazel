@@ -267,7 +267,7 @@ void Distributor::rhff() {
     // print the Hessian header
     if (hf.get<std::vector<double>>("-f").at(0)) std::cout << "\n" + std::string(104, '-') + "\nNUMERICAL HESSIAN FOR RESTRICTED HARTREE-FOCK\n";
     else std::cout << "\n" + std::string(104, '-') + "\nANALYTICAL HESSIAN FOR RESTRICTED HARTREE-FOCK\n";
-    std::cout << std::string(104, '-') + "\n\n";
+    std::cout << std::string(104, '-') + "\n\n"; Matrix H;
 
     // define the energy function for numerical Hessian
     auto efunc = [this](System system) {
@@ -275,7 +275,8 @@ void Distributor::rhff() {
     };
 
     // perform the Hessian calculation
-    Matrix H = Hessian({hf.get<std::vector<double>>("-f").at(1)}).get(system, efunc);
+    if (hf.get<std::vector<double>>("-f").at(0)) H = Hessian({hf.get<std::vector<double>>("-f").at(1)}).get(system, efunc);
+    else throw std::runtime_error("ANALYTICAL HESSIAN FOR RHF NOT IMPLEMENTED");
 
     // print the Hessian and it's norm
     std::cout << "NUCLEAR HESSIAN\n" << H << "\n\nHESSIAN NORM: "; std::printf("%.2e\n", H.norm());
@@ -343,19 +344,67 @@ void Distributor::uhfrun() {
     uhfres = HF(uhfopt).uscf(system, Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
 
     // print the resulting RHF matrices and energies
-    // if (CONTAINS(hfprint, "eps") || CONTAINS(print, "all")) std::cout << "\nORBITAL ENERGIES\n" << Matrix(rhfres.eps) << std::endl;
-    // if (CONTAINS(hfprint, "c") || CONTAINS(print, "all")) std::cout << "\nCOEFFICIENT MATRIX\n" << rhfres.C << std::endl;
-    // if (CONTAINS(hfprint, "d") || CONTAINS(print, "all")) std::cout << "\nDENSITY MATRIX\n" << rhfres.D << std::endl;
+    if (CONTAINS(hfprint, "epsa") || CONTAINS(print, "all")) std::cout << "\nORBITAL ENERGIES (ALPHA)\n" << Matrix(uhfres.epsa) << std::endl;
+    if (CONTAINS(hfprint, "epsb") || CONTAINS(print, "all")) std::cout << "\nORBITAL ENERGIES (BETA)\n" << Matrix(uhfres.epsb) << std::endl;
+    if (CONTAINS(hfprint, "ca") || CONTAINS(print, "all")) std::cout << "\nCOEFFICIENT MATRIX (ALPHA)\n" << uhfres.Ca << std::endl;
+    if (CONTAINS(hfprint, "cb") || CONTAINS(print, "all")) std::cout << "\nCOEFFICIENT MATRIX (BETA)\n" << uhfres.Cb << std::endl;
+    if (CONTAINS(hfprint, "da") || CONTAINS(print, "all")) std::cout << "\nDENSITY MATRIX (ALPHA)\n" << uhfres.Da << std::endl;
+    if (CONTAINS(hfprint, "db") || CONTAINS(print, "all")) std::cout << "\nDENSITY MATRIX (BETA)\n" << uhfres.Db << std::endl;
     std::cout << "\nTOTAL NUCLEAR REPULSION ENERGY: " << Integral::Repulsion(system) << std::endl;
     std::cout << "FINAL HARTREE-FOCK ENERGY: " << uhfres.E << std::endl;
 
     // gradient and frequency
-    if (hf.is_used("-g"))  throw std::runtime_error("GRADIENT FOR UHF NOT IMPLEMENTED");
-    if (hf.is_used("-f"))  throw std::runtime_error("HESSIAN FOR UHF NOT IMPLEMENTED");
+    if (hf.is_used("-g")) uhfg();
+    if (hf.is_used("-f")) uhff();
 
     // post RHF methods
     if (hf.is_subcommand_used("mp2")) throw std::runtime_error("UMP2 NOT IMPLEMENTED");
     if (hf.is_subcommand_used("ci")) throw std::runtime_error("UCI NOT IMPLEMENTED");
+}
+
+void Distributor::uhff() {
+    // print the Hessian header
+    if (hf.get<std::vector<double>>("-f").at(0)) std::cout << "\n" + std::string(104, '-') + "\nNUMERICAL HESSIAN FOR RESTRICTED HARTREE-FOCK\n";
+    else std::cout << "\n" + std::string(104, '-') + "\nANALYTICAL HESSIAN FOR RESTRICTED HARTREE-FOCK\n";
+    std::cout << std::string(104, '-') + "\n\n"; Matrix H;
+
+    // define the energy function for numerical Hessian
+    auto efunc = [this](System system) {
+        return HF(uhfopt).uscf(system.clearints(), 0.5 * (uhfres.Da + uhfres.Db), false).E;
+    };
+
+    // perform the Hessian calculation
+    if (hf.get<std::vector<double>>("-f").at(0)) H = Hessian({hf.get<std::vector<double>>("-f").at(1)}).get(system, efunc);
+    else throw std::runtime_error("ANALYTICAL HESSIAN FOR UHF NOT IMPLEMENTED");
+
+    // print the Hessian and it's norm
+    std::cout << "NUCLEAR HESSIAN\n" << H << "\n\nHESSIAN NORM: "; std::printf("%.2e\n", H.norm());
+
+    // perform the frequency calculation based on the calculated Hessian
+    Vector freq = Hessian({hf.get<std::vector<double>>("-f").at(1)}).frequency(system, H);
+
+    // print the frequencies
+    std::cout << "\n" + std::string(104, '-') + "\nRESTRICTED HARTREE-FOCK FREQUENCY ANALYSIS\n" << std::string(104, '-');
+    std::cout << "\n\nVIBRATIONAL FREQUENCIES\n" << Matrix(freq) << std::endl;
+}
+
+void Distributor::uhfg() {
+    // print the header for gradient calculation and define the gradient matrix
+    if (hf.get<std::vector<double>>("-g").at(0)) std::cout << "\n" + std::string(104, '-') + "\nNUMERICAL GRADIENT FOR UNRESTRICTED HARTREE-FOCK\n";
+    else std::cout << "\n" + std::string(104, '-') + "\nANALYTICAL GRADIENT FOR UNRESTRICTED HARTREE-FOCK\n";
+    std::cout << std::string(104, '-') + "\n\n"; Matrix G; 
+
+    // define the energy function for numerical gradient
+    auto efunc = [this](System system) {
+        return HF(uhfopt).uscf(system.clearints(), 0.5 * (uhfres.Da + uhfres.Db), false).E;
+    };
+
+    // calculate the numerical or analytical gradient
+    if (hf.get<std::vector<double>>("-g").at(0)) G = Gradient({hf.get<std::vector<double>>("-g").at(1)}).get(system, efunc);
+    else throw std::runtime_error("ANALYTICAL GRADIENT FOR UHF NOT IMPLEMENTED");
+
+    // print the gradient and it's norm
+    std::cout << G << "\n\nGRADIENT NORM: "; std::printf("%.2e\n", G.norm());
 }
 
 void Distributor::rmp2run() {
@@ -382,7 +431,7 @@ void Distributor::rmp2f() {
     // print the MP2 frequency calculation header
     if (mp2.get<std::vector<double>>("-f").at(0)) std::cout << "\n" + std::string(104, '-') + "\nNUMERICAL HESSIAN FOR RESTRICTED MP2 METHOD\n";
     else std::cout << "\n" + std::string(104, '-') + "\nANALYTICAL HESSIAN FOR RESTRICTED MP2 METHOD\n";
-    std::cout << std::string(104, '-') + "\n\n";
+    std::cout << std::string(104, '-') + "\n\n"; Matrix H; 
 
     // define the energy function for numerical Hessian
     auto efunc = [this](System system) {
@@ -391,7 +440,8 @@ void Distributor::rmp2f() {
     };
 
     // perform the Hessian calculation
-    Matrix H = Hessian({mp2.get<std::vector<double>>("-f").at(1)}).get(system, efunc);
+    if (mp2.get<std::vector<double>>("-f").at(0)) H = Hessian({mp2.get<std::vector<double>>("-f").at(1)}).get(system, efunc);
+    else throw std::runtime_error("ANALYTICAL HESSIAN FOR RMP2 NOT IMPLEMENTED");
 
     // print the Hessian and it's norm
     std::cout << "NUCLEAR HESSIAN\n" << H << "\n\nHESSIAN NORM: "; std::printf("%.2e\n", H.norm());
@@ -406,8 +456,8 @@ void Distributor::rmp2f() {
 
 void Distributor::rmp2g() {
     // print the MP2 gradient method header
-    if (hf.get<std::vector<double>>("-g").at(0)) std::cout << "\n" + std::string(104, '-') + "\nNUMERICAL GRADIENT FOR RESTRICTED MP2 METHOD\n" << std::string(104, '-') << "\n\n";
-    else std::cout << "\n" + std::string(104, '-') + "\nANALYTICAL GRADIENT FOR RESTRICTED MP2 METHOD\n" << std::string(104, '-') << "\n\n";
+    if (mp2.get<std::vector<double>>("-g").at(0)) std::cout << "\n" + std::string(104, '-') + "\nNUMERICAL GRADIENT FOR RESTRICTED MP2 METHOD\n" << std::string(104, '-') << "\n\n";
+    else std::cout << "\n" + std::string(104, '-') + "\nANALYTICAL GRADIENT FOR RESTRICTED MP2 METHOD\n" << std::string(104, '-') << "\n\n"; Matrix G;
 
     // define the energy function for numerical gradient
     auto efunc = [this](System system) {
@@ -416,7 +466,8 @@ void Distributor::rmp2g() {
     };
 
     // perform the MP2 gradient calculation
-    Matrix G = Gradient({mp2.get<std::vector<double>>("-g").at(1)}).get(system, efunc);
+    if (mp2.get<std::vector<double>>("-g").at(0)) G = Gradient({mp2.get<std::vector<double>>("-g").at(1)}).get(system, efunc);
+    else throw std::runtime_error("ANALYTICAL GRADIENT FOR RMP2 NOT IMPLEMENTED");
 
     // print the MP2 gradient and it's norm
     std::cout << G << "\n\nGRADIENT NORM: "; std::printf("%.2e\n", G.norm());

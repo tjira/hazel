@@ -38,9 +38,9 @@ Below are all the important features of Hazel divided into categories.
 
 ### Quantum Mechanical Methods
 
+* Hartree-Fock Method (RHF & UHF)
 * Møller–Plesset Perturbation Theory
 * Configuration Interaction (S & D)
-* Hartree-Fock Method (RHF & UHF)
 
 ### Convergence Accelerators
 
@@ -48,8 +48,8 @@ Below are all the important features of Hazel divided into categories.
 
 ### Additional Calculations
 
-* Numerical Hessians and Frequency Analysis for RHF and RMP2
-* Gradients for RHF (Analytical) and RMP2 (Numerical)
+* Numerical Hessians and Frequency Analysis for HF and MP2
+* Gradients for HF (Analytical) and MP2 (Numerical)
 * RHF and RMP2 Steepest Descent Optimization
 
 ## 🛠️ Compilation
