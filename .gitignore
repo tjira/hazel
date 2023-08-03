@@ -3,6 +3,7 @@
 /trajectory.xyz
 /molecule.xyz
 /hazel.cpp
+/plot.gp
 /hazel
 
 # profiling

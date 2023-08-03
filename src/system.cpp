@@ -10,6 +10,13 @@ System::System(const std::string& fname, const std::string& basis, int charge, i
     // check for the input file existence
     if (!std::ifstream(fname).good()) throw std::runtime_error("SYSTEM FILE DOES NOT EXIST");
 
+    // throw an error if impossible combination of charge and multiplicity
+    if (std::abs(charge) % 2 == 0 && multi % 2 == 0) {
+        throw std::runtime_error("MOLECULE CAN'T HAVE AN EVEN CHARGE AND MULTIPLICITY AT THE SAME TIME.");
+    } else if (std::abs(charge) % 2 == 1 && multi % 2 == 1) {
+        throw std::runtime_error("MOLECULE CAN'T HAVE AN ODD CHARGE AND MULTIPLICITY AT THE SAME TIME.");
+    }
+
     // assign all the variables
     std::ifstream file(fname); atoms = libint2::read_dotxyz(file); electrons -= charge;
     coords = Matrix(atoms.size(), 3), dists = Matrix(atoms.size(), atoms.size());

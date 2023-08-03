@@ -18,15 +18,19 @@ private:
     // compute integrals
     void integrals();
 
-    // HF distribution
+    // RHF distribution
     void rhfrun(); void rhff();
     void rhfg(); void rhfo();
 
-    // CI distribution
+    // RHF distribution
+    void uhfrun(); void uhff();
+    void uhfg(); void uhfo();
+
+    // RCI distribution
     void rcirun(); void rcif();
     void rcig(); void rcio();
 
-    // MP2 distribution
+    // RMP2 distribution
     void rmp2run(); void rmp2f();
     void rmp2g(); void rmp2o();
 
@@ -39,6 +43,7 @@ private:
     argparse::ArgumentParser program, ci, hf, ints, md, mdhf, mdmp2, mp2;
 
     // options and results of quantum methods
+    HF::OptionsUnrestricted uhfopt; HF::ResultsUnrestricted uhfres;
     CI::OptionsRestricted rciopt; CI::ResultsRestricted rcires;
     HF::OptionsRestricted rhfopt; HF::ResultsRestricted rhfres;
 

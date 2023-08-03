@@ -18,6 +18,7 @@ Distributor::Distributor(int argc, char** argv) : program("hazel", "0.1", argpar
     program.add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
     program.add_argument("-n", "--nthread").help("-- Number of threads to use.").default_value(1).scan<'i', int>();
     program.add_argument("-p", "--print").help("-- Printing options.").default_value<std::vector<std::string>>({}).append();
+    program.add_argument("-s", "--spin").help("-- Spin multiplicity of the system.").default_value(1).scan<'i', int>();
     program.add_argument("--no-center").help("-- Disable the molecule centering.").default_value(false).implicit_value(true);
     program.add_argument("--no-coulomb").help("-- Disable calculation of the coulomb tensor.").default_value(false).implicit_value(true);
     program.add_argument("--show-bases").help("-- Print all the available bases.").default_value(false).implicit_value(true);
@@ -31,7 +32,7 @@ Distributor::Distributor(int argc, char** argv) : program("hazel", "0.1", argpar
     hf.add_argument("-f", "--frequency").help("-- Analytical (0) or numerical (1) frequency calculation with step size.").default_value(std::vector<double>{1, 1e-5}).nargs(2).scan<'g', double>();
     hf.add_argument("-g", "--gradient").help("-- Analytical (0) or numerical (1) gradient calculation with step size.").default_value(std::vector<double>{0, 1e-5}).nargs(2).scan<'g', double>();
     hf.add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
-    hf.add_argument("-m", "--maxiter").help("-- Maximum number of iterations in SCF loop.").default_value(100).scan<'i', int>();
+    hf.add_argument("-i", "--iters").help("-- Maximum number of iterations in SCF loop.").default_value(100).scan<'i', int>();
     hf.add_argument("-p", "--print").help("-- Printing options.").default_value<std::vector<std::string>>({}).append();
     hf.add_argument("-o", "--optimize").help("-- Optimization with gradient threshold.").default_value(1e-8).scan<'g', double>();
     hf.add_argument("-t", "--thresh").help("-- Threshold for conververgence in SCF loop.").default_value(1e-12).scan<'g', double>();
@@ -57,7 +58,7 @@ Distributor::Distributor(int argc, char** argv) : program("hazel", "0.1", argpar
     // add positional arguments to the MD HF argument parser
     mdhf.add_argument("-d", "--diis").help("-- Start iteration and history length for DIIS algorithm.").default_value(std::vector<int>{3, 5}).nargs(2).scan<'i', int>();
     mdhf.add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
-    mdhf.add_argument("-m", "--maxiter").help("-- Maximum number of iterations in SCF loop.").default_value(100).scan<'i', int>();
+    mdhf.add_argument("-i", "--iters").help("-- Maximum number of iterations in SCF loop.").default_value(100).scan<'i', int>();
     mdhf.add_argument("-t", "--thresh").help("-- Threshold for conververgence in SCF loop.").default_value(1e-12).scan<'g', double>();
     mdhf.add_argument("-g", "--gradient").help("-- Analytical (0) or numerical (1) gradient calculation with step size.").default_value(std::vector<double>{0, 1e-5}).nargs(2).scan<'g', double>();
 
@@ -122,11 +123,8 @@ Distributor::~Distributor() {
 
 void Distributor::run() {
     // initialize the system and extract general printing flag
-    system = System(program.get("-f"), program.get("-b"), program.get<int>("-c"), 1);
+    system = System(program.get("-f"), program.get("-b"), program.get<int>("-c"), program.get<int>("-s"));
     print = program.get<std::vector<std::string>>("-p");
-
-    // check if unrestricted calculation needed
-    if (system.charge % 2) throw std::runtime_error("SPIN UNRESTRICTED CALCULATIONS ARE NOT SUPPORTED YET");
 
     // print the title with number of threads
     std::cout << "QUANTUM HAZEL" << std::endl;
@@ -167,13 +165,25 @@ void Distributor::run() {
 
     // extract HF options
     if (program.is_subcommand_used("hf")) {
-        rhfopt.diis = {hf.get<std::vector<int>>("-d").at(0), hf.get<std::vector<int>>("-d").at(1)};
-        rhfopt.maxiter = hf.get<int>("-m"), rhfopt.thresh = hf.get<double>("-t");
-        rhfopt.nocoulomb = program.get<bool>("--no-coulomb");
+        if (program.get<int>("-s") == 1) {
+            rhfopt.diis = {hf.get<std::vector<int>>("-d").at(0), hf.get<std::vector<int>>("-d").at(1)};
+            rhfopt.maxiter = hf.get<int>("-i"), rhfopt.thresh = hf.get<double>("-t");
+            rhfopt.nocoulomb = program.get<bool>("--no-coulomb");
+        } else {
+            uhfopt.diis = {hf.get<std::vector<int>>("-d").at(0), hf.get<std::vector<int>>("-d").at(1)};
+            uhfopt.maxiter = hf.get<int>("-i"), uhfopt.thresh = hf.get<double>("-t");
+            uhfopt.nocoulomb = program.get<bool>("--no-coulomb");
+        }
     } else if (program.is_subcommand_used("md") && md.is_subcommand_used("hf")) {
-        rhfopt.diis = {mdhf.get<std::vector<int>>("-d").at(0), mdhf.get<std::vector<int>>("-d").at(1)};
-        rhfopt.maxiter = mdhf.get<int>("-m"), rhfopt.thresh = mdhf.get<double>("-t");
-        rhfopt.nocoulomb = program.get<bool>("--no-coulomb");
+        if (program.get<int>("-s") == 1) {
+            rhfopt.diis = {mdhf.get<std::vector<int>>("-d").at(0), mdhf.get<std::vector<int>>("-d").at(1)};
+            rhfopt.maxiter = mdhf.get<int>("-i"), rhfopt.thresh = mdhf.get<double>("-t");
+            rhfopt.nocoulomb = program.get<bool>("--no-coulomb");
+        } else {
+            uhfopt.diis = {mdhf.get<std::vector<int>>("-d").at(0), mdhf.get<std::vector<int>>("-d").at(1)};
+            uhfopt.maxiter = mdhf.get<int>("-i"), uhfopt.thresh = mdhf.get<double>("-t");
+            uhfopt.nocoulomb = program.get<bool>("--no-coulomb");
+        }
     }
 
     // transform the print vectors to lowercase
@@ -187,15 +197,24 @@ void Distributor::run() {
 
     // optimize the molecule
     if (program.is_subcommand_used("hf")) {
-        if (hf.is_used("-o")) rhfo();
+        if (hf.is_used("-o")) {
+            if (program.get<int>("-s") == 1) rhfo();
+            else std::runtime_error("OPTIMIZATION FOR UHF NOT IMPLEMENTED");
+        }
         else if (hf.is_subcommand_used("mp2")) {
-            if (mp2.is_used("-o")) rmp2o();
+            if (mp2.is_used("-o")) {
+                if (program.get<int>("-s") == 1) rmp2o();
+                else std::runtime_error("OPTIMIZATION FOR UMP2 NOT IMPLEMENTED");
+            }
         }
     }
 
     // distribute the calculations
     if (program.is_subcommand_used("md")) dynamics();
-    if (program.is_subcommand_used("hf")) rhfrun();
+    if (program.is_subcommand_used("hf")) {
+        if (program.get<int>("-s") == 1) rhfrun();
+        else uhfrun();
+    }
 }
 
 void Distributor::rcirun() {
@@ -315,6 +334,30 @@ void Distributor::rhfo() {
     if (CONTAINS(print, "dist") || CONTAINS(print, "all")) std::cout << "\nOPTIMIZED DISTANCE MATRIX\n" << system.dists << std::endl;
 }
 
+void Distributor::uhfrun() {
+    // print the RHF method header
+    std::cout << "\n" + std::string(104, '-') + "\nUNRESTRICTED HARTREE-FOCK METHOD\n" << std::string(104, '-') + "\n\n";
+    std::printf("-- MAXITER: %d, THRESH: %.2e\n-- DIIS: [START: %d, KEEP: %d]\n", uhfopt.maxiter, uhfopt.thresh, uhfopt.diis.start, uhfopt.diis.keep);
+
+    // perform the RHF calculation
+    uhfres = HF(uhfopt).uscf(system, Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
+
+    // print the resulting RHF matrices and energies
+    // if (CONTAINS(hfprint, "eps") || CONTAINS(print, "all")) std::cout << "\nORBITAL ENERGIES\n" << Matrix(rhfres.eps) << std::endl;
+    // if (CONTAINS(hfprint, "c") || CONTAINS(print, "all")) std::cout << "\nCOEFFICIENT MATRIX\n" << rhfres.C << std::endl;
+    // if (CONTAINS(hfprint, "d") || CONTAINS(print, "all")) std::cout << "\nDENSITY MATRIX\n" << rhfres.D << std::endl;
+    std::cout << "\nTOTAL NUCLEAR REPULSION ENERGY: " << Integral::Repulsion(system) << std::endl;
+    std::cout << "FINAL HARTREE-FOCK ENERGY: " << uhfres.E << std::endl;
+
+    // gradient and frequency
+    if (hf.is_used("-g"))  throw std::runtime_error("GRADIENT FOR UHF NOT IMPLEMENTED");
+    if (hf.is_used("-f"))  throw std::runtime_error("HESSIAN FOR UHF NOT IMPLEMENTED");
+
+    // post RHF methods
+    if (hf.is_subcommand_used("mp2")) throw std::runtime_error("UMP2 NOT IMPLEMENTED");
+    if (hf.is_subcommand_used("ci")) throw std::runtime_error("UCI NOT IMPLEMENTED");
+}
+
 void Distributor::rmp2run() {
     // print the MP2 method header
     std::cout << "\n" + std::string(104, '-') + "\nRESTRICTED MP2 CORRELATION ENERGY\n" << std::string(104, '-') + "\n"; Tensor<4> Jmo;
@@ -417,6 +460,10 @@ void Distributor::dynamics() {
     // define the anonymous function for energy and gradient
     std::function<std::tuple<double, Matrix>(System&)> egfunc;
     std::function<double(System)> efunc;
+
+    if (md.is_subcommand_used("hf") && program.get<int>("-s") != 1) {
+        throw std::runtime_error("DYNAMICS NOT IMPLEMENTED FOR UNRESTRICTED CALCULATION");
+    }
 
     // if MP2 specified
     if (md.is_subcommand_used("hf") && mdhf.is_subcommand_used("mp2")) {
