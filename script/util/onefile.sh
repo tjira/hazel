@@ -13,6 +13,7 @@ sed '/#include ".*"/d ; /#pragma once/d' \
     include/gradient.h                   \
     include/hessian.h                    \
     include/optimizer.h                  \
+    include/dynamics.h                   \
     include/distributor.h                \
     src/eigen.cpp                        \
     src/timer.cpp                        \
@@ -25,6 +26,7 @@ sed '/#include ".*"/d ; /#pragma once/d' \
     src/hessian.cpp                      \
     src/optimizer.cpp                    \
     src/system.cpp                       \
+    src/dynamics.cpp                     \
     src/distributor.cpp                  \
     src/main.cpp                         \
 | sed "s/^ *// ; /^$/d ; /^\/\//d" > hazel.cpp
