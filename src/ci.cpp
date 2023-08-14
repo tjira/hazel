@@ -31,7 +31,7 @@ CI::ResultsRestricted CI::rcid(const System& system, const Tensor<4>& Jmo, bool)
     double Ecorr = eig(0) - ropt.rhfres.E;
 
     // return the results
-    return {H, C, eig, Ecorr};
+    return {C, H, eig, Ecorr};
 }
 
 CI::ResultsRestricted CI::rcis(const System& system, const Tensor<4>& Jmo, bool) const {
@@ -75,5 +75,5 @@ CI::ResultsRestricted CI::rcis(const System& system, const Tensor<4>& Jmo, bool)
     double Ecorr = eig(0) - ropt.rhfres.E;
 
     // return the results
-    return {H, C, eig, Ecorr};
+    return {C, H, eig, Ecorr};
 }
