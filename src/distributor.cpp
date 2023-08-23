@@ -8,8 +8,8 @@ Distributor::Distributor(int argc, char** argv) : program("hazel", "0.1", argpar
     ints = argparse::ArgumentParser("ints", "0.1", argparse::default_arguments::none), hf = argparse::ArgumentParser("hf", "0.1", argparse::default_arguments::none);
     mp2 = argparse::ArgumentParser("mp2", "0.1", argparse::default_arguments::none), ci = argparse::ArgumentParser("ci", "0.1", argparse::default_arguments::none);
 
-    md = argparse::ArgumentParser("md", "0.1", argparse::default_arguments::none), mdhf = argparse::ArgumentParser("hf", "0.1", argparse::default_arguments::none);
-    mdmp2 = argparse::ArgumentParser("mp2", "0.1", argparse::default_arguments::none);
+    mdhf = argparse::ArgumentParser("hf", "0.1", argparse::default_arguments::none), mdmp2 = argparse::ArgumentParser("mp2", "0.1", argparse::default_arguments::none);
+    qd = argparse::ArgumentParser("qd", "0.1", argparse::default_arguments::none), md = argparse::ArgumentParser("md", "0.1", argparse::default_arguments::none);
 
     // add positional arguments to the main argument parser
     program.add_argument("-b", "--basis").help("-- Basis set used to approximate atomic orbitals.").default_value(std::string("STO-3G"));
@@ -49,6 +49,11 @@ Distributor::Distributor(int argc, char** argv) : program("hazel", "0.1", argpar
     ci.add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
     ci.add_argument("-p", "--print").help("-- Printing options.").default_value<std::vector<std::string>>({}).append();
 
+    // add positional arguments to the QD argument parser
+    qd.add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
+    qd.add_argument("-s", "--step").help("-- Dynamics time step in atomic units.").default_value(0.5).scan<'g', double>();
+    qd.add_argument("-i", "--iters").help("-- Number of iterations in dynamics.").default_value(100).scan<'i', int>();
+
     // add positional arguments to the MD argument parser
     md.add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
     md.add_argument("-s", "--step").help("-- Dynamics time step in atomic units.").default_value(0.5).scan<'g', double>();
@@ -68,7 +73,7 @@ Distributor::Distributor(int argc, char** argv) : program("hazel", "0.1", argpar
 
     // add the parsers
     program.add_subparser(ints), program.add_subparser(hf), hf.add_subparser(mp2), hf.add_subparser(ci);
-    program.add_subparser(md), md.add_subparser(mdhf), mdhf.add_subparser(mdmp2);
+    program.add_subparser(qd), program.add_subparser(md), md.add_subparser(mdhf), mdhf.add_subparser(mdmp2);
 
     // parse the arguments
     try {
@@ -88,6 +93,8 @@ Distributor::Distributor(int argc, char** argv) : program("hazel", "0.1", argpar
         std::cout << mp2.help().str(); exit(EXIT_SUCCESS);
     } else if (program.is_subcommand_used("hf") && hf.is_subcommand_used("ci") && ci.get<bool>("-h")) {
         std::cout << ci.help().str(); exit(EXIT_SUCCESS);
+    } else if (program.is_subcommand_used("qd") && qd.get<bool>("-h")) {
+        std::cout << qd.help().str(); exit(EXIT_SUCCESS);
     } else if (program.is_subcommand_used("md") && md.get<bool>("-h")) {
         std::cout << md.help().str(); exit(EXIT_SUCCESS);
     } else if (program.is_subcommand_used("md") && md.is_subcommand_used("hf") && mdhf.get<bool>("-h")) {
@@ -211,6 +218,7 @@ void Distributor::run() {
 
     // distribute the calculations
     if (program.is_subcommand_used("md")) dynamics();
+    if (program.is_subcommand_used("qd")) qdyn();
     if (program.is_subcommand_used("hf")) {
         if (program.get<int>("-s") == 1) rhfrun();
         else uhfrun();
@@ -504,8 +512,16 @@ void Distributor::rmp2o() {
     if (CONTAINS(print, "dist") || CONTAINS(print, "all")) std::cout << "\nOPTIMIZED DISTANCE MATRIX\n" << system.dists << std::endl;
 }
 
+void Distributor::qdyn() {
+    // print the dynamics header
+    std::cout << "\n" + std::string(104, '-') + "\nQUANTUM DYNAMICS\n" << std::string(104, '-') + "\n\n";
+
+    // perform the dynamics
+    Qdyn({qd.get<int>("-i"), qd.get<double>("-s")}).run(system);
+}
+
 void Distributor::dynamics() {
-    // print the dyncmics header
+    // print the dynamics header
     std::cout << "\n" + std::string(104, '-') + "\nMOLECULAR DYNAMICS\n" << std::string(104, '-') + "\n\n";
 
     // define the anonymous function for energy and gradient
