@@ -42,13 +42,25 @@ add_test(build ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR})
 add_test(NAME water_0-1_sto-3g_hf COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b sto-3g -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -s 1 hf)
 set_tests_properties(water_0-1_sto-3g_hf PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -74.96590121")
 
+# test: water 0 1 STO-3G MP2
+add_test(NAME water_0-1_sto-3g_mp2 COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b sto-3g -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -s 1 hf mp2)
+set_tests_properties(water_0-1_sto-3g_mp2 PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL MP2 ENERGY: -75.00485494")
+
 # test: water 0 1 6-31G* HF
 add_test(NAME water_0-1_6-31gs_hf COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b 6-31g* -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -s 1 hf)
 set_tests_properties(water_0-1_6-31gs_hf PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -76.00679980")
 
+# test: water 0 1 6-31G* MP2
+add_test(NAME water_0-1_6-31gs_mp2 COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b 6-31g* -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -s 1 hf mp2)
+set_tests_properties(water_0-1_6-31gs_mp2 PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL MP2 ENERGY: -76.19820599406358")
+
 # test: water 0 1 CC-PVDZ HF
 add_test(NAME water_0-1_cc-pvdz_hf COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b cc-pvdz -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -s 1 hf)
 set_tests_properties(water_0-1_cc-pvdz_hf PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -76.02312305")
+
+# test: water 0 1 CC-PVDZ MP2
+add_test(NAME water_0-1_cc-pvdz_mp2 COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b cc-pvdz -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -s 1 hf mp2)
+set_tests_properties(water_0-1_cc-pvdz_mp2 PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL MP2 ENERGY: -76.22985471")
 
 # test: water 1 2 STO-3G HF
 add_test(NAME water_1-2_sto-3g_hf COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b sto-3g -c 1 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -s 2 hf)
