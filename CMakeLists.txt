@@ -35,23 +35,29 @@ endif()
 # enable testing
 enable_testing()
 
-# get all the test source files and create the source lists
-file(GLOB SRC_TEST RELATIVE ${PROJECT_SOURCE_DIR} test/*.cpp)
-create_test_sourcelist(TEST_LIST test_hazel.cpp ${SRC_TEST})
+# add build target before all tests
+add_test(build ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR})
 
-# add executables and set their properties
-add_executable(test_hazel EXCLUDE_FROM_ALL src/dynamics.cpp src/eigen.cpp src/gradient.cpp src/hessian.cpp src/hf.cpp src/integral.cpp src/mp.cpp src/optimizer.cpp src/system.cpp src/transform.cpp src/timer.cpp ${TEST_LIST})
-set_target_properties(test_hazel PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin/test)
-target_compile_definitions(test_hazel PRIVATE DATADIR="${PROJECT_SOURCE_DIR}")
-target_link_libraries(test_hazel Eigen3::Eigen int2.a xc.a)
+# test: water 0 1 STO-3G HF
+add_test(NAME water_0-1_sto-3g_hf COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b sto-3g -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -s 1 hf)
+set_tests_properties(water_0-1_sto-3g_hf PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -74.96590121")
 
-# extract energy test name
-foreach (FILE ${SRC_TEST})
-    get_filename_component(TNAME ${FILE} NAME_WE)
-    list(APPEND TESTS test/${TNAME})
-endforeach()
+# test: water 0 1 6-31G* HF
+add_test(NAME water_0-1_6-31gs_hf COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b 6-31g* -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -s 1 hf)
+set_tests_properties(water_0-1_6-31gs_hf PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -76.00679980")
 
-# add energy tests
-foreach (TEST ${TESTS})
-    add_test(NAME ${TEST} COMMAND test_hazel ${TEST})
-endforeach()
+# test: water 0 1 CC-PVDZ HF
+add_test(NAME water_0-1_cc-pvdz_hf COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b cc-pvdz -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -s 1 hf)
+set_tests_properties(water_0-1_cc-pvdz_hf PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -76.02312305")
+
+# test: water 1 2 STO-3G HF
+add_test(NAME water_1-2_sto-3g_hf COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b sto-3g -c 1 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -s 2 hf)
+set_tests_properties(water_1-2_sto-3g_hf PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -74.66228146")
+
+# test: water 1 2 6-31G* HF
+add_test(NAME water_1-2_6-31gs_hf COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b 6-31g* -c 1 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -s 2 hf)
+set_tests_properties(water_1-2_6-31gs_hf PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.61187809")
+
+# test: water 1 2 CC-PVDZ HF
+add_test(NAME water_1-2_cc-pvdz_hf COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b cc-pvdz -c 1 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -s 2 hf)
+set_tests_properties(water_1-2_cc-pvdz_hf PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.63182597")
