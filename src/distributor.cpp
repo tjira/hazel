@@ -365,7 +365,7 @@ void Distributor::uhfrun() {
     if (hf.is_used("-g")) uhfg();
     if (hf.is_used("-f")) uhff();
 
-    // post RHF methods
+    // post UHF methods
     if (hf.is_subcommand_used("mp2")) throw std::runtime_error("UMP2 NOT IMPLEMENTED");
     if (hf.is_subcommand_used("ci")) throw std::runtime_error("UCI NOT IMPLEMENTED");
 }
@@ -569,7 +569,7 @@ void Distributor::dynamics() {
             if (mdhf.get<std::vector<double>>("-g").at(0)) return std::tuple{rhfres.E, Gradient({mdhf.get<std::vector<double>>("-g").at(1)}).get(system, efunc, false)};
             else return std::tuple{rhfres.E, Gradient({mdhf.get<std::vector<double>>("-g").at(1)}).get(system, rhfres, false)};
         };
-    } else throw std::runtime_error("NO METHOD FOR DYNAMICS SPECIFIED");
+    } else throw std::runtime_error("INVALID METHOD FOR DYNAMICS SPECIFIED");
 
     // perform the dynamics
     Dynamics({md.get<int>("-i"), md.get<double>("-s"), md.get("-o")}).run(system, egfunc);
