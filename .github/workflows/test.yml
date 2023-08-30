@@ -32,6 +32,6 @@ jobs:
       - name: Run Tests
         working-directory: build
         run: |
-          export CPLUS_INCLUDE_PATH="$PWD/libint/install/include:$PWD/libxc/install/include:$CPLUS_INCLUDE_PATH"
-          export LIBRARY_PATH="$PWD/libint/install/lib:$PWD/libxc/install/lib:$LIBRARY_PATH"
+          export CPLUS_INCLUDE_PATH="$PWD/../libint/install/include:$PWD/libxc/install/include:$CPLUS_INCLUDE_PATH"
+          export LIBRARY_PATH="$PWD/../libint/install/lib:$PWD/libxc/install/lib:$LIBRARY_PATH"
           ctest --verbose
