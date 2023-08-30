@@ -54,10 +54,10 @@ Below are all the important features of Hazel divided into categories.
 
 ## 🛠️ Compilation
 
-The software requires the [libint](https://github.com/evaleev/libint) and [libxc](https://gitlab.com/libxc/libxc) library. You can compile it yourself following the instructions on the webpages (or better yet execute `./script/libint.sh` and `./script/libxc.sh` from the root directory). Before compilation make sure that you have Eigen library installed. You can do that on debian-based distros using the following command.
+The software requires the [libint](https://github.com/evaleev/libint) and [libxc](https://gitlab.com/libxc/libxc) library. You can compile it yourself following the instructions on the webpages (or better yet execute `./script/libint.sh` and `./script/libxc.sh` from the root directory). Before compilation make sure that you have Boost and Eigen libraries installed. You can do that on debian-based distros using the following command.
 
 ```bash
-sudo apt install libeigen3-dev
+sudo apt install libboost-all-dev libeigen3-dev
 ```
 
 Make sure that you add the libint/libxc headers and library to the environmental variables `CPLUS_INCLUDE_PATH` and `LIBRARY_PATH`. You can then configure the project by the following command.
