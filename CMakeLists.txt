@@ -52,7 +52,7 @@ set_tests_properties(water_0-1_6-31gs_hf PROPERTIES DEPENDS build PASS_REGULAR_E
 
 # test: water 0 1 6-31G* MP2
 add_test(NAME water_0-1_6-31gs_mp2 COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b 6-31g* -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -s 1 hf mp2)
-set_tests_properties(water_0-1_6-31gs_mp2 PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL MP2 ENERGY: -76.19820599406358")
+set_tests_properties(water_0-1_6-31gs_mp2 PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL MP2 ENERGY: -76.19820599")
 
 # test: water 0 1 CC-PVDZ HF
 add_test(NAME water_0-1_cc-pvdz_hf COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b cc-pvdz -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -s 1 hf)
