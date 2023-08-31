@@ -1,5 +1,4 @@
 #include "qdyn.h"
-#include "eigen.h"
 
 Qdyn::Results Qdyn::run(System system, bool print) const {
     if (std::log2(opt.points) != (int)std::log2(opt.points)) throw std::runtime_error("NUMBER OF POINTS HAS TO BE POWER OF TWO");
@@ -11,24 +10,18 @@ Qdyn::Results Qdyn::run(System system, bool print) const {
     // create dx and the real and momentum space
     double dx = 2 * opt.range / (opt.points - 1);
     CVector x(opt.points), k(opt.points);
+    k.fill(2 * M_PI / k.size() / dx);
 
-    // fil the real space
-    for (int i = 0; i < x.size(); i++) {
-        x(i) = -opt.range + i * dx;
-    }
+    // fill the real and momentum space
+    for (int i = 0; i < x.size(); i++) x(i) = 2 * i * opt.range / (opt.points - 1) - opt.range;
+    for (int i = 0; i < k.size(); i++) k(i) *= i - (i < opt.points / 2 ? 0 : opt.points);
 
     // define the potential
     CVector V = 0.5 * x.cwiseProduct(x);
 
-    // fill the momentum space
-    for (int i = 0; i < k.size(); i++) {
-        if (int half = k.size() / 2; i < half) k(i) = i;
-        else k(i) = -half + i - half;
-    }
-    k /= dx * k.size() / M_PI / 2;
-
     // create the real space and momentum space operators
-    CVector R = (-0.5 * V.array() * opt.dt).exp(), K = (-0.5 * k.array().pow(2) * opt.dt).exp();
+    CVector K = (-0.5 * k.array().pow(2) * opt.dt).exp();
+    CVector R = (-0.5 * V.array() * opt.dt).exp();
 
     // loop over all states
     for (int i = 0; i < opt.nstates; i++) {

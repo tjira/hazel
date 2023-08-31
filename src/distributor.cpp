@@ -523,7 +523,7 @@ void Distributor::qdyn() {
     Qdyn::Results qdres = Qdyn({qd.get<int>("-p"), qd.get<int>("-i"), qd.get<int>("-n"), qd.get<double>("-r"), qd.get<double>("-s")}).run(system);
 
     // print the energies
-    std::cout << "\nIMAGINARY TIME PROPAGATION ENERGIES\n" << Matrix(qdres.energy) << std::endl;
+    std::cout << "IMAGINARY TIME PROPAGATION ENERGIES\n" << Matrix(qdres.energy) << std::endl;
 }
 
 void Distributor::dynamics() {
