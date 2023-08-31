@@ -2,14 +2,18 @@ import matplotlib.animation as anm
 import matplotlib.pyplot as plt
 import numpy as np
 
-xhalfrange, xpoints, dt, steps, thresh = 37, 1024, 0.1, 10000, 1e-12
-dx, nstates = 2 * xhalfrange / (xpoints - 1), 12
-legend, plotlim = True, 1e-8
+xhalfrange, xpoints, dt, steps, thresh = 16, 1024, 0.1, 1000, 1e-12
+dx, nstates = 2 * xhalfrange / (xpoints - 1), 3
+legend, plotlim = False, 1e-8
 
 x = np.linspace(-xhalfrange, xhalfrange, xpoints)
 k = 2 * np.fft.fftfreq(len(x), dx) * np.pi
 
-psi0, V = np.exp(-(x - 1)**2), 0.5 * x**2
+# print(np.fft.fftfreq(len(x), dx))
+# print(np.fft.fft([1, 2, 3, 4]))
+
+psi0, V = np.exp(-(x - 0.5)**2), 0.5 * x**2
+print(psi0)
 
 def energy(wfn):
     Ek = 0.5 * np.conj(wfn) * np.fft.ifft(k**2 * np.fft.fft(wfn))
@@ -28,10 +32,9 @@ if __name__ == "__main__":
                 psi[-1] -= np.sum(np.conj(states[j][-1]) * psi[-1]) * dx * states[j][-1]
                 # psi[0] -= np.sum(np.conj(states[0][-1] * np.exp(0.5j * np.pi)) * psi[0]) * dx * states[0][-1] * np.exp(0.5j * np.pi)
 
-
             psi[-1] /= np.sqrt(np.sum(np.abs(psi[-1])**2) * dx)
 
-            # if np.sum(np.abs(psi[-1] - psi[-2])**2) < thresh or np.abs(energy(psi[-1]) - energy(psi[-2])) < thresh: break
+            if np.sum(np.abs(psi[-1] - psi[-2])**2) < thresh or np.abs(energy(psi[-1]) - energy(psi[-2])) < thresh: break
 
         states.append(psi); print("E_{}:".format(i), energy(psi[-1]))
 
@@ -50,4 +53,4 @@ if __name__ == "__main__":
         for i in range(len(psiplots)): psiplots[i].set_ydata(D[i][j if j < len(D[i]) else -1])
         if legend: ax.legend(psiplots, labels, loc="upper right")
 
-    ani = anm.FuncAnimation(fig, update, frames=np.max([len(state) for state in states]), interval=10); plt.show(); plt.close("all")
+    ani = anm.FuncAnimation(fig, update, frames=np.max([len(state) for state in states]), interval=30); plt.show(); plt.close("all")

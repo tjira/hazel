@@ -51,8 +51,11 @@ Distributor::Distributor(int argc, char** argv) : program("hazel", "0.1", argpar
 
     // add positional arguments to the QD argument parser
     qd.add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
-    qd.add_argument("-s", "--step").help("-- Dynamics time step in atomic units.").default_value(0.5).scan<'g', double>();
-    qd.add_argument("-i", "--iters").help("-- Number of iterations in dynamics.").default_value(100).scan<'i', int>();
+    qd.add_argument("-s", "--step").help("-- Dynamics time step in atomic units.").default_value(0.1).scan<'g', double>();
+    qd.add_argument("-i", "--iters").help("-- Number of iterations in dynamics.").default_value(1000).scan<'i', int>();
+    qd.add_argument("-r", "--range").help("-- Grid range in all dimensions.").default_value(16.0).scan<'g', double>();
+    qd.add_argument("-n", "--nstate").help("-- Number of states to consider.").default_value(3).scan<'i', int>();
+    qd.add_argument("-p", "--points").help("-- Number of points on the grid.").default_value(1024).scan<'i', int>();
 
     // add positional arguments to the MD argument parser
     md.add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
@@ -517,7 +520,10 @@ void Distributor::qdyn() {
     std::cout << "\n" + std::string(104, '-') + "\nQUANTUM DYNAMICS\n" << std::string(104, '-') + "\n\n";
 
     // perform the dynamics
-    Qdyn({qd.get<int>("-i"), qd.get<double>("-s")}).run(system);
+    Qdyn::Results qdres = Qdyn({qd.get<int>("-p"), qd.get<int>("-i"), qd.get<int>("-n"), qd.get<double>("-r"), qd.get<double>("-s")}).run(system);
+
+    // print the energies
+    std::cout << "\nIMAGINARY TIME PROPAGATION ENERGIES\n" << Matrix(qdres.energy) << std::endl;
 }
 
 void Distributor::dynamics() {

@@ -6,10 +6,12 @@
 class Qdyn {
 public:
     struct Options {
-        int iters; double step;
+        int points, iters, nstates;
+        double range, dt;
     };
     struct Results {
-
+        std::vector<CVector> states;
+        Vector energy; CVector r;
     };
 public:
     // constructor

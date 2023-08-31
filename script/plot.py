@@ -13,9 +13,10 @@ if __name__ == "__main__":
     parser = ap.ArgumentParser(prog="Hazel Plotter", description="Plotting script for the Hazel package.")
     parser.add_argument("--mdenergy", action="store_true")
     parser.add_argument("--hfconv", action="store_true")
+    parser.add_argument("--wfn", action="store_true")
     args = parser.parse_args()
 
-    print(input.strip())
+    # print(input.strip())
 
     if args.hfconv:
         block = input[input.find("HARTREE-FOCK"):input.find("NUCLEAR REPULSION")]
@@ -25,7 +26,15 @@ if __name__ == "__main__":
         block = input[input.find("MOLECULAR DYNAMICS"):input.find("EXECUTION TIME:")]
         data = [float(line.split()[1]) for line in block.split("\n")[5:-3]]
 
+    if args.wfn:
+        data = [[float(entry) for entry in line.split()] for line in input.split("\n")[1:] if line]
+        dx = np.array(data).T[0][1] - np.array(data).T[0][0]
+        print(np.sqrt(np.sum(np.abs(np.array(data).T[1])**2) * dx))
+
     if data:
-        plt.plot(data)
+        if isinstance(data[0], float): plt.plot(data)
+        else:
+            for i in range(1, len(data[0])):
+                plt.plot(np.array(data).T[0], np.array(data).T[i])
         plt.tight_layout()
         plt.show()

@@ -52,7 +52,7 @@ Matrix Gradient::get(const System& system, const HF::ResultsRestricted& rhfres, 
     Tensor<3> dS1 = system.dints.dS.slice<Index<3>, Index<3>>({0, 0, 0}, {system.dints.dS.dimension(0), system.dints.dS.dimension(1), 3});
     Tensor<3> dT1 = system.dints.dT.slice<Index<3>, Index<3>>({0, 0, 0}, {system.dints.dT.dimension(0), system.dints.dT.dimension(1), 3});
     Tensor<3> dV1 = system.dints.dV.slice<Index<3>, Index<3>>({0, 0, 0}, {system.dints.dV.dimension(0), system.dints.dV.dimension(1), 3});
-    Pair first(2, 0), second(3, 1), third(0, 0), fourth(1, 1); int nocc = system.electrons / 2;
+    Eigen::IndexPair<int> first(2, 0), second(3, 1), third(0, 0), fourth(1, 1); int nocc = system.electrons / 2;
 
     // define the weighted density, gradient matrix and atomic shell map
     auto atom2shell = system.shells.atom2shell(system.atoms);
