@@ -16,7 +16,7 @@ if __name__ == "__main__":
     parser.add_argument("--wfn", action="store_true")
     args = parser.parse_args()
 
-    # print(input.strip())
+    print(input.strip())
 
     if args.hfconv:
         block = input[input.find("HARTREE-FOCK"):input.find("NUCLEAR REPULSION")]
@@ -29,7 +29,6 @@ if __name__ == "__main__":
     if args.wfn:
         data = [[float(entry) for entry in line.split()] for line in input.split("\n")[1:] if line]
         dx = np.array(data).T[0][1] - np.array(data).T[0][0]
-        print(np.sqrt(np.sum(np.abs(np.array(data).T[1])**2) * dx))
 
     if data:
         if isinstance(data[0], float): plt.plot(data)

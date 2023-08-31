@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 set(CMAKE_CXX_STANDARD 20)
+# include(FetchContent)
 project(Hazel)
 
 # set cmake variables
@@ -16,6 +17,14 @@ if (CMAKE_BUILD_TYPE STREQUAL Debug)
 elseif (CMAKE_BUILD_TYPE STREQUAL Release)
     set(CXXFLAGS ${CMAKE_CXX_FLAGS_RELEASE})
 endif()
+
+# include fftw
+# FetchContent_Declare(fftw
+#     URL https://www.fftw.org/fftw-3.3.10.tar.gz
+#     DOWNLOAD_EXTRACT_TIMESTAMP FALSE
+# )
+# FetchContent_MakeAvailable(fftw)
+# add_subdirectory(${fftw_SOURCE_DIR})
 
 # find packages and include directories
 include_directories(include lib)
