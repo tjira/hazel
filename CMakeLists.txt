@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 set(CMAKE_CXX_STANDARD 20)
+# include(FetchContent)
 project(Hazel)
 
 # set cmake variables
@@ -17,13 +18,21 @@ elseif (CMAKE_BUILD_TYPE STREQUAL Release)
     set(CXXFLAGS ${CMAKE_CXX_FLAGS_RELEASE})
 endif()
 
+# include fftw
+# FetchContent_Declare(fftw
+#     URL https://www.fftw.org/fftw-3.3.10.tar.gz
+#     DOWNLOAD_EXTRACT_TIMESTAMP FALSE
+# )
+# FetchContent_MakeAvailable(fftw)
+# add_subdirectory(${fftw_SOURCE_DIR})
+
 # find packages and include directories
 include_directories(include lib)
 find_package(Eigen3 REQUIRED)
 find_package(OpenMP REQUIRED)
 
 # add hazel executable
-add_executable(hazel src/ci.cpp src/distributor.cpp src/dynamics.cpp src/eigen.cpp src/gradient.cpp src/hessian.cpp src/hf.cpp src/integral.cpp src/main.cpp src/mp.cpp src/optimizer.cpp src/system.cpp src/timer.cpp src/transform.cpp)
+add_executable(hazel src/ci.cpp src/distributor.cpp src/dynamics.cpp src/eigen.cpp src/gradient.cpp src/hessian.cpp src/hf.cpp src/integral.cpp src/main.cpp src/mp.cpp src/optimizer.cpp src/qdyn.cpp src/system.cpp src/timer.cpp src/transform.cpp)
 target_compile_definitions(hazel PRIVATE CXXFLAGS="${CXXFLAGS}" DATADIR="${PROJECT_SOURCE_DIR}")
 target_link_libraries(hazel Eigen3::Eigen int2.a xc.a)
 

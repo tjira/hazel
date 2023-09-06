@@ -6,6 +6,7 @@
 #include "argparse.hpp"
 #include "optimizer.h"
 #include "dynamics.h"
+#include "qdyn.h"
 
 #include <xc.h>
 
@@ -42,13 +43,13 @@ private:
     void rmp2run(); void rmp2f();
     void rmp2g(); void rmp2o();
 
-    // MD distribution
-    void dynamics();
+    // MD and QD distribution
+    void dynamics(); void qdyn();
 
 private:
     // printing options and parsers
-    std::vector<std::string> print, ciprint, intsprint, hfprint, mdprint, mp2print;
-    argparse::ArgumentParser program, ci, hf, ints, md, mdhf, mdmp2, mp2;
+    std::vector<std::string> print, ciprint, intsprint, hfprint, mdprint, mp2print, qdprint;
+    argparse::ArgumentParser program, ints, hf, mp2, ci, qd, md, mdhf, mdmp2;
 
     // options and results of quantum methods
     HF::OptionsUnrestricted uhfopt; HF::ResultsUnrestricted uhfres;

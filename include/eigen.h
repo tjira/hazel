@@ -9,14 +9,20 @@ inline int nthread = 1;
 
 #include <unsupported/Eigen/MatrixFunctions>
 #include <unsupported/Eigen/CXX11/Tensor>
+#include <unsupported/Eigen/FFT>
 
-typedef Eigen::Vector<double, Eigen::Dynamic> Vector; typedef Eigen::IndexPair<int> Pair;
 typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor> Matrix;
+typedef Eigen::Vector<double, Eigen::Dynamic> Vector;
+
+typedef Eigen::Matrix<std::complex<double>, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor> CMatrix;
+typedef Eigen::Vector<std::complex<double>, Eigen::Dynamic> CVector;
 
 template <size_t D> using Tensor = Eigen::Tensor<double, D, Eigen::ColMajor>;
 template <size_t D> using Axes = Eigen::array<Eigen::IndexPair<int>, D>;
 template <size_t D> using Index = Eigen::array<Eigen::Index, D>;
 template <size_t D> using Array = Eigen::array<int, D>;
+
+template <size_t D> using CTensor = Eigen::Tensor<std::complex<double>, D, Eigen::ColMajor>;
 
 namespace Eigen {
     std::ostream& operator<<(std::ostream& os, const Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>& A);
@@ -27,6 +33,13 @@ namespace Eigen {
     // custom functions
     void Write(const std::string& fname, const Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>& A);
     void Write(const std::string& fname, const Tensor<double, 4, Eigen::ColMajor>& A);
+
+    // complex functions
+    template <typename T> T Conj(const T& A) {return A.unaryExpr([](auto x) {return std::conj(x);});}
+
+    // transforms
+    inline CVector fftINV(const CVector& A) {Eigen::FFT<double> fft; CVector B(A.size()); fft.inv(B, A); return B;}
+    inline CVector fftFWD(const CVector& A) {Eigen::FFT<double> fft; CVector B(A.size()); fft.fwd(B, A); return B;}
 
     // memory getters
     std::string MemMatrix(const Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>& A);
