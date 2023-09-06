@@ -55,20 +55,6 @@ Qdyn::Results Qdyn::run(System system, bool print) const {
         energy(i) = E;
     }
 
-    // OUTPUT
-    std::ofstream file("wavefunction.dat");
-    file << "# x";
-    for (int i = 0; i < opt.nstates; i++) {
-        file << " state" << i << ".real " << "state" << i << ".imag";
-    }
-    file << "\n";
-    for (int j = 0; j < x.size(); j++) {
-        file << x(j).real();
-        for (int i = 0; i < opt.nstates; i++) {
-            file << " " << states.at(i)(j).real() << " " << states.at(i)(j).imag();
-        }
-        file << "\n";
-    }
-
+    // return the results
     return {states, energy, x};
 }

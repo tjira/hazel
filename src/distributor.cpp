@@ -524,6 +524,20 @@ void Distributor::qdyn() {
 
     // print the energies
     std::cout << "IMAGINARY TIME PROPAGATION ENERGIES\n" << Matrix(qdres.energy) << std::endl;
+
+    // save the wavefunction
+    std::ofstream file("wavefunction.dat");
+    file << std::fixed << std::setprecision(14) << "#        r1         ";
+    for (int i = 0; i < qd.get<int>("-n"); i++) {
+        file << "     state" << (i < 10 ? "0" : "") << i << ".real         " << "state" << (i < 10 ? "0" : "") << i << ".imag    ";
+    }
+    for (int j = 0; j < qdres.r.size(); j++) {
+        file << (!j ? "\n" : "") << std::setw(20) << qdres.r(j).real();
+        for (int i = 0; i < qd.get<int>("-n"); i++) {
+            file << " " << std::setw(20) << qdres.states.at(i)(j).real() << " " << std::setw(20) << qdres.states.at(i)(j).imag();
+        }
+        file << "\n";
+    }
 }
 
 void Distributor::dynamics() {
