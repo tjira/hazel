@@ -16,8 +16,6 @@ if __name__ == "__main__":
     parser.add_argument("--wfn", action="store_true")
     args = parser.parse_args()
 
-    print(input.strip())
-
     if args.hfconv:
         block = input[input.find("HARTREE-FOCK"):input.find("NUCLEAR REPULSION")]
         data = [float(line.split()[1]) for line in block.split("\n")[7:-2]]
