@@ -57,7 +57,7 @@ HF::ResultsRestricted HF::rscf(const System& system, Matrix D, bool print) const
         // finish if covergence reached
         if (Eerr < ropt.thresh && Derr < ropt.thresh) break;
         else if (i == ropt.maxiter) {
-            throw std::runtime_error("Maximum number of iterations in SCF reached.");
+            throw std::runtime_error("MAXIMUM NUMBER OF ITERATIONS IN SCF REACHED.");
         }
     }
 

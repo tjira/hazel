@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import matplotlib.animation as anm
 import matplotlib.pyplot as plt
 
 import argparse as ap
@@ -25,13 +26,22 @@ if __name__ == "__main__":
         data = [float(line.split()[1]) for line in block.split("\n")[5:-3]]
 
     if args.wfn:
-        data = [[float(entry) for entry in line.split()] for line in input.split("\n")[1:] if line]
-        dx = np.array(data).T[0][1] - np.array(data).T[0][0]
+        for line in [line for line in input.split("\n") if line]:
+            data.append([]) if line[0] == "#" else data[-1].append([float(entry) for entry in line.split()])
 
     if data:
-        if isinstance(data[0], float): plt.plot(data)
-        else:
+        fig, ax = plt.subplots()
+
+        if isinstance(data[0], float):
+            data = [[float(i), data[i - 1]] for i in range(1, len(data) + 1)]
+            
+        if isinstance(data[0][0], float):
             for i in range(1, len(data[0])):
                 plt.plot(np.array(data).T[0], np.array(data).T[i])
-        plt.tight_layout()
-        plt.show()
+
+        elif isinstance(data[0][0][0], float):
+            plots = [plt.plot(np.array(data[0]).T[0], np.array(data[0]).T[i])[0] for i in range(1, len(data[0][0]))]
+            update = lambda i: [plots[j - 1].set_ydata(np.array(data[i]).T[j]) for j in range(1, len(data[0][0]))]
+            ani = anm.FuncAnimation(fig, update, frames=len(data), interval=30)
+
+        plt.tight_layout(); plt.show(); plt.close("all")

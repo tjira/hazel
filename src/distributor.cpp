@@ -56,6 +56,8 @@ Distributor::Distributor(int argc, char** argv) : program("hazel", "0.1", argpar
     qd.add_argument("-r", "--range").help("-- Grid range in all dimensions.").default_value(16.0).scan<'g', double>();
     qd.add_argument("-n", "--nstate").help("-- Number of states to consider.").default_value(3).scan<'i', int>();
     qd.add_argument("-p", "--points").help("-- Number of points on the grid.").default_value(1024).scan<'i', int>();
+    qd.add_argument("-t", "--thresh").help("-- Threshold for conververgence in ITP loop.").default_value(1e-8).scan<'g', double>();
+    qd.add_argument("--no-real").help("-- Help message.").default_value(false).implicit_value(true);
 
     // add positional arguments to the MD argument parser
     md.add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
@@ -520,24 +522,13 @@ void Distributor::qdyn() {
     std::cout << "\n" + std::string(104, '-') + "\nQUANTUM DYNAMICS\n" << std::string(104, '-') + "\n\n";
 
     // perform the dynamics
-    Qdyn::Results qdres = Qdyn({qd.get<int>("-p"), qd.get<int>("-i"), qd.get<int>("-n"), qd.get<double>("-r"), qd.get<double>("-s")}).run(system);
+    Qdyn::Results qdres = Qdyn({qd.get<int>("-p"), qd.get<int>("-i"), qd.get<int>("-n"), qd.get<double>("-r"), qd.get<double>("-s"), qd.get<double>("-t"), qd.get<bool>("--no-real")}).run(system);
 
     // print the energies
-    std::cout << "IMAGINARY TIME PROPAGATION ENERGIES\n" << Matrix(qdres.energy) << std::endl;
+    if (qd.get<bool>("--no-real")) std::cout << "\nIMAGINARY TIME PROPAGATION ENERGIES\n" << Matrix(qdres.energy) << std::endl;
 
     // save the wavefunction
-    std::ofstream file("wavefunction.dat");
-    file << std::fixed << std::setprecision(14) << "#        r1         ";
-    for (int i = 0; i < qd.get<int>("-n"); i++) {
-        file << "     state" << (i < 10 ? "0" : "") << i << ".real         " << "state" << (i < 10 ? "0" : "") << i << ".imag    ";
-    }
-    for (int j = 0; j < qdres.r.size(); j++) {
-        file << (!j ? "\n" : "") << std::setw(20) << qdres.r(j).real();
-        for (int i = 0; i < qd.get<int>("-n"); i++) {
-            file << " " << std::setw(20) << qdres.states.at(i)(j).real() << " " << std::setw(20) << qdres.states.at(i)(j).imag();
-        }
-        file << "\n";
-    }
+    Qdyn::wfnsave(qdres.r, qdres.states, "wavefunction.dat");
 }
 
 void Distributor::dynamics() {
