@@ -6,6 +6,7 @@
 #include "argparse.hpp"
 #include "optimizer.h"
 #include "dynamics.h"
+#include "lambda.h"
 #include "qdyn.h"
 
 #include <xc.h>
@@ -53,11 +54,7 @@ private:
 
     // options and results of quantum methods
     HF::OptionsUnrestricted uhfopt; HF::ResultsUnrestricted uhfres;
-    CI::OptionsRestricted rciopt; CI::ResultsRestricted rcires;
     HF::OptionsRestricted rhfopt; HF::ResultsRestricted rhfres;
-
-    // options and results of dynamics
-    Dynamics::Options mdopt; Dynamics::Results mdres;
 
     // execution timestamp and system struct
     Timer::Timepoint start; System system;

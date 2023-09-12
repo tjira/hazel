@@ -4,12 +4,13 @@
 #define TIME(W) {Timer::Timepoint start = Timer::Now(); W; std::cout << Timer::Format(Timer::Elapsed(start)) << std::flush;}
 
 Distributor::Distributor(int argc, char** argv) : program("hazel", "0.1", argparse::default_arguments::none), start(Timer::Now()) {
-    // initialize subcommands
+    // initialize general subcommands
     ints = argparse::ArgumentParser("ints", "0.1", argparse::default_arguments::none), hf = argparse::ArgumentParser("hf", "0.1", argparse::default_arguments::none);
     mp2 = argparse::ArgumentParser("mp2", "0.1", argparse::default_arguments::none), ci = argparse::ArgumentParser("ci", "0.1", argparse::default_arguments::none);
-
-    mdhf = argparse::ArgumentParser("hf", "0.1", argparse::default_arguments::none), mdmp2 = argparse::ArgumentParser("mp2", "0.1", argparse::default_arguments::none);
     qd = argparse::ArgumentParser("qd", "0.1", argparse::default_arguments::none), md = argparse::ArgumentParser("md", "0.1", argparse::default_arguments::none);
+
+    // initialize MD subcommands
+    mdhf = argparse::ArgumentParser("hf", "0.1", argparse::default_arguments::none), mdmp2 = argparse::ArgumentParser("mp2", "0.1", argparse::default_arguments::none);
 
     // add positional arguments to the main argument parser
     program.add_argument("-b", "--basis").help("-- Basis set used to approximate atomic orbitals.").default_value(std::string("STO-3G"));
@@ -29,7 +30,7 @@ Distributor::Distributor(int argc, char** argv) : program("hazel", "0.1", argpar
 
     // add positional arguments to the HF argument parser
     hf.add_argument("-d", "--diis").help("-- Start iteration and history length for DIIS algorithm.").default_value(std::vector<int>{3, 5}).nargs(2).scan<'i', int>();
-    hf.add_argument("-f", "--frequency").help("-- Analytical (0) or numerical (1) frequency calculation with step size.").default_value(std::vector<double>{1, 1e-5}).nargs(2).scan<'g', double>();
+    hf.add_argument("-f", "--frequency").help("-- Analytical (0) or numerical (1) frequency calculation with step size.").default_value(std::vector<double>{1, 1e-4}).nargs(2).scan<'g', double>();
     hf.add_argument("-g", "--gradient").help("-- Analytical (0) or numerical (1) gradient calculation with step size.").default_value(std::vector<double>{0, 1e-5}).nargs(2).scan<'g', double>();
     hf.add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
     hf.add_argument("-i", "--iters").help("-- Maximum number of iterations in SCF loop.").default_value(100).scan<'i', int>();
@@ -38,7 +39,7 @@ Distributor::Distributor(int argc, char** argv) : program("hazel", "0.1", argpar
     hf.add_argument("-t", "--thresh").help("-- Threshold for conververgence in SCF loop.").default_value(1e-12).scan<'g', double>();
 
     // add positional arguments to the MP2 argument parser
-    mp2.add_argument("-f", "--frequency").help("-- Analytical (0) or numerical (1) frequency calculation with step size.").default_value(std::vector<double>{1, 1e-5}).nargs(2).scan<'g', double>();
+    mp2.add_argument("-f", "--frequency").help("-- Analytical (0) or numerical (1) frequency calculation with step size.").default_value(std::vector<double>{1, 1e-4}).nargs(2).scan<'g', double>();
     mp2.add_argument("-g", "--gradient").help("-- Analytical (0) or numerical (1) gradient calculation with step size.").default_value(std::vector<double>{1, 1e-5}).nargs(2).scan<'g', double>();
     mp2.add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
     mp2.add_argument("-o", "--optimize").help("-- Optimize the provided system.").default_value(1e-8).scan<'g', double>();
@@ -104,7 +105,7 @@ Distributor::Distributor(int argc, char** argv) : program("hazel", "0.1", argpar
         std::cout << md.help().str(); exit(EXIT_SUCCESS);
     } else if (program.is_subcommand_used("md") && md.is_subcommand_used("hf") && mdhf.get<bool>("-h")) {
         std::cout << mdhf.help().str(); exit(EXIT_SUCCESS);
-    } else if (program.is_subcommand_used("md") && md.is_subcommand_used("hf") && mdhf.is_subcommand_used("mp2") && mdhf.get<bool>("-h")) {
+    } else if (program.is_subcommand_used("md") && md.is_subcommand_used("hf") && mdhf.is_subcommand_used("mp2") && mdmp2.get<bool>("-h")) {
         std::cout << mdmp2.help().str(); exit(EXIT_SUCCESS);
     }
 
@@ -211,12 +212,12 @@ void Distributor::run() {
     if (program.is_subcommand_used("hf")) {
         if (hf.is_used("-o")) {
             if (program.get<int>("-s") == 1) rhfo();
-            else std::runtime_error("OPTIMIZATION FOR UHF NOT IMPLEMENTED");
+            else throw std::runtime_error("OPTIMIZATION FOR UHF NOT IMPLEMENTED");
         }
         else if (hf.is_subcommand_used("mp2")) {
             if (mp2.is_used("-o")) {
                 if (program.get<int>("-s") == 1) rmp2o();
-                else std::runtime_error("OPTIMIZATION FOR UMP2 NOT IMPLEMENTED");
+                else throw std::runtime_error("OPTIMIZATION FOR UMP2 NOT IMPLEMENTED");
             }
         }
     }
@@ -232,7 +233,7 @@ void Distributor::run() {
 
 void Distributor::rcirun() {
     // print the CI method header and define J in MO basis
-    std::cout << "\n" + std::string(104, '-') + "\nCI CORRELATION ENERGY\n" << std::string(104, '-') + "\n"; Tensor<4> Jmo;
+    std::cout << "\n" + std::string(104, '-') + "\nCI CORRELATION ENERGY\n" << std::string(104, '-') + "\n"; Tensor<4> Jmo; CI::ResultsRestricted rcires;
 
     // transform the coulomb tensor
     std::cout << "\nCOULOMB TENSOR IN MO BASIS: " << std::flush; TIME(Jmo = Transform::Coulomb(system.ints.J, rhfres.C))
@@ -282,19 +283,12 @@ void Distributor::rhff() {
     else std::cout << "\n" + std::string(104, '-') + "\nANALYTICAL HESSIAN FOR RESTRICTED HARTREE-FOCK\n";
     std::cout << std::string(104, '-') + "\n\n"; Matrix H;
 
-    // define the energy function for numerical Hessian
-    auto efunc = [this](System system) {
-        return HF(rhfopt).rscf(system.clearints(), rhfres.D, false).E;
-    };
-
     // perform the Hessian calculation
-    if (hf.get<std::vector<double>>("-f").at(0)) H = Hessian({hf.get<std::vector<double>>("-f").at(1)}).get(system, efunc);
+    if (hf.get<std::vector<double>>("-f").at(0)) H = Hessian({hf.get<std::vector<double>>("-f").at(1)}).get(system, Lambda::EHF(rhfopt));
     else throw std::runtime_error("ANALYTICAL HESSIAN FOR RHF NOT IMPLEMENTED");
 
-    // print the Hessian and it's norm
+    // print the Hessian with its norm and perform the frequency calculation
     std::cout << "NUCLEAR HESSIAN\n" << H << "\n\nHESSIAN NORM: "; std::printf("%.2e\n", H.norm());
-
-    // perform the frequency calculation based on the calculated Hessian
     Vector freq = Hessian({hf.get<std::vector<double>>("-f").at(1)}).frequency(system, H);
 
     // print the frequencies
@@ -308,13 +302,8 @@ void Distributor::rhfg() {
     else std::cout << "\n" + std::string(104, '-') + "\nANALYTICAL GRADIENT FOR RESTRICTED HARTREE-FOCK\n";
     std::cout << std::string(104, '-') + "\n\n"; Matrix G; 
 
-    // define the energy function for numerical gradient
-    auto efunc = [this](System system) {
-        return HF(rhfopt).rscf(system.clearints(), rhfres.D, false).E;
-    };
-
     // calculate the numerical or analytical gradient
-    if (hf.get<std::vector<double>>("-g").at(0)) G = Gradient({hf.get<std::vector<double>>("-g").at(1)}).get(system, efunc);
+    if (hf.get<std::vector<double>>("-g").at(0)) G = Gradient({hf.get<std::vector<double>>("-g").at(1)}).get(system, Lambda::EHF(rhfopt));
     else G = Gradient({hf.get<std::vector<double>>("-g").at(1)}).get(system, rhfres);
 
     // print the gradient and it's norm
@@ -325,23 +314,8 @@ void Distributor::rhfo() {
     // print the RHF optimization header
     std::cout << "\n" + std::string(104, '-') + "\nRESTRICTED HARTREE-FOCK OPTIMIZATION\n" << std::string(104, '-') + "\n\n";
 
-    // define the energy function for numerical gradient
-    auto efunc = [this](System system) {
-        return HF(rhfopt).rscf(system.clearints(), Matrix::Zero(system.shells.nbf(), system.shells.nbf()), false).E;
-    };
-
-    // define energy-gradient function
-    auto egfunc = [this, efunc](System& system) {
-        // delete the calculated integrals and recalculate Hartree-Fock
-        HF::ResultsRestricted rhfres = HF(rhfopt).rscf(system.clearints(), Matrix::Zero(system.shells.nbf(), system.shells.nbf()), false);
-
-        // calculate the numerical or analytical gradient
-        if (hf.get<std::vector<double>>("-g").at(0)) return std::tuple{rhfres.E, Gradient({hf.get<std::vector<double>>("-g").at(1)}).get(system, efunc, false)};
-        else return std::tuple{rhfres.E, Gradient({hf.get<std::vector<double>>("-g").at(1)}).get(system, rhfres, false)};
-    };
-
     // perform the optimization
-    system = Optimizer({hf.get<double>("-o")}).optimize(system, egfunc);
+    system = Optimizer({hf.get<double>("-o")}).optimize(system, Lambda::EGHF(rhfopt, hf.get<std::vector<double>>("-g")));
 
     // print the optimized coordinates and distances
     std::cout << "\nOPTIMIZED SYSTEM COORDINATES\n" << system.coords << std::endl; 
@@ -381,19 +355,12 @@ void Distributor::uhff() {
     else std::cout << "\n" + std::string(104, '-') + "\nANALYTICAL HESSIAN FOR RESTRICTED HARTREE-FOCK\n";
     std::cout << std::string(104, '-') + "\n\n"; Matrix H;
 
-    // define the energy function for numerical Hessian
-    auto efunc = [this](System system) {
-        return HF(uhfopt).uscf(system.clearints(), 0.5 * (uhfres.Da + uhfres.Db), false).E;
-    };
-
     // perform the Hessian calculation
-    if (hf.get<std::vector<double>>("-f").at(0)) H = Hessian({hf.get<std::vector<double>>("-f").at(1)}).get(system, efunc);
+    if (hf.get<std::vector<double>>("-f").at(0)) H = Hessian({hf.get<std::vector<double>>("-f").at(1)}).get(system, Lambda::EHF(uhfopt));
     else throw std::runtime_error("ANALYTICAL HESSIAN FOR UHF NOT IMPLEMENTED");
 
-    // print the Hessian and it's norm
+    // print the Hessian with its norm and perform the frequency calculation
     std::cout << "NUCLEAR HESSIAN\n" << H << "\n\nHESSIAN NORM: "; std::printf("%.2e\n", H.norm());
-
-    // perform the frequency calculation based on the calculated Hessian
     Vector freq = Hessian({hf.get<std::vector<double>>("-f").at(1)}).frequency(system, H);
 
     // print the frequencies
@@ -407,13 +374,8 @@ void Distributor::uhfg() {
     else std::cout << "\n" + std::string(104, '-') + "\nANALYTICAL GRADIENT FOR UNRESTRICTED HARTREE-FOCK\n";
     std::cout << std::string(104, '-') + "\n\n"; Matrix G; 
 
-    // define the energy function for numerical gradient
-    auto efunc = [this](System system) {
-        return HF(uhfopt).uscf(system.clearints(), 0.5 * (uhfres.Da + uhfres.Db), false).E;
-    };
-
     // calculate the numerical or analytical gradient
-    if (hf.get<std::vector<double>>("-g").at(0)) G = Gradient({hf.get<std::vector<double>>("-g").at(1)}).get(system, efunc);
+    if (hf.get<std::vector<double>>("-g").at(0)) G = Gradient({hf.get<std::vector<double>>("-g").at(1)}).get(system, Lambda::EHF(uhfopt));
     else throw std::runtime_error("ANALYTICAL GRADIENT FOR UHF NOT IMPLEMENTED");
 
     // print the gradient and it's norm
@@ -446,20 +408,12 @@ void Distributor::rmp2f() {
     else std::cout << "\n" + std::string(104, '-') + "\nANALYTICAL HESSIAN FOR RESTRICTED MP2 METHOD\n";
     std::cout << std::string(104, '-') + "\n\n"; Matrix H; 
 
-    // define the energy function for numerical Hessian
-    auto efunc = [this](System system) {
-        HF::ResultsRestricted rhfres = HF(rhfopt).rscf(system.clearints(), this->rhfres.D, false);
-        return rhfres.E + MP({rhfres}).rmp2(system, Tensor<4>(), false);
-    };
-
     // perform the Hessian calculation
-    if (mp2.get<std::vector<double>>("-f").at(0)) H = Hessian({mp2.get<std::vector<double>>("-f").at(1)}).get(system, efunc);
+    if (mp2.get<std::vector<double>>("-f").at(0)) H = Hessian({mp2.get<std::vector<double>>("-f").at(1)}).get(system, Lambda::EMP2(rhfopt));
     else throw std::runtime_error("ANALYTICAL HESSIAN FOR RMP2 NOT IMPLEMENTED");
 
-    // print the Hessian and it's norm
+    // print the Hessian with its norm and perform the frequency calculation
     std::cout << "NUCLEAR HESSIAN\n" << H << "\n\nHESSIAN NORM: "; std::printf("%.2e\n", H.norm());
-
-    // perform the frequency calculation based on the calculated Hessian
     Vector freq = Hessian({mp2.get<std::vector<double>>("-f").at(1)}).frequency(system, H);
 
     // print the MP2 frequencies
@@ -472,17 +426,11 @@ void Distributor::rmp2g() {
     if (mp2.get<std::vector<double>>("-g").at(0)) std::cout << "\n" + std::string(104, '-') + "\nNUMERICAL GRADIENT FOR RESTRICTED MP2 METHOD\n" << std::string(104, '-') << "\n\n";
     else std::cout << "\n" + std::string(104, '-') + "\nANALYTICAL GRADIENT FOR RESTRICTED MP2 METHOD\n" << std::string(104, '-') << "\n\n"; Matrix G;
 
-    // define the energy function for numerical gradient
-    auto efunc = [this](System system) {
-        HF::ResultsRestricted rhfres = HF(rhfopt).rscf(system.clearints(), this->rhfres.D, false);
-        return rhfres.E + MP({rhfres}).rmp2(system, Tensor<4>(), false);
-    };
-
     // perform the MP2 gradient calculation
-    if (mp2.get<std::vector<double>>("-g").at(0)) G = Gradient({mp2.get<std::vector<double>>("-g").at(1)}).get(system, efunc);
+    if (mp2.get<std::vector<double>>("-g").at(0)) G = Gradient({mp2.get<std::vector<double>>("-g").at(1)}).get(system, Lambda::EMP2(rhfopt));
     else throw std::runtime_error("ANALYTICAL GRADIENT FOR RMP2 NOT IMPLEMENTED");
 
-    // print the MP2 gradient and it's norm
+    // print the MP2 gradient with its norm
     std::cout << G << "\n\nGRADIENT NORM: "; std::printf("%.2e\n", G.norm());
 }
 
@@ -490,27 +438,8 @@ void Distributor::rmp2o() {
     // print the MP2 optimization method header
     std::cout << "\n" + std::string(104, '-') + "\nRESTRICTED MP2 OPTIMIZATION\n" << std::string(104, '-') << "\n\n";
 
-    // define the energy function for numerical gradient
-    auto efunc = [this](System system) {
-        HF::ResultsRestricted rhfres = HF(rhfopt).rscf(system.clearints(), Matrix::Zero(system.shells.nbf(), system.shells.nbf()), false);
-        return rhfres.E + MP({rhfres}).rmp2(system, Tensor<4>(), false);
-    };
-
-    // define the energy-gradient function
-    auto egfunc = [this, efunc](System& system) {
-        // delete the calculated integrals and recalculate Hartree-Fock
-        HF::ResultsRestricted rhfres = HF(rhfopt).rscf(system.clearints(), Matrix::Zero(system.shells.nbf(), system.shells.nbf()), false);
-
-        // calculate the MP2 gradient and energy
-        Matrix G = Gradient({mp2.get<std::vector<double>>("-g").at(1)}).get(system, efunc, false);
-        double Ecorr = MP({rhfres}).rmp2(system, Tensor<4>(), false);
-
-        // return the tuple containing energy and gradient
-        return std::tuple{rhfres.E + Ecorr, G};
-    };
-
     // perform the optimization
-    system = Optimizer({mp2.get<double>("-o")}).optimize(system, egfunc);
+    system = Optimizer({mp2.get<double>("-o")}).optimize(system, Lambda::EGMP2(rhfopt, mp2.get<std::vector<double>>("-g")));
 
     // print the optimized coordinates and distances
     std::cout << "\nOPTIMIZED SYSTEM COORDINATES\n" << system.coords << std::endl;
@@ -535,51 +464,19 @@ void Distributor::dynamics() {
     // print the dynamics header
     std::cout << "\n" + std::string(104, '-') + "\nMOLECULAR DYNAMICS\n" << std::string(104, '-') + "\n\n";
 
-    // define the anonymous function for energy and gradient
+    // define the anonymous function for gradient
     std::function<std::tuple<double, Matrix>(System&)> egfunc;
-    std::function<double(System)> efunc;
 
     if (md.is_subcommand_used("hf") && program.get<int>("-s") != 1) {
         throw std::runtime_error("DYNAMICS NOT IMPLEMENTED FOR UNRESTRICTED CALCULATION");
     }
 
-    // if MP2 specified
-    if (md.is_subcommand_used("hf") && mdhf.is_subcommand_used("mp2")) {
-        // define the energy function for numerical gradient
-        efunc = [this](System system) {
-            HF::ResultsRestricted rhfres = HF(rhfopt).rscf(system.clearints(), Matrix::Zero(system.shells.nbf(), system.shells.nbf()), false);
-            return rhfres.E + MP({rhfres}).rmp2(system, Tensor<4>(), false);
-        };
-
-        // define the energy-gradient function
-        egfunc = [this, efunc](System& system) {
-            // delete the calculated integrals and recalculate Hartree-Fock
-            HF::ResultsRestricted rhfres = HF(rhfopt).rscf(system.clearints(), Matrix::Zero(system.shells.nbf(), system.shells.nbf()), false);
-
-            // calculate the MP2 gradient and energy
-            Matrix G = Gradient({mdmp2.get<std::vector<double>>("-g").at(1)}).get(system, efunc, false);
-            double Ecorr = MP({rhfres}).rmp2(system, Tensor<4>(), false);
-
-            // return the tuple containing energy and gradient
-            return std::tuple{rhfres.E + Ecorr, G};
-        };
-
-    // if only HF method specified
-    } else if (md.is_subcommand_used("hf")) {
-        // define the energy function for numerical gradient
-        efunc = [this](System system) {
-            return HF(rhfopt).rscf(system.clearints(), Matrix::Zero(system.shells.nbf(), system.shells.nbf()), false).E;
-        };
-
-        // define energy-gradient function
-        egfunc = [this, efunc](System& system) {
-            // delete the calculated integrals and recalculate Hartree-Fock
-            HF::ResultsRestricted rhfres = HF(rhfopt).rscf(system.clearints(), Matrix::Zero(system.shells.nbf(), system.shells.nbf()), false);
-
-            // calculate the numerical or analytical gradient
-            if (mdhf.get<std::vector<double>>("-g").at(0)) return std::tuple{rhfres.E, Gradient({mdhf.get<std::vector<double>>("-g").at(1)}).get(system, efunc, false)};
-            else return std::tuple{rhfres.E, Gradient({mdhf.get<std::vector<double>>("-g").at(1)}).get(system, rhfres, false)};
-        };
+    // get the enrgy and gradient function
+    if (md.is_subcommand_used("hf")) {
+        egfunc = Lambda::EGHF(rhfopt, mdhf.get<std::vector<double>>("-g"));
+        if (mdhf.is_subcommand_used("mp2")) {
+            egfunc = Lambda::EGMP2(rhfopt, mdmp2.get<std::vector<double>>("-g"));
+        }
     } else throw std::runtime_error("INVALID METHOD FOR DYNAMICS SPECIFIED");
 
     // perform the dynamics
