@@ -284,7 +284,7 @@ void Distributor::rhff() {
     std::cout << std::string(104, '-') + "\n\n"; Matrix H;
 
     // perform the Hessian calculation
-    if (hf.get<std::vector<double>>("-f").at(0)) H = Hessian({hf.get<std::vector<double>>("-f").at(1)}).get(system, Lambda::EHF(rhfopt));
+    if (hf.get<std::vector<double>>("-f").at(0)) H = Hessian({hf.get<std::vector<double>>("-f").at(1)}).get(system, Lambda::EHF(rhfopt, rhfres.D));
     else throw std::runtime_error("ANALYTICAL HESSIAN FOR RHF NOT IMPLEMENTED");
 
     // print the Hessian with its norm and perform the frequency calculation
@@ -303,7 +303,7 @@ void Distributor::rhfg() {
     std::cout << std::string(104, '-') + "\n\n"; Matrix G; 
 
     // calculate the numerical or analytical gradient
-    if (hf.get<std::vector<double>>("-g").at(0)) G = Gradient({hf.get<std::vector<double>>("-g").at(1)}).get(system, Lambda::EHF(rhfopt));
+    if (hf.get<std::vector<double>>("-g").at(0)) G = Gradient({hf.get<std::vector<double>>("-g").at(1)}).get(system, Lambda::EHF(rhfopt, rhfres.D));
     else G = Gradient({hf.get<std::vector<double>>("-g").at(1)}).get(system, rhfres);
 
     // print the gradient and it's norm
@@ -315,7 +315,7 @@ void Distributor::rhfo() {
     std::cout << "\n" + std::string(104, '-') + "\nRESTRICTED HARTREE-FOCK OPTIMIZATION\n" << std::string(104, '-') + "\n\n";
 
     // perform the optimization
-    system = Optimizer({hf.get<double>("-o")}).optimize(system, Lambda::EGHF(rhfopt, hf.get<std::vector<double>>("-g")));
+    system = Optimizer({hf.get<double>("-o")}).optimize(system, Lambda::EGHF(rhfopt, hf.get<std::vector<double>>("-g"), rhfres.D));
 
     // print the optimized coordinates and distances
     std::cout << "\nOPTIMIZED SYSTEM COORDINATES\n" << system.coords << std::endl; 
@@ -356,7 +356,7 @@ void Distributor::uhff() {
     std::cout << std::string(104, '-') + "\n\n"; Matrix H;
 
     // perform the Hessian calculation
-    if (hf.get<std::vector<double>>("-f").at(0)) H = Hessian({hf.get<std::vector<double>>("-f").at(1)}).get(system, Lambda::EHF(uhfopt));
+    if (hf.get<std::vector<double>>("-f").at(0)) H = Hessian({hf.get<std::vector<double>>("-f").at(1)}).get(system, Lambda::EHF(uhfopt, 0.5 * (uhfres.Da + uhfres.Db)));
     else throw std::runtime_error("ANALYTICAL HESSIAN FOR UHF NOT IMPLEMENTED");
 
     // print the Hessian with its norm and perform the frequency calculation
@@ -375,7 +375,7 @@ void Distributor::uhfg() {
     std::cout << std::string(104, '-') + "\n\n"; Matrix G; 
 
     // calculate the numerical or analytical gradient
-    if (hf.get<std::vector<double>>("-g").at(0)) G = Gradient({hf.get<std::vector<double>>("-g").at(1)}).get(system, Lambda::EHF(uhfopt));
+    if (hf.get<std::vector<double>>("-g").at(0)) G = Gradient({hf.get<std::vector<double>>("-g").at(1)}).get(system, Lambda::EHF(uhfopt, 0.5 * (uhfres.Da + uhfres.Db)));
     else throw std::runtime_error("ANALYTICAL GRADIENT FOR UHF NOT IMPLEMENTED");
 
     // print the gradient and it's norm
@@ -409,7 +409,7 @@ void Distributor::rmp2f() {
     std::cout << std::string(104, '-') + "\n\n"; Matrix H; 
 
     // perform the Hessian calculation
-    if (mp2.get<std::vector<double>>("-f").at(0)) H = Hessian({mp2.get<std::vector<double>>("-f").at(1)}).get(system, Lambda::EMP2(rhfopt));
+    if (mp2.get<std::vector<double>>("-f").at(0)) H = Hessian({mp2.get<std::vector<double>>("-f").at(1)}).get(system, Lambda::EMP2(rhfopt, rhfres.D));
     else throw std::runtime_error("ANALYTICAL HESSIAN FOR RMP2 NOT IMPLEMENTED");
 
     // print the Hessian with its norm and perform the frequency calculation
@@ -427,7 +427,7 @@ void Distributor::rmp2g() {
     else std::cout << "\n" + std::string(104, '-') + "\nANALYTICAL GRADIENT FOR RESTRICTED MP2 METHOD\n" << std::string(104, '-') << "\n\n"; Matrix G;
 
     // perform the MP2 gradient calculation
-    if (mp2.get<std::vector<double>>("-g").at(0)) G = Gradient({mp2.get<std::vector<double>>("-g").at(1)}).get(system, Lambda::EMP2(rhfopt));
+    if (mp2.get<std::vector<double>>("-g").at(0)) G = Gradient({mp2.get<std::vector<double>>("-g").at(1)}).get(system, Lambda::EMP2(rhfopt, rhfres.D));
     else throw std::runtime_error("ANALYTICAL GRADIENT FOR RMP2 NOT IMPLEMENTED");
 
     // print the MP2 gradient with its norm
@@ -439,7 +439,7 @@ void Distributor::rmp2o() {
     std::cout << "\n" + std::string(104, '-') + "\nRESTRICTED MP2 OPTIMIZATION\n" << std::string(104, '-') << "\n\n";
 
     // perform the optimization
-    system = Optimizer({mp2.get<double>("-o")}).optimize(system, Lambda::EGMP2(rhfopt, mp2.get<std::vector<double>>("-g")));
+    system = Optimizer({mp2.get<double>("-o")}).optimize(system, Lambda::EGMP2(rhfopt, mp2.get<std::vector<double>>("-g"), rhfres.D));
 
     // print the optimized coordinates and distances
     std::cout << "\nOPTIMIZED SYSTEM COORDINATES\n" << system.coords << std::endl;
@@ -473,9 +473,9 @@ void Distributor::dynamics() {
 
     // get the enrgy and gradient function
     if (md.is_subcommand_used("hf")) {
-        egfunc = Lambda::EGHF(rhfopt, mdhf.get<std::vector<double>>("-g"));
+        egfunc = Lambda::EGHF(rhfopt, mdhf.get<std::vector<double>>("-g"), rhfres.D);
         if (mdhf.is_subcommand_used("mp2")) {
-            egfunc = Lambda::EGMP2(rhfopt, mdmp2.get<std::vector<double>>("-g"));
+            egfunc = Lambda::EGMP2(rhfopt, mdmp2.get<std::vector<double>>("-g"), rhfres.D);
         }
     } else throw std::runtime_error("INVALID METHOD FOR DYNAMICS SPECIFIED");
 
