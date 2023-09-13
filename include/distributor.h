@@ -29,33 +29,32 @@ private:
     void integrals();
 
     // RHF distribution
-    void rhfrun(); void rhff();
-    void rhfg(); void rhfo();
+    void rhfrun(argparse::ArgumentParser& parser); void rhff(argparse::ArgumentParser& parser);
+    void rhfg(argparse::ArgumentParser& parser); void rhfo(argparse::ArgumentParser& parser);
 
     // RHF distribution
-    void uhfrun(); void uhff();
-    void uhfg(); void uhfo();
+    void uhfrun(argparse::ArgumentParser& parser); void uhff(argparse::ArgumentParser& parser);
+    void uhfg(argparse::ArgumentParser& parser); void uhfo(argparse::ArgumentParser& parser);
 
     // RCI distribution
-    void rcirun(); void rcif();
-    void rcig(); void rcio();
+    void rcirun(argparse::ArgumentParser& parser); void rcif(argparse::ArgumentParser& parser);
+    void rcig(argparse::ArgumentParser& parser); void rcio(argparse::ArgumentParser& parser);
 
     // RMP2 distribution
-    void rmp2run(); void rmp2f();
-    void rmp2g(); void rmp2o();
+    void rmp2run(argparse::ArgumentParser& parser); void rmp2f(argparse::ArgumentParser& parser);
+    void rmp2g(argparse::ArgumentParser& parser); void rmp2o(argparse::ArgumentParser& parser);
 
     // MD and QD distribution
-    void dynamics(); void qdyn();
+    void dynamics(argparse::ArgumentParser& parser); void qdyn(argparse::ArgumentParser& parser);
 
 private:
-    // printing options and parsers
-    std::vector<std::string> print, ciprint, intsprint, hfprint, mdprint, mp2print, qdprint;
-    argparse::ArgumentParser program, ints, hf, mp2, ci, qd, md, mdhf, mdmp2;
+    // argument parsers, timer and system
+    std::vector<argparse::ArgumentParser> parsers;
+    argparse::ArgumentParser program;
+    Timer::Timepoint start;
+    System system;
 
     // options and results of quantum methods
     HF::OptionsUnrestricted uhfopt; HF::ResultsUnrestricted uhfres;
     HF::OptionsRestricted rhfopt; HF::ResultsRestricted rhfres;
-
-    // execution timestamp and system struct
-    Timer::Timepoint start; System system;
 };
