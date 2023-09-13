@@ -3,7 +3,6 @@
 #include <sys/utsname.h>
 #include <filesystem>
 
-#include "argparse.hpp"
 #include "optimizer.h"
 #include "dynamics.h"
 #include "lambda.h"
@@ -25,24 +24,24 @@ public:
     ~Distributor(); void run();
 
 private:
-    // compute integrals
+    // calculate integrals
     void integrals();
 
     // RHF distribution
-    void rhfrun(argparse::ArgumentParser& parser); void rhff(argparse::ArgumentParser& parser);
-    void rhfg(argparse::ArgumentParser& parser); void rhfo(argparse::ArgumentParser& parser);
+    void rhfrun(argparse::ArgumentParser& parser); void rhff(argparse::ArgumentParser& parser, const HF::ResultsRestricted& rhfres);
+    void rhfg(argparse::ArgumentParser& parser, const HF::ResultsRestricted& rhfres); void rhfo(argparse::ArgumentParser& parser);
 
     // RHF distribution
-    void uhfrun(argparse::ArgumentParser& parser); void uhff(argparse::ArgumentParser& parser);
-    void uhfg(argparse::ArgumentParser& parser); void uhfo(argparse::ArgumentParser& parser);
+    void uhfrun(argparse::ArgumentParser& parser); void uhff(argparse::ArgumentParser& parser, const HF::ResultsUnrestricted& uhfres);
+    void uhfg(argparse::ArgumentParser& parser, const HF::ResultsUnrestricted& uhfres); void uhfo(argparse::ArgumentParser& parser);
 
     // RCI distribution
-    void rcirun(argparse::ArgumentParser& parser); void rcif(argparse::ArgumentParser& parser);
-    void rcig(argparse::ArgumentParser& parser); void rcio(argparse::ArgumentParser& parser);
+    void rcirun(argparse::ArgumentParser& parser, const HF::ResultsRestricted& rhfres); void rcif(argparse::ArgumentParser& parser, const HF::ResultsRestricted& rhfres);
+    void rcig(argparse::ArgumentParser& parser, const HF::ResultsRestricted& rhfres); void rcio(argparse::ArgumentParser& parser);
 
     // RMP2 distribution
-    void rmp2run(argparse::ArgumentParser& parser); void rmp2f(argparse::ArgumentParser& parser);
-    void rmp2g(argparse::ArgumentParser& parser); void rmp2o(argparse::ArgumentParser& parser);
+    void rmp2run(argparse::ArgumentParser& parser, const HF::ResultsRestricted& rhfres); void rmp2f(argparse::ArgumentParser& parser, const HF::ResultsRestricted& rhfres);
+    void rmp2g(argparse::ArgumentParser& parser, const HF::ResultsRestricted& rhfres); void rmp2o(argparse::ArgumentParser& parser);
 
     // MD and QD distribution
     void dynamics(argparse::ArgumentParser& parser); void qdyn(argparse::ArgumentParser& parser);
@@ -53,8 +52,4 @@ private:
     argparse::ArgumentParser program;
     Timer::Timepoint start;
     System system;
-
-    // options and results of quantum methods
-    HF::OptionsUnrestricted uhfopt; HF::ResultsUnrestricted uhfres;
-    HF::OptionsRestricted rhfopt; HF::ResultsRestricted rhfres;
 };

@@ -4,8 +4,9 @@
 #include "timer.h"
 
 inline std::unordered_map<int, double> masses = {
-    {1, 1.0078400},
+    {1, 01.007840},
     {6, 12.011000},
+    {7, 14.006700},
     {8, 15.999000},
     {9, 18.998403},
 };

@@ -6,23 +6,18 @@
 class HF {
 public:
     struct OptionsRestricted {
-        struct {int start, keep;} diis;
-        double thresh; int maxiter;
-        bool nocoulomb;
+        static HF::OptionsRestricted Load(const argparse::ArgumentParser& parser, bool nocoulomb);
+        struct {int start, keep;} diis; double thresh; int maxiter; bool nocoulomb;
     };
     struct ResultsRestricted {
-        Matrix C, D; Vector eps;
-        double E, Eel, Enuc;
+        Matrix C, D; Vector eps; double E, Eel, Enuc;
     };
     struct OptionsUnrestricted {
-        struct {int start, keep;} diis;
-        double thresh; int maxiter;
-        bool nocoulomb;
+        static HF::OptionsUnrestricted Load(const argparse::ArgumentParser& parser, bool nocoulomb);
+        struct {int start, keep;} diis; double thresh; int maxiter; bool nocoulomb;
     };
     struct ResultsUnrestricted {
-        Matrix Ca, Cb, Da, Db;
-        double E, Eel, Enuc;
-        Vector epsa, epsb;
+        Matrix Ca, Cb, Da, Db; double E, Eel, Enuc; Vector epsa, epsb;
     };
 public:
     // constructor
@@ -37,3 +32,11 @@ private:
     OptionsUnrestricted uopt;
     OptionsRestricted ropt;
 };
+
+inline HF::OptionsRestricted HF::OptionsRestricted::Load(const argparse::ArgumentParser& parser, bool nocoulomb) {
+    return {{parser.get<std::vector<int>>("-d").at(0), parser.get<std::vector<int>>("-d").at(1)}, parser.get<double>("-t"), parser.get<int>("-i"), nocoulomb};
+}
+
+inline HF::OptionsUnrestricted HF::OptionsUnrestricted::Load(const argparse::ArgumentParser& parser, bool nocoulomb) {
+    return {{parser.get<std::vector<int>>("-d").at(0), parser.get<std::vector<int>>("-d").at(1)}, parser.get<double>("-t"), parser.get<int>("-i"), nocoulomb};
+}

@@ -616,3 +616,259 @@ set_tests_properties(water_0-1_6-31g_mp2_numgrad PROPERTIES DEPENDS build PASS_R
 # test-numgrad: water 0 1 6-31G* MP2
 add_test(NAME water_0-1_6-31gs_mp2_numgrad COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31g*" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -s 1 hf -i 1000 -t 1e-8 mp2 -g 1 1e-5)
 set_tests_properties(water_0-1_6-31gs_mp2_numgrad PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "GRADIENT NORM: 3.93e-02")
+
+# test-numhess: ammonia 0 1 3-21G HF
+add_test(NAME ammonia_0-1_3-21g_hf_numhess COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "3-21g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/ammonia.xyz -s 1 hf -i 1000 -t 1e-8 -f 1 1e-4)
+set_tests_properties(ammonia_0-1_3-21g_hf_numhess PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "HESSIAN NORM: 1.50e\\+00")
+
+# test-numhess: ammonia 0 1 STO-3G HF
+add_test(NAME ammonia_0-1_sto-3g_hf_numhess COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "sto-3g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/ammonia.xyz -s 1 hf -i 1000 -t 1e-8 -f 1 1e-4)
+set_tests_properties(ammonia_0-1_sto-3g_hf_numhess PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "HESSIAN NORM: 2.12e\\+00")
+
+# test-numhess: ammonia 0 1 6-31G HF
+add_test(NAME ammonia_0-1_6-31g_hf_numhess COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/ammonia.xyz -s 1 hf -i 1000 -t 1e-8 -f 1 1e-4)
+set_tests_properties(ammonia_0-1_6-31g_hf_numhess PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "HESSIAN NORM: 1.54e\\+00")
+
+# test-numhess: ammonia 0 1 6-31G* HF
+add_test(NAME ammonia_0-1_6-31gs_hf_numhess COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31g*" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/ammonia.xyz -s 1 hf -i 1000 -t 1e-8 -f 1 1e-4)
+set_tests_properties(ammonia_0-1_6-31gs_hf_numhess PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "HESSIAN NORM: 1.59e\\+00")
+
+# test-numhess: ammonia 1 2 3-21G HF
+add_test(NAME ammonia_1-2_3-21g_hf_numhess COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "3-21g" -c 1 -f ${PROJECT_SOURCE_DIR}/example/molecule/ammonia.xyz -s 2 hf -i 1000 -t 1e-8 -f 1 1e-4)
+set_tests_properties(ammonia_1-2_3-21g_hf_numhess PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "HESSIAN NORM: 1.50e\\+00")
+
+# test-numhess: ammonia 1 2 STO-3G HF
+add_test(NAME ammonia_1-2_sto-3g_hf_numhess COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "sto-3g" -c 1 -f ${PROJECT_SOURCE_DIR}/example/molecule/ammonia.xyz -s 2 hf -i 1000 -t 1e-8 -f 1 1e-4)
+set_tests_properties(ammonia_1-2_sto-3g_hf_numhess PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "HESSIAN NORM: 2.20e\\+00")
+
+# test-numhess: ammonia 1 2 6-31G HF
+add_test(NAME ammonia_1-2_6-31g_hf_numhess COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31g" -c 1 -f ${PROJECT_SOURCE_DIR}/example/molecule/ammonia.xyz -s 2 hf -i 1000 -t 1e-8 -f 1 1e-4)
+set_tests_properties(ammonia_1-2_6-31g_hf_numhess PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "HESSIAN NORM: 1.58e\\+00")
+
+# test-numhess: ammonia 1 2 6-31G* HF
+add_test(NAME ammonia_1-2_6-31gs_hf_numhess COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31g*" -c 1 -f ${PROJECT_SOURCE_DIR}/example/molecule/ammonia.xyz -s 2 hf -i 1000 -t 1e-8 -f 1 1e-4)
+set_tests_properties(ammonia_1-2_6-31gs_hf_numhess PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "HESSIAN NORM: 1.65e\\+00")
+
+# test-numhess: ammonia -1 2 3-21G HF
+add_test(NAME ammonia_-1-2_3-21g_hf_numhess COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "3-21g" -c -1 -f ${PROJECT_SOURCE_DIR}/example/molecule/ammonia.xyz -s 2 hf -i 1000 -t 1e-8 -f 1 1e-4)
+set_tests_properties(ammonia_-1-2_3-21g_hf_numhess PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "HESSIAN NORM: 8.09e-01")
+
+# test-numhess: ammonia -1 2 STO-3G HF
+add_test(NAME ammonia_-1-2_sto-3g_hf_numhess COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "sto-3g" -c -1 -f ${PROJECT_SOURCE_DIR}/example/molecule/ammonia.xyz -s 2 hf -i 1000 -t 1e-8 -f 1 1e-4)
+set_tests_properties(ammonia_-1-2_sto-3g_hf_numhess PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "HESSIAN NORM: 1.18e\\+01")
+
+# test-numhess: ammonia -1 2 6-31G HF
+add_test(NAME ammonia_-1-2_6-31g_hf_numhess COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31g" -c -1 -f ${PROJECT_SOURCE_DIR}/example/molecule/ammonia.xyz -s 2 hf -i 1000 -t 1e-8 -f 1 1e-4)
+set_tests_properties(ammonia_-1-2_6-31g_hf_numhess PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "HESSIAN NORM: 1.03e\\+00")
+
+# test-numhess: ammonia -1 2 6-31G* HF
+add_test(NAME ammonia_-1-2_6-31gs_hf_numhess COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31g*" -c -1 -f ${PROJECT_SOURCE_DIR}/example/molecule/ammonia.xyz -s 2 hf -i 1000 -t 1e-8 -f 1 1e-4)
+set_tests_properties(ammonia_-1-2_6-31gs_hf_numhess PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "HESSIAN NORM: 1.05e\\+00")
+
+# test-numhess: ethylene 0 1 3-21G HF
+add_test(NAME ethylene_0-1_3-21g_hf_numhess COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "3-21g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/ethylene.xyz -s 1 hf -i 1000 -t 1e-8 -f 1 1e-4)
+set_tests_properties(ethylene_0-1_3-21g_hf_numhess PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "HESSIAN NORM: 2.42e\\+00")
+
+# test-numhess: ethylene 0 1 STO-3G HF
+add_test(NAME ethylene_0-1_sto-3g_hf_numhess COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "sto-3g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/ethylene.xyz -s 1 hf -i 1000 -t 1e-8 -f 1 1e-4)
+set_tests_properties(ethylene_0-1_sto-3g_hf_numhess PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "HESSIAN NORM: 3.06e\\+00")
+
+# test-numhess: ethylene 0 1 6-31G HF
+add_test(NAME ethylene_0-1_6-31g_hf_numhess COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/ethylene.xyz -s 1 hf -i 1000 -t 1e-8 -f 1 1e-4)
+set_tests_properties(ethylene_0-1_6-31g_hf_numhess PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "HESSIAN NORM: 2.52e\\+00")
+
+# test-numhess: ethylene 0 1 6-31G* HF
+add_test(NAME ethylene_0-1_6-31gs_hf_numhess COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31g*" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/ethylene.xyz -s 1 hf -i 1000 -t 1e-8 -f 1 1e-4)
+set_tests_properties(ethylene_0-1_6-31gs_hf_numhess PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "HESSIAN NORM: 2.49e\\+00")
+
+# test-numhess: ethylene 1 2 3-21G HF
+add_test(NAME ethylene_1-2_3-21g_hf_numhess COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "3-21g" -c 1 -f ${PROJECT_SOURCE_DIR}/example/molecule/ethylene.xyz -s 2 hf -i 1000 -t 1e-8 -f 1 1e-4)
+set_tests_properties(ethylene_1-2_3-21g_hf_numhess PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "HESSIAN NORM: 2.56e\\+00")
+
+# test-numhess: ethylene 1 2 STO-3G HF
+add_test(NAME ethylene_1-2_sto-3g_hf_numhess COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "sto-3g" -c 1 -f ${PROJECT_SOURCE_DIR}/example/molecule/ethylene.xyz -s 2 hf -i 1000 -t 1e-8 -f 1 1e-4)
+set_tests_properties(ethylene_1-2_sto-3g_hf_numhess PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "HESSIAN NORM: 3.24e\\+00")
+
+# test-numhess: ethylene 1 2 6-31G HF
+add_test(NAME ethylene_1-2_6-31g_hf_numhess COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31g" -c 1 -f ${PROJECT_SOURCE_DIR}/example/molecule/ethylene.xyz -s 2 hf -i 1000 -t 1e-8 -f 1 1e-4)
+set_tests_properties(ethylene_1-2_6-31g_hf_numhess PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "HESSIAN NORM: 2.65e\\+00")
+
+# test-numhess: ethylene 1 2 6-31G* HF
+add_test(NAME ethylene_1-2_6-31gs_hf_numhess COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31g*" -c 1 -f ${PROJECT_SOURCE_DIR}/example/molecule/ethylene.xyz -s 2 hf -i 1000 -t 1e-8 -f 1 1e-4)
+set_tests_properties(ethylene_1-2_6-31gs_hf_numhess PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "HESSIAN NORM: 2.63e\\+00")
+
+# test-numhess: ethylene -1 2 3-21G HF
+add_test(NAME ethylene_-1-2_3-21g_hf_numhess COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "3-21g" -c -1 -f ${PROJECT_SOURCE_DIR}/example/molecule/ethylene.xyz -s 2 hf -i 1000 -t 1e-8 -f 1 1e-4)
+set_tests_properties(ethylene_-1-2_3-21g_hf_numhess PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "HESSIAN NORM: 2.44e\\+00")
+
+# test-numhess: ethylene -1 2 STO-3G HF
+add_test(NAME ethylene_-1-2_sto-3g_hf_numhess COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "sto-3g" -c -1 -f ${PROJECT_SOURCE_DIR}/example/molecule/ethylene.xyz -s 2 hf -i 1000 -t 1e-8 -f 1 1e-4)
+set_tests_properties(ethylene_-1-2_sto-3g_hf_numhess PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "HESSIAN NORM: 3.10e\\+00")
+
+# test-numhess: ethylene -1 2 6-31G HF
+add_test(NAME ethylene_-1-2_6-31g_hf_numhess COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31g" -c -1 -f ${PROJECT_SOURCE_DIR}/example/molecule/ethylene.xyz -s 2 hf -i 1000 -t 1e-8 -f 1 1e-4)
+set_tests_properties(ethylene_-1-2_6-31g_hf_numhess PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "HESSIAN NORM: 2.49e\\+00")
+
+# test-numhess: ethylene -1 2 6-31G* HF
+add_test(NAME ethylene_-1-2_6-31gs_hf_numhess COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31g*" -c -1 -f ${PROJECT_SOURCE_DIR}/example/molecule/ethylene.xyz -s 2 hf -i 1000 -t 1e-8 -f 1 1e-4)
+set_tests_properties(ethylene_-1-2_6-31gs_hf_numhess PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "HESSIAN NORM: 2.48e\\+00")
+
+# test-numhess: methane 0 1 3-21G HF
+add_test(NAME methane_0-1_3-21g_hf_numhess COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "3-21g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/methane.xyz -s 1 hf -i 1000 -t 1e-8 -f 1 1e-4)
+set_tests_properties(methane_0-1_3-21g_hf_numhess PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "HESSIAN NORM: 1.65e\\+00")
+
+# test-numhess: methane 0 1 STO-3G HF
+add_test(NAME methane_0-1_sto-3g_hf_numhess COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "sto-3g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/methane.xyz -s 1 hf -i 1000 -t 1e-8 -f 1 1e-4)
+set_tests_properties(methane_0-1_sto-3g_hf_numhess PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "HESSIAN NORM: 2.24e\\+00")
+
+# test-numhess: methane 0 1 6-31G HF
+add_test(NAME methane_0-1_6-31g_hf_numhess COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/methane.xyz -s 1 hf -i 1000 -t 1e-8 -f 1 1e-4)
+set_tests_properties(methane_0-1_6-31g_hf_numhess PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "HESSIAN NORM: 1.65e\\+00")
+
+# test-numhess: methane 0 1 6-31G* HF
+add_test(NAME methane_0-1_6-31gs_hf_numhess COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31g*" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/methane.xyz -s 1 hf -i 1000 -t 1e-8 -f 1 1e-4)
+set_tests_properties(methane_0-1_6-31gs_hf_numhess PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "HESSIAN NORM: 1.69e\\+00")
+
+# test-numhess: methane 1 2 3-21G HF
+add_test(NAME methane_1-2_3-21g_hf_numhess COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "3-21g" -c 1 -f ${PROJECT_SOURCE_DIR}/example/molecule/methane.xyz -s 2 hf -i 1000 -t 1e-8 -f 1 1e-4)
+set_tests_properties(methane_1-2_3-21g_hf_numhess PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "HESSIAN NORM: 2.37e\\+00")
+
+# test-numhess: methane 1 2 STO-3G HF
+add_test(NAME methane_1-2_sto-3g_hf_numhess COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "sto-3g" -c 1 -f ${PROJECT_SOURCE_DIR}/example/molecule/methane.xyz -s 2 hf -i 1000 -t 1e-8 -f 1 1e-4)
+set_tests_properties(methane_1-2_sto-3g_hf_numhess PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "HESSIAN NORM: 4.33e\\+00")
+
+# test-numhess: methane 1 2 6-31G HF
+add_test(NAME methane_1-2_6-31g_hf_numhess COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31g" -c 1 -f ${PROJECT_SOURCE_DIR}/example/molecule/methane.xyz -s 2 hf -i 1000 -t 1e-8 -f 1 1e-4)
+set_tests_properties(methane_1-2_6-31g_hf_numhess PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "HESSIAN NORM: 2.45e\\+00")
+
+# test-numhess: methane 1 2 6-31G* HF
+add_test(NAME methane_1-2_6-31gs_hf_numhess COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31g*" -c 1 -f ${PROJECT_SOURCE_DIR}/example/molecule/methane.xyz -s 2 hf -i 1000 -t 1e-8 -f 1 1e-4)
+set_tests_properties(methane_1-2_6-31gs_hf_numhess PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "HESSIAN NORM: 7.28e\\+00")
+
+# test-numhess: methane -1 2 3-21G HF
+add_test(NAME methane_-1-2_3-21g_hf_numhess COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "3-21g" -c -1 -f ${PROJECT_SOURCE_DIR}/example/molecule/methane.xyz -s 2 hf -i 1000 -t 1e-8 -f 1 1e-4)
+set_tests_properties(methane_-1-2_3-21g_hf_numhess PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "HESSIAN NORM: 7.09e-01")
+
+# test-numhess: methane -1 2 STO-3G HF
+add_test(NAME methane_-1-2_sto-3g_hf_numhess COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "sto-3g" -c -1 -f ${PROJECT_SOURCE_DIR}/example/molecule/methane.xyz -s 2 hf -i 1000 -t 1e-8 -f 1 1e-4)
+set_tests_properties(methane_-1-2_sto-3g_hf_numhess PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "HESSIAN NORM: 1.24e\\+01")
+
+# test-numhess: methane -1 2 6-31G HF
+add_test(NAME methane_-1-2_6-31g_hf_numhess COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31g" -c -1 -f ${PROJECT_SOURCE_DIR}/example/molecule/methane.xyz -s 2 hf -i 1000 -t 1e-8 -f 1 1e-4)
+set_tests_properties(methane_-1-2_6-31g_hf_numhess PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "HESSIAN NORM: 1.11e\\+00")
+
+# test-numhess: methane -1 2 6-31G* HF
+add_test(NAME methane_-1-2_6-31gs_hf_numhess COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31g*" -c -1 -f ${PROJECT_SOURCE_DIR}/example/molecule/methane.xyz -s 2 hf -i 1000 -t 1e-8 -f 1 1e-4)
+set_tests_properties(methane_-1-2_6-31gs_hf_numhess PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "HESSIAN NORM: 1.16e\\+00")
+
+# test-numhess: water 0 1 3-21G HF
+add_test(NAME water_0-1_3-21g_hf_numhess COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "3-21g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -s 1 hf -i 1000 -t 1e-8 -f 1 1e-4)
+set_tests_properties(water_0-1_3-21g_hf_numhess PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "HESSIAN NORM: 1.34e\\+00")
+
+# test-numhess: water 0 1 STO-3G HF
+add_test(NAME water_0-1_sto-3g_hf_numhess COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "sto-3g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -s 1 hf -i 1000 -t 1e-8 -f 1 1e-4)
+set_tests_properties(water_0-1_sto-3g_hf_numhess PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "HESSIAN NORM: 1.90e\\+00")
+
+# test-numhess: water 0 1 6-31G HF
+add_test(NAME water_0-1_6-31g_hf_numhess COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -s 1 hf -i 1000 -t 1e-8 -f 1 1e-4)
+set_tests_properties(water_0-1_6-31g_hf_numhess PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "HESSIAN NORM: 1.29e\\+00")
+
+# test-numhess: water 0 1 6-31G* HF
+add_test(NAME water_0-1_6-31gs_hf_numhess COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31g*" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -s 1 hf -i 1000 -t 1e-8 -f 1 1e-4)
+set_tests_properties(water_0-1_6-31gs_hf_numhess PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "HESSIAN NORM: 1.37e\\+00")
+
+# test-numhess: water 1 2 3-21G HF
+add_test(NAME water_1-2_3-21g_hf_numhess COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "3-21g" -c 1 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -s 2 hf -i 1000 -t 1e-8 -f 1 1e-4)
+set_tests_properties(water_1-2_3-21g_hf_numhess PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "HESSIAN NORM: 1.33e\\+00")
+
+# test-numhess: water 1 2 STO-3G HF
+add_test(NAME water_1-2_sto-3g_hf_numhess COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "sto-3g" -c 1 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -s 2 hf -i 1000 -t 1e-8 -f 1 1e-4)
+set_tests_properties(water_1-2_sto-3g_hf_numhess PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "HESSIAN NORM: 1.96e\\+00")
+
+# test-numhess: water 1 2 6-31G HF
+add_test(NAME water_1-2_6-31g_hf_numhess COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31g" -c 1 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -s 2 hf -i 1000 -t 1e-8 -f 1 1e-4)
+set_tests_properties(water_1-2_6-31g_hf_numhess PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "HESSIAN NORM: 1.35e\\+00")
+
+# test-numhess: water 1 2 6-31G* HF
+add_test(NAME water_1-2_6-31gs_hf_numhess COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31g*" -c 1 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -s 2 hf -i 1000 -t 1e-8 -f 1 1e-4)
+set_tests_properties(water_1-2_6-31gs_hf_numhess PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "HESSIAN NORM: 1.38e\\+00")
+
+# test-numhess: water -1 2 3-21G HF
+add_test(NAME water_-1-2_3-21g_hf_numhess COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "3-21g" -c -1 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -s 2 hf -i 1000 -t 1e-8 -f 1 1e-4)
+set_tests_properties(water_-1-2_3-21g_hf_numhess PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "HESSIAN NORM: 7.86e-01")
+
+# test-numhess: water -1 2 STO-3G HF
+add_test(NAME water_-1-2_sto-3g_hf_numhess COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "sto-3g" -c -1 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -s 2 hf -i 1000 -t 1e-8 -f 1 1e-4)
+set_tests_properties(water_-1-2_sto-3g_hf_numhess PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "HESSIAN NORM: 6.55e\\+00")
+
+# test-numhess: water -1 2 6-31G HF
+add_test(NAME water_-1-2_6-31g_hf_numhess COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31g" -c -1 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -s 2 hf -i 1000 -t 1e-8 -f 1 1e-4)
+set_tests_properties(water_-1-2_6-31g_hf_numhess PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "HESSIAN NORM: 7.00e-01")
+
+# test-numhess: water -1 2 6-31G* HF
+add_test(NAME water_-1-2_6-31gs_hf_numhess COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31g*" -c -1 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -s 2 hf -i 1000 -t 1e-8 -f 1 1e-4)
+set_tests_properties(water_-1-2_6-31gs_hf_numhess PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "HESSIAN NORM: 7.33e-01")
+
+# test-numhess: ammonia 0 1 3-21G MP2
+add_test(NAME ammonia_0-1_3-21g_mp2_numhess COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "3-21g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/ammonia.xyz -s 1 hf -i 1000 -t 1e-8 mp2 -f 1 1e-4)
+set_tests_properties(ammonia_0-1_3-21g_mp2_numhess PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "HESSIAN NORM: 1.46e\\+00")
+
+# test-numhess: ammonia 0 1 STO-3G MP2
+add_test(NAME ammonia_0-1_sto-3g_mp2_numhess COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "sto-3g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/ammonia.xyz -s 1 hf -i 1000 -t 1e-8 mp2 -f 1 1e-4)
+set_tests_properties(ammonia_0-1_sto-3g_mp2_numhess PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "HESSIAN NORM: 2.04e\\+00")
+
+# test-numhess: ammonia 0 1 6-31G MP2
+add_test(NAME ammonia_0-1_6-31g_mp2_numhess COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/ammonia.xyz -s 1 hf -i 1000 -t 1e-8 mp2 -f 1 1e-4)
+set_tests_properties(ammonia_0-1_6-31g_mp2_numhess PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "HESSIAN NORM: 1.52e\\+00")
+
+# test-numhess: ammonia 0 1 6-31G* MP2
+add_test(NAME ammonia_0-1_6-31gs_mp2_numhess COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31g*" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/ammonia.xyz -s 1 hf -i 1000 -t 1e-8 mp2 -f 1 1e-4)
+set_tests_properties(ammonia_0-1_6-31gs_mp2_numhess PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "HESSIAN NORM: 1.56e\\+00")
+
+# test-numhess: ethylene 0 1 3-21G MP2
+add_test(NAME ethylene_0-1_3-21g_mp2_numhess COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "3-21g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/ethylene.xyz -s 1 hf -i 1000 -t 1e-8 mp2 -f 1 1e-4)
+set_tests_properties(ethylene_0-1_3-21g_mp2_numhess PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "HESSIAN NORM: 2.33e\\+00")
+
+# test-numhess: ethylene 0 1 STO-3G MP2
+add_test(NAME ethylene_0-1_sto-3g_mp2_numhess COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "sto-3g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/ethylene.xyz -s 1 hf -i 1000 -t 1e-8 mp2 -f 1 1e-4)
+set_tests_properties(ethylene_0-1_sto-3g_mp2_numhess PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "HESSIAN NORM: 2.89e\\+00")
+
+# test-numhess: ethylene 0 1 6-31G MP2
+add_test(NAME ethylene_0-1_6-31g_mp2_numhess COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/ethylene.xyz -s 1 hf -i 1000 -t 1e-8 mp2 -f 1 1e-4)
+set_tests_properties(ethylene_0-1_6-31g_mp2_numhess PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "HESSIAN NORM: 2.44e\\+00")
+
+# test-numhess: ethylene 0 1 6-31G* MP2
+add_test(NAME ethylene_0-1_6-31gs_mp2_numhess COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31g*" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/ethylene.xyz -s 1 hf -i 1000 -t 1e-8 mp2 -f 1 1e-4)
+set_tests_properties(ethylene_0-1_6-31gs_mp2_numhess PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "HESSIAN NORM: 2.39e\\+00")
+
+# test-numhess: methane 0 1 3-21G MP2
+add_test(NAME methane_0-1_3-21g_mp2_numhess COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "3-21g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/methane.xyz -s 1 hf -i 1000 -t 1e-8 mp2 -f 1 1e-4)
+set_tests_properties(methane_0-1_3-21g_mp2_numhess PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "HESSIAN NORM: 1.63e\\+00")
+
+# test-numhess: methane 0 1 STO-3G MP2
+add_test(NAME methane_0-1_sto-3g_mp2_numhess COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "sto-3g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/methane.xyz -s 1 hf -i 1000 -t 1e-8 mp2 -f 1 1e-4)
+set_tests_properties(methane_0-1_sto-3g_mp2_numhess PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "HESSIAN NORM: 2.14e\\+00")
+
+# test-numhess: methane 0 1 6-31G MP2
+add_test(NAME methane_0-1_6-31g_mp2_numhess COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/methane.xyz -s 1 hf -i 1000 -t 1e-8 mp2 -f 1 1e-4)
+set_tests_properties(methane_0-1_6-31g_mp2_numhess PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "HESSIAN NORM: 1.64e\\+00")
+
+# test-numhess: methane 0 1 6-31G* MP2
+add_test(NAME methane_0-1_6-31gs_mp2_numhess COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31g*" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/methane.xyz -s 1 hf -i 1000 -t 1e-8 mp2 -f 1 1e-4)
+set_tests_properties(methane_0-1_6-31gs_mp2_numhess PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "HESSIAN NORM: 1.67e\\+00")
+
+# test-numhess: water 0 1 3-21G MP2
+add_test(NAME water_0-1_3-21g_mp2_numhess COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "3-21g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -s 1 hf -i 1000 -t 1e-8 mp2 -f 1 1e-4)
+set_tests_properties(water_0-1_3-21g_mp2_numhess PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "HESSIAN NORM: 1.30e\\+00")
+
+# test-numhess: water 0 1 STO-3G MP2
+add_test(NAME water_0-1_sto-3g_mp2_numhess COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "sto-3g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -s 1 hf -i 1000 -t 1e-8 mp2 -f 1 1e-4)
+set_tests_properties(water_0-1_sto-3g_mp2_numhess PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "HESSIAN NORM: 1.83e\\+00")
+
+# test-numhess: water 0 1 6-31G MP2
+add_test(NAME water_0-1_6-31g_mp2_numhess COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -s 1 hf -i 1000 -t 1e-8 mp2 -f 1 1e-4)
+set_tests_properties(water_0-1_6-31g_mp2_numhess PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "HESSIAN NORM: 1.28e\\+00")
+
+# test-numhess: water 0 1 6-31G* MP2
+add_test(NAME water_0-1_6-31gs_mp2_numhess COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31g*" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -s 1 hf -i 1000 -t 1e-8 mp2 -f 1 1e-4)
+set_tests_properties(water_0-1_6-31gs_mp2_numhess PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "HESSIAN NORM: 1.35e\\+00")

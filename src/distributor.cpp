@@ -167,29 +167,6 @@ void Distributor::run() {
     // print the distances if requested
     if (CONTAINS(program.get<std::vector<std::string>>("-p"), "dist")) std::cout << "\nDISTANCE MATRIX\n" << system.dists << std::endl; 
 
-    // extract HF options
-    if (program.is_subcommand_used("hf")) {
-        if (program.get<int>("-s") == 1) {
-            rhfopt.diis = {program.at<argparse::ArgumentParser>("hf").get<std::vector<int>>("-d").at(0), program.at<argparse::ArgumentParser>("hf").get<std::vector<int>>("-d").at(1)};
-            rhfopt.maxiter = program.at<argparse::ArgumentParser>("hf").get<int>("-i"), rhfopt.thresh = program.at<argparse::ArgumentParser>("hf").get<double>("-t");
-            rhfopt.nocoulomb = program.get<bool>("--no-coulomb");
-        } else {
-            uhfopt.diis = {program.at<argparse::ArgumentParser>("hf").get<std::vector<int>>("-d").at(0), program.at<argparse::ArgumentParser>("hf").get<std::vector<int>>("-d").at(1)};
-            uhfopt.maxiter = program.at<argparse::ArgumentParser>("hf").get<int>("-i"), uhfopt.thresh = program.at<argparse::ArgumentParser>("hf").get<double>("-t");
-            uhfopt.nocoulomb = program.get<bool>("--no-coulomb");
-        }
-    } else if (program.is_subcommand_used("md") && program.at<argparse::ArgumentParser>("md").is_subcommand_used("hf")) {
-        if (program.get<int>("-s") == 1) {
-            rhfopt.diis = {program.at<argparse::ArgumentParser>("md").at<argparse::ArgumentParser>("hf").get<std::vector<int>>("-d").at(0), program.at<argparse::ArgumentParser>("md").at<argparse::ArgumentParser>("hf").get<std::vector<int>>("-d").at(1)};
-            rhfopt.maxiter = program.at<argparse::ArgumentParser>("md").at<argparse::ArgumentParser>("hf").get<int>("-i"), rhfopt.thresh = program.at<argparse::ArgumentParser>("md").at<argparse::ArgumentParser>("hf").get<double>("-t");
-            rhfopt.nocoulomb = program.get<bool>("--no-coulomb");
-        } else {
-            uhfopt.diis = {program.at<argparse::ArgumentParser>("md").at<argparse::ArgumentParser>("hf").get<std::vector<int>>("-d").at(0), program.at<argparse::ArgumentParser>("md").at<argparse::ArgumentParser>("hf").get<std::vector<int>>("-d").at(1)};
-            uhfopt.maxiter = program.at<argparse::ArgumentParser>("md").at<argparse::ArgumentParser>("hf").get<int>("-i"), uhfopt.thresh = program.at<argparse::ArgumentParser>("md").at<argparse::ArgumentParser>("hf").get<double>("-t");
-            uhfopt.nocoulomb = program.get<bool>("--no-coulomb");
-        }
-    }
-
     // calculate the integrals if needed
     if (program.is_subcommand_used("ints") || program.is_subcommand_used("hf")) integrals();
 
@@ -216,7 +193,7 @@ void Distributor::run() {
     }
 }
 
-void Distributor::rcirun(argparse::ArgumentParser& parser) {
+void Distributor::rcirun(argparse::ArgumentParser& parser, const HF::ResultsRestricted& rhfres) {
     // print the CI method header and define J in MO basis
     std::cout << "\n" + std::string(104, '-') + "\nCI CORRELATION ENERGY\n" << std::string(104, '-') + "\n"; Tensor<4> Jmo; CI::ResultsRestricted rcires;
 
@@ -239,12 +216,15 @@ void Distributor::rcirun(argparse::ArgumentParser& parser) {
 }
 
 void Distributor::rhfrun(argparse::ArgumentParser& parser) {
+    // extract the HF options
+    auto rhfopt = HF::OptionsRestricted::Load(program.at<argparse::ArgumentParser>("hf"), program.get<bool>("--no-coulomb"));
+
     // print the RHF method header
     std::cout << "\n" + std::string(104, '-') + "\nRESTRICTED HARTREE-FOCK METHOD\n" << std::string(104, '-') + "\n\n";
     std::printf("-- MAXITER: %d, THRESH: %.2e\n-- DIIS: [START: %d, KEEP: %d]\n", rhfopt.maxiter, rhfopt.thresh, rhfopt.diis.start, rhfopt.diis.keep);
 
     // perform the RHF calculation
-    rhfres = HF(rhfopt).rscf(system, Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
+    auto rhfres = HF(rhfopt).rscf(system, Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
 
     // print the resulting RHF matrices and energies
     if (CONTAINS(parser.get<std::vector<std::string>>("-p"), "eps")) std::cout << "\nORBITAL ENERGIES\n" << Matrix(rhfres.eps) << std::endl;
@@ -254,19 +234,22 @@ void Distributor::rhfrun(argparse::ArgumentParser& parser) {
     std::cout << "FINAL HARTREE-FOCK ENERGY: " << rhfres.E << std::endl;
 
     // gradient and frequency
-    if (parser.is_used("-g")) rhfg(parser);
-    if (parser.is_used("-f")) rhff(parser);
+    if (parser.is_used("-g")) rhfg(parser, rhfres);
+    if (parser.is_used("-f")) rhff(parser, rhfres);
 
     // post RHF methods
-    if (parser.is_subcommand_used("mp2")) rmp2run(parser.at<argparse::ArgumentParser>("mp2"));
-    if (parser.is_subcommand_used("ci")) rcirun(parser.at<argparse::ArgumentParser>("ci"));
+    if (parser.is_subcommand_used("mp2")) rmp2run(parser.at<argparse::ArgumentParser>("mp2"), rhfres);
+    if (parser.is_subcommand_used("ci")) rcirun(parser.at<argparse::ArgumentParser>("ci"), rhfres);
 }
 
-void Distributor::rhff(argparse::ArgumentParser& parser) {
+void Distributor::rhff(argparse::ArgumentParser& parser, const HF::ResultsRestricted& rhfres) {
     // print the Hessian header
     if (parser.get<std::vector<double>>("-f").at(0)) std::cout << "\n" + std::string(104, '-') + "\nNUMERICAL HESSIAN FOR RESTRICTED HARTREE-FOCK\n";
     else std::cout << "\n" + std::string(104, '-') + "\nANALYTICAL HESSIAN FOR RESTRICTED HARTREE-FOCK\n";
     std::cout << std::string(104, '-') + "\n\n"; Matrix H;
+
+    // extract the HF options
+    auto rhfopt = HF::OptionsRestricted::Load(program.at<argparse::ArgumentParser>("hf"), program.get<bool>("--no-coulomb"));
 
     // perform the Hessian calculation
     if (parser.get<std::vector<double>>("-f").at(0)) H = Hessian({parser.get<std::vector<double>>("-f").at(1)}).get(system, Lambda::EHF(rhfopt, rhfres.D));
@@ -281,11 +264,14 @@ void Distributor::rhff(argparse::ArgumentParser& parser) {
     std::cout << "\n\nVIBRATIONAL FREQUENCIES\n" << Matrix(freq) << std::endl;
 }
 
-void Distributor::rhfg(argparse::ArgumentParser& parser) {
+void Distributor::rhfg(argparse::ArgumentParser& parser, const HF::ResultsRestricted& rhfres) {
     // print the header for gradient calculation and define the gradient matrix
     if (parser.get<std::vector<double>>("-g").at(0)) std::cout << "\n" + std::string(104, '-') + "\nNUMERICAL GRADIENT FOR RESTRICTED HARTREE-FOCK\n";
     else std::cout << "\n" + std::string(104, '-') + "\nANALYTICAL GRADIENT FOR RESTRICTED HARTREE-FOCK\n";
     std::cout << std::string(104, '-') + "\n\n"; Matrix G; 
+
+    // extract the HF options
+    auto rhfopt = HF::OptionsRestricted::Load(program.at<argparse::ArgumentParser>("hf"), program.get<bool>("--no-coulomb"));
 
     // calculate the numerical or analytical gradient
     if (parser.get<std::vector<double>>("-g").at(0)) G = Gradient({parser.get<std::vector<double>>("-g").at(1)}).get(system, Lambda::EHF(rhfopt, rhfres.D));
@@ -296,8 +282,9 @@ void Distributor::rhfg(argparse::ArgumentParser& parser) {
 }
 
 void Distributor::rhfo(argparse::ArgumentParser& parser) {
-    // print the RHF optimization header
+    // print the RHF optimization header and extract the HF options
     std::cout << "\n" + std::string(104, '-') + "\nRESTRICTED HARTREE-FOCK OPTIMIZATION\n" << std::string(104, '-') + "\n\n";
+    auto rhfopt = HF::OptionsRestricted::Load(program.at<argparse::ArgumentParser>("hf"), program.get<bool>("--no-coulomb"));
 
     // perform the optimization
     system = Optimizer({parser.get<double>("-o")}).optimize(system, Lambda::EGHF(rhfopt, parser.get<std::vector<double>>("-g"), Matrix::Zero(system.shells.nbf(), system.shells.nbf())));
@@ -308,12 +295,15 @@ void Distributor::rhfo(argparse::ArgumentParser& parser) {
 }
 
 void Distributor::uhfrun(argparse::ArgumentParser& parser) {
+    // extract the HF method options
+    auto uhfopt = HF::OptionsUnrestricted::Load(program.at<argparse::ArgumentParser>("hf"), program.get<bool>("--no-coulomb"));
+
     // print the RHF method header
     std::cout << "\n" + std::string(104, '-') + "\nUNRESTRICTED HARTREE-FOCK METHOD\n" << std::string(104, '-') + "\n\n";
     std::printf("-- MAXITER: %d, THRESH: %.2e\n-- DIIS: [START: %d, KEEP: %d]\n", uhfopt.maxiter, uhfopt.thresh, uhfopt.diis.start, uhfopt.diis.keep);
 
     // perform the RHF calculation
-    uhfres = HF(uhfopt).uscf(system, Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
+    auto uhfres = HF(uhfopt).uscf(system, Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
 
     // print the resulting RHF matrices and energies
     if (CONTAINS(parser.get<std::vector<std::string>>("-p"), "epsa")) std::cout << "\nORBITAL ENERGIES (ALPHA)\n" << Matrix(uhfres.epsa) << std::endl;
@@ -326,19 +316,22 @@ void Distributor::uhfrun(argparse::ArgumentParser& parser) {
     std::cout << "FINAL HARTREE-FOCK ENERGY: " << uhfres.E << std::endl;
 
     // gradient and frequency
-    if (parser.is_used("-g")) uhfg(parser);
-    if (parser.is_used("-f")) uhff(parser);
+    if (parser.is_used("-g")) uhfg(parser, uhfres);
+    if (parser.is_used("-f")) uhff(parser, uhfres);
 
     // post UHF methods
     if (parser.is_subcommand_used("mp2")) throw std::runtime_error("UMP2 NOT IMPLEMENTED");
     if (parser.is_subcommand_used("ci")) throw std::runtime_error("UCI NOT IMPLEMENTED");
 }
 
-void Distributor::uhff(argparse::ArgumentParser& parser) {
+void Distributor::uhff(argparse::ArgumentParser& parser, const HF::ResultsUnrestricted& uhfres) {
     // print the Hessian header
     if (parser.get<std::vector<double>>("-f").at(0)) std::cout << "\n" + std::string(104, '-') + "\nNUMERICAL HESSIAN FOR RESTRICTED HARTREE-FOCK\n";
     else std::cout << "\n" + std::string(104, '-') + "\nANALYTICAL HESSIAN FOR RESTRICTED HARTREE-FOCK\n";
     std::cout << std::string(104, '-') + "\n\n"; Matrix H;
+
+    // extract the HF method options
+    auto uhfopt = HF::OptionsUnrestricted::Load(program.at<argparse::ArgumentParser>("hf"), program.get<bool>("--no-coulomb"));
 
     // perform the Hessian calculation
     if (parser.get<std::vector<double>>("-f").at(0)) H = Hessian({parser.get<std::vector<double>>("-f").at(1)}).get(system, Lambda::EHF(uhfopt, 0.5 * (uhfres.Da + uhfres.Db)));
@@ -353,11 +346,14 @@ void Distributor::uhff(argparse::ArgumentParser& parser) {
     std::cout << "\n\nVIBRATIONAL FREQUENCIES\n" << Matrix(freq) << std::endl;
 }
 
-void Distributor::uhfg(argparse::ArgumentParser& parser) {
+void Distributor::uhfg(argparse::ArgumentParser& parser, const HF::ResultsUnrestricted& uhfres) {
     // print the header for gradient calculation and define the gradient matrix
     if (parser.get<std::vector<double>>("-g").at(0)) std::cout << "\n" + std::string(104, '-') + "\nNUMERICAL GRADIENT FOR UNRESTRICTED HARTREE-FOCK\n";
     else std::cout << "\n" + std::string(104, '-') + "\nANALYTICAL GRADIENT FOR UNRESTRICTED HARTREE-FOCK\n";
     std::cout << std::string(104, '-') + "\n\n"; Matrix G; 
+
+    // extract the HF method options
+    auto uhfopt = HF::OptionsUnrestricted::Load(program.at<argparse::ArgumentParser>("hf"), program.get<bool>("--no-coulomb"));
 
     // calculate the numerical or analytical gradient
     if (parser.get<std::vector<double>>("-g").at(0)) G = Gradient({parser.get<std::vector<double>>("-g").at(1)}).get(system, Lambda::EHF(uhfopt, 0.5 * (uhfres.Da + uhfres.Db)));
@@ -367,7 +363,7 @@ void Distributor::uhfg(argparse::ArgumentParser& parser) {
     std::cout << G << "\n\nGRADIENT NORM: "; std::printf("%.2e\n", G.norm());
 }
 
-void Distributor::rmp2run(argparse::ArgumentParser& parser) {
+void Distributor::rmp2run(argparse::ArgumentParser& parser, const HF::ResultsRestricted& rhfres) {
     // print the MP2 method header
     std::cout << "\n" + std::string(104, '-') + "\nRESTRICTED MP2 CORRELATION ENERGY\n" << std::string(104, '-') + "\n"; Tensor<4> Jmo;
 
@@ -383,15 +379,18 @@ void Distributor::rmp2run(argparse::ArgumentParser& parser) {
     std::cout << "MP2 ENERGY: " << rhfres.E + Ecorr << std::endl;
 
     // gradient and frequency
-    if (parser.is_used("-g")) rmp2g(parser);
-    if (parser.is_used("-f")) rmp2f(parser);
+    if (parser.is_used("-g")) rmp2g(parser, rhfres);
+    if (parser.is_used("-f")) rmp2f(parser, rhfres);
 }
 
-void Distributor::rmp2f(argparse::ArgumentParser& parser) {
+void Distributor::rmp2f(argparse::ArgumentParser& parser, const HF::ResultsRestricted& rhfres) {
     // print the MP2 frequency calculation header
     if (parser.get<std::vector<double>>("-f").at(0)) std::cout << "\n" + std::string(104, '-') + "\nNUMERICAL HESSIAN FOR RESTRICTED MP2 METHOD\n";
     else std::cout << "\n" + std::string(104, '-') + "\nANALYTICAL HESSIAN FOR RESTRICTED MP2 METHOD\n";
     std::cout << std::string(104, '-') + "\n\n"; Matrix H; 
+
+    // extract the HF options
+    auto rhfopt = HF::OptionsRestricted::Load(program.at<argparse::ArgumentParser>("hf"), program.get<bool>("--no-coulomb"));
 
     // perform the Hessian calculation
     if (parser.get<std::vector<double>>("-f").at(0)) H = Hessian({parser.get<std::vector<double>>("-f").at(1)}).get(system, Lambda::EMP2(rhfopt, rhfres.D));
@@ -406,10 +405,11 @@ void Distributor::rmp2f(argparse::ArgumentParser& parser) {
     std::cout << "\nVIBRATIONAL FREQUENCIES\n" << Matrix(freq) << std::endl;
 }
 
-void Distributor::rmp2g(argparse::ArgumentParser& parser) {
-    // print the MP2 gradient method header
+void Distributor::rmp2g(argparse::ArgumentParser& parser, const HF::ResultsRestricted& rhfres) {
+    // print the MP2 gradient method header and extract the HF options
     if (parser.get<std::vector<double>>("-g").at(0)) std::cout << "\n" + std::string(104, '-') + "\nNUMERICAL GRADIENT FOR RESTRICTED MP2 METHOD\n" << std::string(104, '-') << "\n\n";
     else std::cout << "\n" + std::string(104, '-') + "\nANALYTICAL GRADIENT FOR RESTRICTED MP2 METHOD\n" << std::string(104, '-') << "\n\n"; Matrix G;
+    auto rhfopt = HF::OptionsRestricted::Load(program.at<argparse::ArgumentParser>("hf"), program.get<bool>("--no-coulomb"));
 
     // perform the MP2 gradient calculation
     if (parser.get<std::vector<double>>("-g").at(0)) G = Gradient({parser.get<std::vector<double>>("-g").at(1)}).get(system, Lambda::EMP2(rhfopt, rhfres.D));
@@ -420,7 +420,8 @@ void Distributor::rmp2g(argparse::ArgumentParser& parser) {
 }
 
 void Distributor::rmp2o(argparse::ArgumentParser& parser) {
-    // print the MP2 optimization method header
+    // extract the HF options and print the MP2 optimization method header
+    auto rhfopt = HF::OptionsRestricted::Load(program.at<argparse::ArgumentParser>("hf"), program.get<bool>("--no-coulomb"));
     std::cout << "\n" + std::string(104, '-') + "\nRESTRICTED MP2 OPTIMIZATION\n" << std::string(104, '-') << "\n\n";
 
     // perform the optimization
@@ -448,6 +449,10 @@ void Distributor::qdyn(argparse::ArgumentParser& parser) {
 void Distributor::dynamics(argparse::ArgumentParser& parser) {
     // print the dynamics header
     std::cout << "\n" + std::string(104, '-') + "\nMOLECULAR DYNAMICS\n" << std::string(104, '-') + "\n\n";
+
+    // extract the HF method options
+    auto uhfopt = HF::OptionsUnrestricted::Load(program.at<argparse::ArgumentParser>("md").at<argparse::ArgumentParser>("hf"), program.get<bool>("--no-coulomb"));
+    auto rhfopt = HF::OptionsRestricted::Load(program.at<argparse::ArgumentParser>("md").at<argparse::ArgumentParser>("hf"), program.get<bool>("--no-coulomb"));
 
     // define the anonymous function for gradient
     std::function<std::tuple<double, Matrix>(System&)> egfunc;
