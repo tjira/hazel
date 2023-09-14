@@ -470,16 +470,16 @@ void Distributor::dynamics(argparse::ArgumentParser& parser) {
     // define the anonymous function for gradient
     std::function<std::tuple<double, Matrix>(System&)> egfunc;
 
-    // throw an error when unrestricted calculation is requested
-    if (parser.is_subcommand_used("hf") && program.get<int>("-s") != 1) {
-        throw std::runtime_error("DYNAMICS NOT IMPLEMENTED FOR UNRESTRICTED CALCULATION");
-    }
-
     // get the energy and gradient function
-    if (parser.is_subcommand_used("hf")) {
+    if (parser.is_subcommand_used("hf") && program.get<int>("-s") == 1) {
         egfunc = Lambda::EGHF(rhfopt, parser.at<argparse::ArgumentParser>("hf").get<std::vector<double>>("-g"), Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
         if (parser.at<argparse::ArgumentParser>("hf").is_subcommand_used("mp2")) {
             egfunc = Lambda::EGMP2(rhfopt, parser.at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("mp2").get<std::vector<double>>("-g"), Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
+        }
+    } else if (parser.is_subcommand_used("hf") && program.get<int>("-s") != 1) {
+        egfunc = Lambda::EGHF(uhfopt, parser.at<argparse::ArgumentParser>("hf").get<std::vector<double>>("-g"), Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
+        if (parser.at<argparse::ArgumentParser>("hf").is_subcommand_used("mp2")) {
+            throw std::runtime_error("UMP2 NOT IMPLEMENTED");
         }
     } else throw std::runtime_error("INVALID METHOD FOR DYNAMICS SPECIFIED");
 
