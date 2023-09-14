@@ -174,7 +174,7 @@ void Distributor::run() {
     if (program.is_subcommand_used("hf")) {
         if (program.at<argparse::ArgumentParser>("hf").is_used("-o")) {
             if (program.get<int>("-s") == 1) rhfo(program.at<argparse::ArgumentParser>("hf"));
-            else throw std::runtime_error("OPTIMIZATION FOR UHF NOT IMPLEMENTED");
+            else uhfo(program.at<argparse::ArgumentParser>("hf"));
         }
         else if (program.at<argparse::ArgumentParser>("hf").is_subcommand_used("mp2")) {
             if (program.at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("mp2").is_used("-o")) {
@@ -361,6 +361,19 @@ void Distributor::uhfg(argparse::ArgumentParser& parser, const HF::ResultsUnrest
 
     // print the gradient and it's norm
     std::cout << G << "\n\nGRADIENT NORM: "; std::printf("%.2e\n", G.norm());
+}
+
+void Distributor::uhfo(argparse::ArgumentParser& parser) {
+    // print the UHF optimization header and extract the HF options
+    std::cout << "\n" + std::string(104, '-') + "\nUNRESTRICTED HARTREE-FOCK OPTIMIZATION\n" << std::string(104, '-') + "\n\n";
+    auto uhfopt = HF::OptionsUnrestricted::Load(program.at<argparse::ArgumentParser>("hf"), program.get<bool>("--no-coulomb"));
+
+    // perform the optimization
+    system = Optimizer({parser.get<double>("-o")}).optimize(system, Lambda::EGHF(uhfopt, parser.get<std::vector<double>>("-g"), Matrix::Zero(system.shells.nbf(), system.shells.nbf())));
+
+    // print the optimized coordinates and distances
+    std::cout << "\nOPTIMIZED SYSTEM COORDINATES\n" << system.coords << std::endl; 
+    if (CONTAINS(parser.get<std::vector<std::string>>("-p"), "dist")) std::cout << "\nOPTIMIZED DISTANCE MATRIX\n" << system.dists << std::endl;
 }
 
 void Distributor::rmp2run(argparse::ArgumentParser& parser, const HF::ResultsRestricted& rhfres) {

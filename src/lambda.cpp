@@ -30,6 +30,17 @@ std::function<std::tuple<double, Matrix>(System&)> Lambda::EGHF(const HF::Option
     };
 }
 
+std::function<std::tuple<double, Matrix>(System&)> Lambda::EGHF(const HF::OptionsUnrestricted& uhfopt, const std::vector<double>& gopt, Matrix D) {
+    return [uhfopt, gopt, D](System& system) {
+        // perform the HF calculation for the curent geometry
+        HF::ResultsUnrestricted uhfres = HF(uhfopt).uscf(system.clearints(), D, false);
+
+        // calculate the numerical or analytical gradient
+        if (gopt.at(0)) return std::tuple{uhfres.E, Gradient({gopt.at(1)}).get(system, Lambda::EHF(uhfopt, 0.5 * (uhfres.Da + uhfres.Db)), false)};
+        else throw std::runtime_error("ANALYTICAL GRADIENT FOR UHF NOT IMPLEMENTED");
+    };
+}
+
 std::function<std::tuple<double, Matrix>(System&)> Lambda::EGMP2(const HF::OptionsRestricted& rhfopt, const std::vector<double>& gopt, Matrix D) {
     return [rhfopt, gopt, D](System& system) {
         // delete the calculated integrals and recalculate Hartree-Fock
