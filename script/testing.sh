@@ -1,7 +1,7 @@
 #!/bin/bash
 
-SYSTEMS=("ammonia" "ethylene" "methane" "water")
-BASES=("3-21g" "sto-3g" "6-31g" "6-31g*")
+SYSTEMS=("water" "ammonia" "methane")
+BASES=("3-21g" "sto-3g" "6-31g")
 CMS=("0:1" "1:2" "-1:2")
 CORES=64
 
@@ -22,7 +22,7 @@ for SYSTEM in "${SYSTEMS[@]}"; do
             EXPECT=$(echo "$EXPECT" | sed -e 's/+/\\\\+/g')
 
             # print the test commands
-            printf 'add_test(NAME %s_%d-%d_%s_hf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "%s" -c %d -f ${PROJECT_SOURCE_DIR}/example/molecule/%s.xyz -s %d hf -i 1000 -t 1e-8)\n' \
+            printf 'add_test(NAME %s_%d-%d_%s_hf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "%s" -c %d -f ${PROJECT_SOURCE_DIR}/example/molecule/%s.xyz -n 2 -s %d hf -i 1000 -t 1e-8)\n' \
                    "$SYSTEM" "$CHARGE" "$MULT" $(echo "$BASIS" | sed -e 's/+/p/g' -e 's/*/s/g') "$BASIS" "$CHARGE" "$SYSTEM" "$MULT"
             printf 'set_tests_properties(%s_%d-%d_%s_hf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "%s")\n' \
                    "$SYSTEM" "$CHARGE" "$MULT" $(echo "$BASIS" | sed -e 's/+/p/g' -e 's/*/s/g') "${EXPECT::-6}"
@@ -45,7 +45,7 @@ for SYSTEM in "${SYSTEMS[@]}"; do
             EXPECT=$(echo "$EXPECT" | sed -e 's/+/\\\\+/g')
 
             # print the test commands
-            printf 'add_test(NAME %s_%d-%d_%s_mp2_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "%s" -c %d -f ${PROJECT_SOURCE_DIR}/example/molecule/%s.xyz -s %d hf -i 1000 -t 1e-8 mp2)\n' \
+            printf 'add_test(NAME %s_%d-%d_%s_mp2_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "%s" -c %d -f ${PROJECT_SOURCE_DIR}/example/molecule/%s.xyz -n 2 -s %d hf -i 1000 -t 1e-8 mp2)\n' \
                    "$SYSTEM" "$CHARGE" "$MULT" $(echo "$BASIS" | sed -e 's/+/p/g' -e 's/*/s/g') "$BASIS" "$CHARGE" "$SYSTEM" "$MULT"
             printf 'set_tests_properties(%s_%d-%d_%s_mp2_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "%s")\n' \
                    "$SYSTEM" "$CHARGE" "$MULT" $(echo "$BASIS" | sed -e 's/+/p/g' -e 's/*/s/g') "${EXPECT::-6}"
@@ -68,7 +68,7 @@ for SYSTEM in "${SYSTEMS[@]}"; do
             EXPECT=$(echo "$EXPECT" | sed -e 's/+/\\\\+/g')
 
             # print the test commands
-            printf 'add_test(NAME %s_%d-%d_%s_hf_angrad COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "%s" -c %d -f ${PROJECT_SOURCE_DIR}/example/molecule/%s.xyz -s %d hf -i 1000 -t 1e-8 -g 0 1e-5)\n' \
+            printf 'add_test(NAME %s_%d-%d_%s_hf_angrad COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "%s" -c %d -f ${PROJECT_SOURCE_DIR}/example/molecule/%s.xyz -n 2 -s %d hf -i 1000 -t 1e-8 -g 0 1e-5)\n' \
                    "$SYSTEM" "$CHARGE" "$MULT" $(echo "$BASIS" | sed -e 's/+/p/g' -e 's/*/s/g') "$BASIS" "$CHARGE" "$SYSTEM" "$MULT"
             printf 'set_tests_properties(%s_%d-%d_%s_hf_angrad PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "%s")\n' \
                    "$SYSTEM" "$CHARGE" "$MULT" $(echo "$BASIS" | sed -e 's/+/p/g' -e 's/*/s/g') "${EXPECT}"
@@ -91,7 +91,7 @@ for SYSTEM in "${SYSTEMS[@]}"; do
             EXPECT=$(echo "$EXPECT" | sed -e 's/+/\\\\+/g')
 
             # print the test commands
-            printf 'add_test(NAME %s_%d-%d_%s_hf_numgrad COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "%s" -c %d -f ${PROJECT_SOURCE_DIR}/example/molecule/%s.xyz -s %d hf -i 1000 -t 1e-8 -g 1 1e-5)\n' \
+            printf 'add_test(NAME %s_%d-%d_%s_hf_numgrad COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "%s" -c %d -f ${PROJECT_SOURCE_DIR}/example/molecule/%s.xyz -n 2 -s %d hf -i 1000 -t 1e-8 -g 1 1e-5)\n' \
                    "$SYSTEM" "$CHARGE" "$MULT" $(echo "$BASIS" | sed -e 's/+/p/g' -e 's/*/s/g') "$BASIS" "$CHARGE" "$SYSTEM" "$MULT"
             printf 'set_tests_properties(%s_%d-%d_%s_hf_numgrad PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "%s")\n' \
                    "$SYSTEM" "$CHARGE" "$MULT" $(echo "$BASIS" | sed -e 's/+/p/g' -e 's/*/s/g') "${EXPECT}"
@@ -114,7 +114,7 @@ for SYSTEM in "${SYSTEMS[@]}"; do
             EXPECT=$(echo "$EXPECT" | sed -e 's/+/\\\\+/g')
 
             # print the test commands
-            printf 'add_test(NAME %s_%d-%d_%s_mp2_numgrad COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "%s" -c %d -f ${PROJECT_SOURCE_DIR}/example/molecule/%s.xyz -s %d hf -i 1000 -t 1e-8 mp2 -g 1 1e-5)\n' \
+            printf 'add_test(NAME %s_%d-%d_%s_mp2_numgrad COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "%s" -c %d -f ${PROJECT_SOURCE_DIR}/example/molecule/%s.xyz -n 2 -s %d hf -i 1000 -t 1e-8 mp2 -g 1 1e-5)\n' \
                    "$SYSTEM" "$CHARGE" "$MULT" $(echo "$BASIS" | sed -e 's/+/p/g' -e 's/*/s/g') "$BASIS" "$CHARGE" "$SYSTEM" "$MULT"
             printf 'set_tests_properties(%s_%d-%d_%s_mp2_numgrad PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "%s")\n' \
                    "$SYSTEM" "$CHARGE" "$MULT" $(echo "$BASIS" | sed -e 's/+/p/g' -e 's/*/s/g') "${EXPECT}"
@@ -137,7 +137,7 @@ for SYSTEM in "${SYSTEMS[@]}"; do
             EXPECT=$(echo "$EXPECT" | sed -e 's/+/\\\\+/g')
 
             # print the test commands
-            printf 'add_test(NAME %s_%d-%d_%s_hf_numhess COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "%s" -c %d -f ${PROJECT_SOURCE_DIR}/example/molecule/%s.xyz -s %d hf -i 1000 -t 1e-8 -f 1 1e-4)\n' \
+            printf 'add_test(NAME %s_%d-%d_%s_hf_numhess COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "%s" -c %d -f ${PROJECT_SOURCE_DIR}/example/molecule/%s.xyz -n 2 -s %d hf -i 1000 -t 1e-8 -f 1 1e-4)\n' \
                    "$SYSTEM" "$CHARGE" "$MULT" $(echo "$BASIS" | sed -e 's/+/p/g' -e 's/*/s/g') "$BASIS" "$CHARGE" "$SYSTEM" "$MULT"
             printf 'set_tests_properties(%s_%d-%d_%s_hf_numhess PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "%s")\n' \
                    "$SYSTEM" "$CHARGE" "$MULT" $(echo "$BASIS" | sed -e 's/+/p/g' -e 's/*/s/g') "${EXPECT}"
@@ -160,7 +160,7 @@ for SYSTEM in "${SYSTEMS[@]}"; do
             EXPECT=$(echo "$EXPECT" | sed -e 's/+/\\\\+/g')
 
             # print the test commands
-            printf 'add_test(NAME %s_%d-%d_%s_mp2_numhess COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "%s" -c %d -f ${PROJECT_SOURCE_DIR}/example/molecule/%s.xyz -s %d hf -i 1000 -t 1e-8 mp2 -f 1 1e-4)\n' \
+            printf 'add_test(NAME %s_%d-%d_%s_mp2_numhess COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "%s" -c %d -f ${PROJECT_SOURCE_DIR}/example/molecule/%s.xyz -n 2 -s %d hf -i 1000 -t 1e-8 mp2 -f 1 1e-4)\n' \
                    "$SYSTEM" "$CHARGE" "$MULT" $(echo "$BASIS" | sed -e 's/+/p/g' -e 's/*/s/g') "$BASIS" "$CHARGE" "$SYSTEM" "$MULT"
             printf 'set_tests_properties(%s_%d-%d_%s_mp2_numhess PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "%s")\n' \
                    "$SYSTEM" "$CHARGE" "$MULT" $(echo "$BASIS" | sed -e 's/+/p/g' -e 's/*/s/g') "${EXPECT}"
