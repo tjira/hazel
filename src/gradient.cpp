@@ -76,8 +76,7 @@ Matrix Gradient::get(const System& system, const HF::ResultsRestricted& rhfres, 
 
         // define the core Hamiltonian derivative, atomic slices for overlap tensor and density matrix
         Tensor<3> dHcore = system.dints.dV.slice<Index<3>, Index<3>>({0, 0, 6 + i * 3}, {rhfres.D.rows(), rhfres.D.cols(), 3});
-        Eigen::array<Eigen::Index, 3> Soff = {si, 0, 0}, Sext = {ss, rhfres.D.cols(), 3};
-        Eigen::array<Eigen::Index, 2> Doff = {si, 0}, Dext = {ss, rhfres.D.cols()};
+        Index<3> Soff = {si, 0, 0}, Sext = {ss, rhfres.D.cols(), 3}; Index<2> Doff = {si, 0}, Dext = {ss, rhfres.D.cols()};
 
         // fill the core Hamiltonian derivative
         dHcore.slice<Index<3>, Index<3>>({0, si, 0}, {rhfres.D.rows(), ss, 3}) += (dT1 + dV1).slice<Index<3>, Index<3>>(Soff, Sext).shuffle(Index<3>{1, 0, 2});

@@ -64,6 +64,7 @@ Distributor::Distributor(int argc, char** argv) : program("hazel", "0.1", argpar
     program.at<argparse::ArgumentParser>("qd").add_argument("-i", "--iters").help("-- Number of iterations in dynamics.").default_value(1000).scan<'i', int>();
     program.at<argparse::ArgumentParser>("qd").add_argument("-r", "--range").help("-- Grid range in all dimensions.").default_value(16.0).scan<'g', double>();
     program.at<argparse::ArgumentParser>("qd").add_argument("-n", "--nstate").help("-- Number of states to consider.").default_value(3).scan<'i', int>();
+    program.at<argparse::ArgumentParser>("qd").add_argument("-o", "--output").help("-- Output of the wavefunction.").default_value("wavefunction.dat");
     program.at<argparse::ArgumentParser>("qd").add_argument("-p", "--points").help("-- Number of points on the grid.").default_value(1024).scan<'i', int>();
     program.at<argparse::ArgumentParser>("qd").add_argument("-t", "--thresh").help("-- Threshold for conververgence in ITP loop.").default_value(1e-8).scan<'g', double>();
     program.at<argparse::ArgumentParser>("qd").add_argument("--no-real").help("-- Help message.").default_value(false).implicit_value(true);
@@ -456,7 +457,7 @@ void Distributor::qdyn(argparse::ArgumentParser& parser) {
     if (parser.get<bool>("--no-real")) std::cout << "\nIMAGINARY TIME PROPAGATION ENERGIES\n" << Matrix(qdres.energy) << std::endl;
 
     // save the wavefunction
-    Qdyn::wfnsave(qdres.r, qdres.states, "wavefunction.dat");
+    Utility::SaveWavefunction(parser.get<std::string>("-o"), qdres.r, qdres.states);
 }
 
 void Distributor::dynamics(argparse::ArgumentParser& parser) {

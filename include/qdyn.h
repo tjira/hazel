@@ -18,9 +18,6 @@ public:
     // constructor
     Qdyn(const Options& opt) : opt(opt) {}
 
-    // static wfn saver
-    static void wfnsave(const CVector& r, const std::vector<std::vector<CVector>>& wfn, const std::string& fname);
-
     // methods
     Results run(System system, bool print = true) const;
 

@@ -1,30 +1,25 @@
 #pragma once
 
 #define EIGEN_INITIALIZE_MATRICES_BY_ZERO
-#define CFREQ 5140.486777894163
-#define BOHR2A 0.529177249
-#define A2BOHR 1.889725989
-
-inline int nthread = 1;
 
 #include <unsupported/Eigen/MatrixFunctions>
 #include <unsupported/Eigen/CXX11/Tensor>
 #include <unsupported/Eigen/FFT>
 
+typedef Eigen::Matrix<std::complex<double>, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor> CMatrix;
 typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor> Matrix;
+typedef Eigen::Vector<std::complex<double>, Eigen::Dynamic> CVector;
 typedef Eigen::Vector<double, Eigen::Dynamic> Vector;
 
-typedef Eigen::Matrix<std::complex<double>, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor> CMatrix;
-typedef Eigen::Vector<std::complex<double>, Eigen::Dynamic> CVector;
-
+template <size_t D> using CTensor = Eigen::Tensor<std::complex<double>, D, Eigen::ColMajor>;
 template <size_t D> using Tensor = Eigen::Tensor<double, D, Eigen::ColMajor>;
+
 template <size_t D> using Axes = Eigen::array<Eigen::IndexPair<int>, D>;
 template <size_t D> using Index = Eigen::array<Eigen::Index, D>;
 template <size_t D> using Array = Eigen::array<int, D>;
 
-template <size_t D> using CTensor = Eigen::Tensor<std::complex<double>, D, Eigen::ColMajor>;
-
 namespace Eigen {
+    // ostream operators
     std::ostream& operator<<(std::ostream& os, const Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>& A);
     std::ostream& operator<<(std::ostream& os, const Tensor<double, 3, Eigen::ColMajor>& A);
     std::ostream& operator<<(std::ostream& os, const Tensor<double, 4, Eigen::ColMajor>& A);
@@ -56,3 +51,4 @@ inline Vector toVector(Tensor<1> A) {return Eigen::Map<Vector>(A.data(), A.dimen
 
 #include <libint2/diis.h>
 #include "argparse.hpp"
+#include "constant.h"

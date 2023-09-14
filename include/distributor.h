@@ -5,6 +5,7 @@
 
 #include "optimizer.h"
 #include "dynamics.h"
+#include "utility.h"
 #include "lambda.h"
 #include "qdyn.h"
 
