@@ -3,9 +3,10 @@
 #define CONTAINS(V, E) ([](std::vector<std::string> v, std::string e){return std::find(v.begin(), v.end(), e) != v.end();}(V, E))
 #define TIME(W) {Timer::Timepoint start = Timer::Now(); W; std::cout << Timer::Format(Timer::Elapsed(start)) << std::flush;}
 
-Distributor::Distributor(int argc, char** argv) : program("hazel", "0.1", argparse::default_arguments::none), parsers(8), start(Timer::Now()) {
+Distributor::Distributor(int argc, char** argv) : program("hazel", "0.1", argparse::default_arguments::none), parsers(11), start(Timer::Now()) {
     // add level 1 parsers
     parsers.push_back(argparse::ArgumentParser("ints", "0.1", argparse::default_arguments::none)); program.add_subparser(parsers.at(parsers.size() - 1));
+    parsers.push_back(argparse::ArgumentParser("scan", "0.1", argparse::default_arguments::none)); program.add_subparser(parsers.at(parsers.size() - 1));
     parsers.push_back(argparse::ArgumentParser("hf", "0.1", argparse::default_arguments::none)); program.add_subparser(parsers.at(parsers.size() - 1));
     parsers.push_back(argparse::ArgumentParser("qd", "0.1", argparse::default_arguments::none)); program.add_subparser(parsers.at(parsers.size() - 1));
     parsers.push_back(argparse::ArgumentParser("md", "0.1", argparse::default_arguments::none)); program.add_subparser(parsers.at(parsers.size() - 1));
@@ -14,10 +15,12 @@ Distributor::Distributor(int argc, char** argv) : program("hazel", "0.1", argpar
     parsers.push_back(argparse::ArgumentParser("mp2", "0.1", argparse::default_arguments::none)); program.at<argparse::ArgumentParser>("hf").add_subparser(parsers.at(parsers.size() - 1));
     parsers.push_back(argparse::ArgumentParser("ci", "0.1", argparse::default_arguments::none)); program.at<argparse::ArgumentParser>("hf").add_subparser(parsers.at(parsers.size() - 1));
 
-    // add MD parsers
+    // add level 2 parsers
+    parsers.push_back(argparse::ArgumentParser("hf", "0.1", argparse::default_arguments::none)); program.at<argparse::ArgumentParser>("scan").add_subparser(parsers.at(parsers.size() - 1));
     parsers.push_back(argparse::ArgumentParser("hf", "0.1", argparse::default_arguments::none)); program.at<argparse::ArgumentParser>("md").add_subparser(parsers.at(parsers.size() - 1));
 
-    // add MD-HF parsers
+    // add level 3 parsers
+    parsers.push_back(argparse::ArgumentParser("mp2", "0.1", argparse::default_arguments::none)); program.at<argparse::ArgumentParser>("scan").at<argparse::ArgumentParser>("hf").add_subparser(parsers.at(parsers.size() - 1));
     parsers.push_back(argparse::ArgumentParser("mp2", "0.1", argparse::default_arguments::none)); program.at<argparse::ArgumentParser>("md").at<argparse::ArgumentParser>("hf").add_subparser(parsers.at(parsers.size() - 1));
     
     // add positional arguments to the main argument parser
@@ -57,6 +60,18 @@ Distributor::Distributor(int argc, char** argv) : program("hazel", "0.1", argpar
     program.at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("ci").add_argument("-e", "--excitations").help("-- Excitations to consider.").default_value("d");
     program.at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("ci").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
     program.at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("ci").add_argument("-p", "--print").help("-- Printing options.").default_value<std::vector<std::string>>({}).append();
+
+    // add positional arguments to the SCAN argument parser
+    program.at<argparse::ArgumentParser>("scan").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
+
+    // add positional arguments to the SCAN HF argument parser
+    program.at<argparse::ArgumentParser>("scan").at<argparse::ArgumentParser>("hf").add_argument("-d", "--diis").help("-- Start iteration and history length for DIIS algorithm.").default_value(std::vector<int>{3, 5}).nargs(2).scan<'i', int>();
+    program.at<argparse::ArgumentParser>("scan").at<argparse::ArgumentParser>("hf").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
+    program.at<argparse::ArgumentParser>("scan").at<argparse::ArgumentParser>("hf").add_argument("-i", "--iters").help("-- Maximum number of iterations in SCF loop.").default_value(100).scan<'i', int>();
+    program.at<argparse::ArgumentParser>("scan").at<argparse::ArgumentParser>("hf").add_argument("-t", "--thresh").help("-- Threshold for conververgence in SCF loop.").default_value(1e-12).scan<'g', double>();
+
+    // add positional arguments to the SCAN MP2 argument parser
+    program.at<argparse::ArgumentParser>("scan").at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("mp2").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
 
     // add positional arguments to the QD argument parser
     program.at<argparse::ArgumentParser>("qd").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
@@ -104,6 +119,12 @@ Distributor::Distributor(int argc, char** argv) : program("hazel", "0.1", argpar
         std::cout << program.at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("mp2").help().str(); exit(EXIT_SUCCESS);
     } else if (program.is_subcommand_used("hf") && program.at<argparse::ArgumentParser>("hf").is_subcommand_used("ci") && program.at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("ci").get<bool>("-h")) {
         std::cout << program.at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("ci").help().str(); exit(EXIT_SUCCESS);
+    } else if (program.is_subcommand_used("scan") && program.at<argparse::ArgumentParser>("scan").get<bool>("-h")) {
+        std::cout << program.at<argparse::ArgumentParser>("scan").help().str(); exit(EXIT_SUCCESS);
+    } else if (program.is_subcommand_used("scan") && program.at<argparse::ArgumentParser>("scan").is_subcommand_used("hf") && program.at<argparse::ArgumentParser>("scan").at<argparse::ArgumentParser>("hf").get<bool>("-h")) {
+        std::cout << program.at<argparse::ArgumentParser>("scan").at<argparse::ArgumentParser>("hf").help().str(); exit(EXIT_SUCCESS);
+    } else if (program.is_subcommand_used("scan") && program.at<argparse::ArgumentParser>("scan").is_subcommand_used("hf") && program.at<argparse::ArgumentParser>("scan").at<argparse::ArgumentParser>("hf").is_subcommand_used("mp2") && program.at<argparse::ArgumentParser>("scan").at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("mp2").get<bool>("-h")) {
+        std::cout << program.at<argparse::ArgumentParser>("scan").at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("mp2").help().str(); exit(EXIT_SUCCESS);
     } else if (program.is_subcommand_used("qd") && program.at<argparse::ArgumentParser>("qd").get<bool>("-h")) {
         std::cout << program.at<argparse::ArgumentParser>("qd").help().str(); exit(EXIT_SUCCESS);
     } else if (program.is_subcommand_used("md") && program.at<argparse::ArgumentParser>("md").get<bool>("-h")) {
@@ -141,7 +162,7 @@ Distributor::~Distributor() {
 
 void Distributor::run() {
     // initialize the system
-    system = System(program.get("-f"), program.get("-b"), program.get<int>("-c"), program.get<int>("-s"));
+    std::ifstream stream(program.get("-f")); system = System(stream, program.get("-b"), program.get<int>("-c"), program.get<int>("-s")); stream.close();
 
     // print the title with number of threads
     std::cout << "QUANTUM HAZEL" << std::endl;
@@ -186,6 +207,7 @@ void Distributor::run() {
     }
 
     // distribute the calculations
+    if (program.is_subcommand_used("scan")) scan(program.at<argparse::ArgumentParser>("scan"));
     if (program.is_subcommand_used("md")) dynamics(program.at<argparse::ArgumentParser>("md"));
     if (program.is_subcommand_used("qd")) qdyn(program.at<argparse::ArgumentParser>("qd"));
     if (program.is_subcommand_used("hf")) {
@@ -446,18 +468,46 @@ void Distributor::rmp2o(argparse::ArgumentParser& parser) {
     if (CONTAINS(parser.get<std::vector<std::string>>("-p"), "dist")) std::cout << "\nOPTIMIZED DISTANCE MATRIX\n" << system.dists << std::endl;
 }
 
-void Distributor::qdyn(argparse::ArgumentParser& parser) {
-    // print the dynamics header
-    std::cout << "\n" + std::string(104, '-') + "\nQUANTUM DYNAMICS\n" << std::string(104, '-') + "\n\n";
+void Distributor::scan(argparse::ArgumentParser& parser) {
+    // print the energy scan header
+    std::cout << "\n" + std::string(104, '-') + "\nMOVIE ENERGY SCAN\n" << std::string(104, '-') + "\n";
+    std::printf("\nITER       Eel [Eh]           TIME    \n");
 
-    // perform the dynamics
-    Qdyn::Results qdres = Qdyn({parser.get<int>("-p"), parser.get<int>("-i"), parser.get<int>("-n"), parser.get<double>("-r"), parser.get<double>("-s"), parser.get<double>("-t"), parser.get<bool>("--no-real")}).run(system);
+    // extract the HF method options
+    auto uhfopt = HF::OptionsUnrestricted::Load(program.at<argparse::ArgumentParser>("scan").at<argparse::ArgumentParser>("hf"), program.get<bool>("--no-coulomb"));
+    auto rhfopt = HF::OptionsRestricted::Load(program.at<argparse::ArgumentParser>("scan").at<argparse::ArgumentParser>("hf"), program.get<bool>("--no-coulomb"));
 
-    // print the energies
-    if (parser.get<bool>("--no-real")) std::cout << "\nIMAGINARY TIME PROPAGATION ENERGIES\n" << Matrix(qdres.energy) << std::endl;
+    // define the anonymous function for gradient
+    std::function<double(System)> efunc;
 
-    // save the wavefunction
-    Utility::SaveWavefunction(parser.get<std::string>("-o"), qdres.r, qdres.states);
+    // get the energy and gradient function
+    if (parser.is_subcommand_used("hf") && program.get<int>("-s") == 1) {
+        efunc = Lambda::EHF(rhfopt, Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
+        if (parser.at<argparse::ArgumentParser>("hf").is_subcommand_used("mp2")) {
+            efunc = Lambda::EMP2(rhfopt, Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
+        }
+    } else if (parser.is_subcommand_used("hf") && program.get<int>("-s") != 1) {
+        efunc = Lambda::EHF(uhfopt, Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
+        if (parser.at<argparse::ArgumentParser>("hf").is_subcommand_used("mp2")) {
+            throw std::runtime_error("UMP2 NOT IMPLEMENTED");
+        }
+    } else throw std::runtime_error("INVALID METHOD FOR SCAN SPECIFIED");
+
+    // count the number of geometries
+    std::ifstream stream(program.get("-f")); std::string line; int lines;
+    for (lines = 0; std::getline(stream, line); lines++);
+    int geoms = lines / (system.atoms.size() + 2);
+    stream.clear(), stream.seekg(0);
+
+    // perform the scan
+    for (int i = 0; i < geoms; i++) {
+        // create the syste, start the timer and calculate the energy
+        system = System(stream, program.get("-b"), program.get<int>("-c"), program.get<int>("-s"));
+        Timer::Timepoint start = Timer::Now(); double E = efunc(system);
+
+        // print the energy
+        std::printf("%4d %20.14f %s\n", i + 1, E, Timer::Format(Timer::Elapsed(start)).c_str());
+    }
 }
 
 void Distributor::dynamics(argparse::ArgumentParser& parser) {
@@ -486,6 +536,20 @@ void Distributor::dynamics(argparse::ArgumentParser& parser) {
 
     // perform the dynamics
     Dynamics({parser.get<int>("-i"), parser.get<double>("-s"), parser.get("-o")}).run(system, egfunc);
+}
+
+void Distributor::qdyn(argparse::ArgumentParser& parser) {
+    // print the dynamics header
+    std::cout << "\n" + std::string(104, '-') + "\nQUANTUM DYNAMICS\n" << std::string(104, '-') + "\n\n";
+
+    // perform the dynamics
+    Qdyn::Results qdres = Qdyn({parser.get<int>("-p"), parser.get<int>("-i"), parser.get<int>("-n"), parser.get<double>("-r"), parser.get<double>("-s"), parser.get<double>("-t"), parser.get<bool>("--no-real")}).run(system);
+
+    // print the energies
+    if (parser.get<bool>("--no-real")) std::cout << "\nIMAGINARY TIME PROPAGATION ENERGIES\n" << Matrix(qdres.energy) << std::endl;
+
+    // save the wavefunction
+    Utility::SaveWavefunction(parser.get<std::string>("-o"), qdres.r, qdres.states);
 }
 
 void Distributor::integrals() {

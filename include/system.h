@@ -13,7 +13,7 @@ inline std::unordered_map<int, double> masses = {
 
 struct System {
     // constructors and all the functions
-    System() = default; System(const std::string& fname, const std::string& basis, int charge, int multi);
+    System() = default; System(std::ifstream& stream, const std::string& basis, int charge, int multi);
     void save(const std::string& fname, std::ios::openmode mode = std::ios::out) const;
     void move(const Matrix& dir); System& clearints();
 

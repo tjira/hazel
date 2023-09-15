@@ -14,6 +14,7 @@ if __name__ == "__main__":
     parser = ap.ArgumentParser(prog="Hazel Plotter", description="Plotting script for the Hazel package.")
     parser.add_argument("--mdenergy", action="store_true")
     parser.add_argument("--hfconv", action="store_true")
+    parser.add_argument("--pes", action="store_true")
     parser.add_argument("--wfn", action="store_true")
     args = parser.parse_args()
 
@@ -24,6 +25,10 @@ if __name__ == "__main__":
     if args.mdenergy:
         block = input[input.find("MOLECULAR DYNAMICS"):input.find("EXECUTION TIME:")]
         data = [float(line.split()[1]) for line in block.split("\n")[5:-3]]
+
+    if args.pes:
+        block = input[input.find("ENERGY SCAN"):input.find("EXECUTION TIME:")]
+        data = [float(line.split()[1]) for line in block.split("\n")[4:-3]]
 
     if args.wfn:
         for line in [line for line in input.split("\n") if line]:

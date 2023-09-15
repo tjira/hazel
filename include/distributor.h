@@ -44,8 +44,8 @@ private:
     void rmp2run(argparse::ArgumentParser& parser, const HF::ResultsRestricted& rhfres); void rmp2f(argparse::ArgumentParser& parser, const HF::ResultsRestricted& rhfres);
     void rmp2g(argparse::ArgumentParser& parser, const HF::ResultsRestricted& rhfres); void rmp2o(argparse::ArgumentParser& parser);
 
-    // MD and QD distribution
-    void dynamics(argparse::ArgumentParser& parser); void qdyn(argparse::ArgumentParser& parser);
+    // SCAN, MD and QD distribution
+    void scan(argparse::ArgumentParser& parser); void dynamics(argparse::ArgumentParser& parser); void qdyn(argparse::ArgumentParser& parser);
 
 private:
     // argument parsers, timer and system

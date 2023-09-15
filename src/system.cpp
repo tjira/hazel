@@ -6,9 +6,9 @@ std::unordered_map<int, std::string> an2sm = {
     {8, "O"}
 };
 
-System::System(const std::string& fname, const std::string& basis, int charge, int multi) : electrons(0), charge(charge), multi(multi), basis(basis) {
+System::System(std::ifstream& stream, const std::string& basis, int charge, int multi) : electrons(0), charge(charge), multi(multi), basis(basis) {
     // check for the input file existence
-    if (!std::ifstream(fname).good()) throw std::runtime_error("SYSTEM FILE DOES NOT EXIST");
+    if (!stream.good()) throw std::runtime_error("SYSTEM FILE DOES NOT EXIST");
 
     // throw an error if impossible combination of charge and multiplicity
     if (std::abs(charge) % 2 == 0 && multi % 2 == 0) {
@@ -17,8 +17,10 @@ System::System(const std::string& fname, const std::string& basis, int charge, i
         throw std::runtime_error("MOLECULE CAN'T HAVE AN ODD CHARGE AND MULTIPLICITY AT THE SAME TIME.");
     }
 
-    // assign all the variables
-    std::ifstream file(fname); atoms = libint2::read_dotxyz(file); electrons -= charge;
+    // assign the atoms and shift the charge
+    atoms = libint2::read_dotxyz(stream); electrons -= charge;
+
+    // assign all the other variables
     coords = Matrix(atoms.size(), 3), dists = Matrix(atoms.size(), atoms.size());
     for (const auto& atom : atoms) electrons += atom.atomic_number;
     shells = libint2::BasisSet(basis, atoms, true);
