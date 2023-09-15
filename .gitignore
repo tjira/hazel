@@ -2,8 +2,8 @@
 /compile_commands.json
 /trajectory.xyz
 /molecule.xyz
+/movie.xyz
 /hazel.cpp
-/plot.gp
 /hazel
 
 # profiling

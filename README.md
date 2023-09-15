@@ -51,6 +51,7 @@ Below are all the important features of Hazel divided into categories.
 * Numerical Hessians and Frequency Analysis for HF and MP2
 * Gradients for HF (Analytical) and MP2 (Numerical)
 * HF and RMP2 Steepest Descent Optimization
+* Potential Energy Surface Scan
 * Exact Quantum Dyamics for HO
 * Molecular Dynamics
 
