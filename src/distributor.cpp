@@ -3,7 +3,7 @@
 #define CONTAINS(V, E) ([](std::vector<std::string> v, std::string e){return std::find(v.begin(), v.end(), e) != v.end();}(V, E))
 #define TIME(W) {Timer::Timepoint start = Timer::Now(); W; std::cout << Timer::Format(Timer::Elapsed(start)) << std::flush;}
 
-Distributor::Distributor(int argc, char** argv) : program("hazel", "0.1", argparse::default_arguments::none), parsers(11), start(Timer::Now()) {
+Distributor::Distributor(int argc, char** argv) : parsers(11), program("hazel", "0.1", argparse::default_arguments::none), start(Timer::Now()) {
     // add level 1 parsers
     parsers.push_back(argparse::ArgumentParser("ints", "0.1", argparse::default_arguments::none)); program.add_subparser(parsers.at(parsers.size() - 1));
     parsers.push_back(argparse::ArgumentParser("scan", "0.1", argparse::default_arguments::none)); program.add_subparser(parsers.at(parsers.size() - 1));
@@ -444,7 +444,7 @@ void Distributor::rmp2f(argparse::ArgumentParser& parser, const HF::ResultsRestr
 void Distributor::rmp2g(argparse::ArgumentParser& parser, const HF::ResultsRestricted& rhfres) {
     // print the MP2 gradient method header and extract the HF options
     if (parser.get<std::vector<double>>("-g").at(0)) std::cout << "\n" + std::string(104, '-') + "\nNUMERICAL GRADIENT FOR RESTRICTED MP2 METHOD\n" << std::string(104, '-') << "\n\n";
-    else std::cout << "\n" + std::string(104, '-') + "\nANALYTICAL GRADIENT FOR RESTRICTED MP2 METHOD\n" << std::string(104, '-') << "\n\n"; Matrix G;
+    else {std::cout << "\n" + std::string(104, '-') + "\nANALYTICAL GRADIENT FOR RESTRICTED MP2 METHOD\n" << std::string(104, '-') << "\n\n";} Matrix G;
     auto rhfopt = HF::OptionsRestricted::Load(program.at<argparse::ArgumentParser>("hf"), program.get<bool>("--no-coulomb"));
 
     // perform the MP2 gradient calculation

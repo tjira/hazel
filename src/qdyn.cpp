@@ -2,7 +2,7 @@
 
 #define I std::complex<double>(0, 1)
 
-Qdyn::Results Qdyn::run(System system, bool print) const {
+Qdyn::Results Qdyn::run(System, bool print) const {
     if (std::log2(opt.points) != (int)std::log2(opt.points)) throw std::runtime_error("NUMBER OF POINTS HAS TO BE POWER OF TWO");
 
     // create the output vectors
