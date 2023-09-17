@@ -63,6 +63,7 @@ Distributor::Distributor(int argc, char** argv) : parsers(11), program("hazel", 
 
     // add positional arguments to the SCAN argument parser
     program.at<argparse::ArgumentParser>("scan").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
+    program.at<argparse::ArgumentParser>("scan").add_argument("-o", "--output").help("-- Output of the PES energies.").default_value("pes.dat");
 
     // add positional arguments to the SCAN HF argument parser
     program.at<argparse::ArgumentParser>("scan").at<argparse::ArgumentParser>("hf").add_argument("-d", "--diis").help("-- Start iteration and history length for DIIS algorithm.").default_value(std::vector<int>{3, 5}).nargs(2).scan<'i', int>();
@@ -478,7 +479,7 @@ void Distributor::scan(argparse::ArgumentParser& parser) {
     auto rhfopt = HF::OptionsRestricted::Load(program.at<argparse::ArgumentParser>("scan").at<argparse::ArgumentParser>("hf"), program.get<bool>("--no-coulomb"));
 
     // define the anonymous function for gradient
-    std::function<double(System)> efunc;
+    std::function<double(System)> efunc; std::vector<double> energies;
 
     // get the energy and gradient function
     if (parser.is_subcommand_used("hf") && program.get<int>("-s") == 1) {
@@ -501,12 +502,19 @@ void Distributor::scan(argparse::ArgumentParser& parser) {
 
     // perform the scan
     for (int i = 0; i < geoms; i++) {
-        // create the syste, start the timer and calculate the energy
+        // create the system, start the timer and calculate the energy
         system = System(stream, program.get("-b"), program.get<int>("-c"), program.get<int>("-s"));
-        Timer::Timepoint start = Timer::Now(); double E = efunc(system);
+        Timer::Timepoint start = Timer::Now(); double E = efunc(system); energies.push_back(E);
 
         // print the energy
         std::printf("%4d %20.14f %s\n", i + 1, E, Timer::Format(Timer::Elapsed(start)).c_str());
+    }
+    
+    // save the file
+    std::ofstream file(parser.get("-o"));
+    file << std::fixed << std::setprecision(14) << "# i              E\n";
+    for (size_t i = 0; i < energies.size(); i++) {
+        file << std::setw(5) << i << " " << std::setw(20) << energies.at(i) << "\n";
     }
 }
 
