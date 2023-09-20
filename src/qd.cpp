@@ -1,25 +1,27 @@
-#include "qdyn.h"
+#include "qd.h"
 
 #define I std::complex<double>(0, 1)
 
-Qdyn::Results Qdyn::run(System, bool print) const {
-    if (std::log2(opt.points) != (int)std::log2(opt.points)) throw std::runtime_error("NUMBER OF POINTS HAS TO BE POWER OF TWO");
-
+QD::Results QD::run(System, bool print) const {
     // create the output vectors
     std::vector<std::vector<CVector>> states(opt.nstates); Vector energy(opt.nstates);
 
-    // create dx and the real and momentum space
-    double dx = 2 * opt.range / (opt.points - 1);
-    CVector x(opt.points), k(opt.points);
-    k.fill(2 * M_PI / k.size() / dx);
+    // calculate the potential lines and create all the vectors
+    std::ifstream stream(opt.potfile); std::string line; int lines; std::getline(stream, line);
+    for (lines = 0; std::getline(stream, line); lines++){}; stream.clear(), stream.seekg(0); 
+    CVector x(lines), k(lines), V(lines); std::getline(stream, line);
+
+    // read the potential
+    for (int i = 0; i < lines; i++) {
+        std::getline(stream, line); std::istringstream iss(line); iss >> x(i); iss >> V(i);
+    }
+
+    // calculate dx and create the momentum space and guess wfn
+    double dx = (x(1) - x(0)).real(); k.fill(2 * M_PI / k.size() / dx);
+    CVector psi = (-(x.array() - 0.5).pow(2)).exp(); stream.close();
 
     // fill the real and momentum space
-    for (int i = 0; i < x.size(); i++) x(i) = 2 * i * opt.range / (opt.points - 1) - opt.range;
-    for (int i = 0; i < k.size(); i++) k(i) *= i - (i < opt.points / 2 ? 0 : opt.points);
-
-    // define the potential and the guess wfn
-    CVector psi = (-(x.array() - 0.5).pow(2)).exp();
-    CVector V = 0.5 * x.cwiseProduct(x);
+    for (int i = 0; i < k.size(); i++) k(i) *= i - (i < x.size() / 2 ? 0 : x.size());
 
     // create the real space and momentum space operators
     CVector K = (-0.5 * k.array().pow(2) * opt.dt).exp();

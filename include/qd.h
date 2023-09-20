@@ -3,11 +3,12 @@
 #include "gradient.h"
 #include "hessian.h"
 
-class Qdyn {
+class QD {
 public:
     struct Options {
-        int points, iters, nstates;
-        double range, dt, thresh;
+        std::string potfile;
+        int iters, nstates;
+        double dt, thresh;
         bool imaginary;
     };
     struct Results {
@@ -16,7 +17,7 @@ public:
     };
 public:
     // constructor
-    Qdyn(const Options& opt) : opt(opt) {}
+    QD(const Options& opt) : opt(opt) {}
 
     // methods
     Results run(System system, bool print = true) const;

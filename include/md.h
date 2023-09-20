@@ -3,7 +3,7 @@
 #include "gradient.h"
 #include "hessian.h"
 
-class Dynamics {
+class MD {
 public:
     struct Options {
         int iters; double step;
@@ -14,7 +14,7 @@ public:
     };
 public:
     // constructor
-    Dynamics(const Options& opt) : opt(opt) {}
+    MD(const Options& opt) : opt(opt) {}
 
     // methods
     Results run(System system, const std::function<std::tuple<double, Matrix>(System&)>& egfunc, bool print = true) const;

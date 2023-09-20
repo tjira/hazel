@@ -53,6 +53,29 @@ for SYSTEM in "${SYSTEMS[@]}"; do
     done
 done
 
+# Configuration Interaction Doubles
+for SYSTEM in "${SYSTEMS[@]}"; do
+    for CM in "${CMS[@]:0:1}"; do
+        for BASIS in "${BASES[@]}"; do
+            # extract charge and multiplicity
+            CMSPLIT=(${CM//:/ }); CHARGE=${CMSPLIT[0]}; MULT=${CMSPLIT[1]}
+
+            # print the test specification
+            printf "\n# test-energy: %s %d %d %s CID\n" "$SYSTEM" "$CHARGE" "$MULT" "${BASIS^^}"
+
+            # extract the expected output
+            EXPECT=$(./bin/hazel -b "$BASIS" -c "$CHARGE" -f "./example/molecule/$SYSTEM.xyz" -n $CORES -s "$MULT" hf -i 1000 -t 1e-8 ci -e d | grep "FINAL CI")
+            EXPECT=$(echo "$EXPECT" | sed -e 's/+/\\\\+/g')
+
+            # print the test commands
+            printf 'add_test(NAME %s_%d-%d_%s_cid_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "%s" -c %d -f ${PROJECT_SOURCE_DIR}/example/molecule/%s.xyz -n 2 -s %d hf -i 1000 -t 1e-8 ci -e d)\n' \
+                   "$SYSTEM" "$CHARGE" "$MULT" $(echo "$BASIS" | sed -e 's/+/p/g' -e 's/*/s/g') "$BASIS" "$CHARGE" "$SYSTEM" "$MULT"
+            printf 'set_tests_properties(%s_%d-%d_%s_cid_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "%s")\n' \
+                   "$SYSTEM" "$CHARGE" "$MULT" $(echo "$BASIS" | sed -e 's/+/p/g' -e 's/*/s/g') "${EXPECT::-6}"
+        done
+    done
+done
+
 # Hartree-Fock Analytical Gradient
 for SYSTEM in "${SYSTEMS[@]}"; do
     for CM in "${CMS[@]:0:1}"; do

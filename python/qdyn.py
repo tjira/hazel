@@ -9,7 +9,7 @@ legend, plotlim = False, 1e-8
 x = np.linspace(-xhalfrange, xhalfrange, xpoints)
 k = 2 * np.fft.fftfreq(len(x), dx) * np.pi
 
-psi0, V = np.exp(-(x - 0.5)**2), 0.5 * x**2
+psi0, V = np.exp(-(x - 0.5)**2), 0.4 * (1 - np.exp(-1.5 * (x - 2)))**2
 
 def energy(wfn):
     Ek = 0.5 * np.conj(wfn) * np.fft.ifft(k**2 * np.fft.fft(wfn))

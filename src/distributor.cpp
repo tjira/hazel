@@ -1,7 +1,8 @@
 #include "distributor.h"
 
-#define CONTAINS(V, E) ([](std::vector<std::string> v, std::string e){return std::find(v.begin(), v.end(), e) != v.end();}(V, E))
+#define CONTAINS(V, E) [](std::vector<std::string> v, std::string e){return std::find(v.begin(), v.end(), e) != v.end();}(V, E)
 #define TIME(W) {Timer::Timepoint start = Timer::Now(); W; std::cout << Timer::Format(Timer::Elapsed(start)) << std::flush;}
+#define TOUPPER(S) [](std::string str) {for (auto& c : str) c = toupper(c); return str;}(S)
 
 Distributor::Distributor(int argc, char** argv) : parsers(11), program("hazel", "0.1", argparse::default_arguments::none), start(Timer::Now()) {
     // add level 1 parsers
@@ -76,18 +77,17 @@ Distributor::Distributor(int argc, char** argv) : parsers(11), program("hazel", 
 
     // add positional arguments to the QD argument parser
     program.at<argparse::ArgumentParser>("qd").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
-    program.at<argparse::ArgumentParser>("qd").add_argument("-s", "--step").help("-- Dynamics time step in atomic units.").default_value(0.1).scan<'g', double>();
+    program.at<argparse::ArgumentParser>("qd").add_argument("-s", "--step").help("-- MD time step in atomic units.").default_value(0.1).scan<'g', double>();
     program.at<argparse::ArgumentParser>("qd").add_argument("-i", "--iters").help("-- Number of iterations in dynamics.").default_value(1000).scan<'i', int>();
-    program.at<argparse::ArgumentParser>("qd").add_argument("-r", "--range").help("-- Grid range in all dimensions.").default_value(16.0).scan<'g', double>();
     program.at<argparse::ArgumentParser>("qd").add_argument("-n", "--nstate").help("-- Number of states to consider.").default_value(3).scan<'i', int>();
     program.at<argparse::ArgumentParser>("qd").add_argument("-o", "--output").help("-- Output of the wavefunction.").default_value("wavefunction.dat");
-    program.at<argparse::ArgumentParser>("qd").add_argument("-p", "--points").help("-- Number of points on the grid.").default_value(1024).scan<'i', int>();
+    program.at<argparse::ArgumentParser>("qd").add_argument("-f", "--potfile").help("-- File with the PES.").default_value("pes.dat");
     program.at<argparse::ArgumentParser>("qd").add_argument("-t", "--thresh").help("-- Threshold for conververgence in ITP loop.").default_value(1e-8).scan<'g', double>();
     program.at<argparse::ArgumentParser>("qd").add_argument("--no-real").help("-- Help message.").default_value(false).implicit_value(true);
 
     // add positional arguments to the MD argument parser
     program.at<argparse::ArgumentParser>("md").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
-    program.at<argparse::ArgumentParser>("md").add_argument("-s", "--step").help("-- Dynamics time step in atomic units.").default_value(0.5).scan<'g', double>();
+    program.at<argparse::ArgumentParser>("md").add_argument("-s", "--step").help("-- MD time step in atomic units.").default_value(0.5).scan<'g', double>();
     program.at<argparse::ArgumentParser>("md").add_argument("-i", "--iters").help("-- Number of iterations in dynamics.").default_value(100).scan<'i', int>();
     program.at<argparse::ArgumentParser>("md").add_argument("-o", "--output").help("-- Output of the trajectory.").default_value("trajectory.xyz");
 
@@ -219,7 +219,8 @@ void Distributor::run() {
 
 void Distributor::rcirun(argparse::ArgumentParser& parser, const HF::ResultsRestricted& rhfres) {
     // print the CI method header and define J in MO basis
-    std::cout << "\n" + std::string(104, '-') + "\nCI CORRELATION ENERGY\n" << std::string(104, '-') + "\n"; Tensor<4> Jmo; CI::ResultsRestricted rcires;
+    std::cout << "\n" + std::string(104, '-') + "\nCI CORRELATION ENERGY\n" << std::string(104, '-') + "\n"; Tensor<4> Jmo;
+    std::printf("\n-- EXCITATIONS: %s\n", TOUPPER(parser.get("-e")).c_str()); CI::ResultsRestricted rcires;
 
     // transform the coulomb tensor
     std::cout << "\nCOULOMB TENSOR IN MO BASIS: " << std::flush; TIME(Jmo = Transform::Coulomb(system.ints.J, rhfres.C))
@@ -543,7 +544,7 @@ void Distributor::dynamics(argparse::ArgumentParser& parser) {
     } else throw std::runtime_error("INVALID METHOD FOR DYNAMICS SPECIFIED");
 
     // perform the dynamics
-    Dynamics({parser.get<int>("-i"), parser.get<double>("-s"), parser.get("-o")}).run(system, egfunc);
+    MD({parser.get<int>("-i"), parser.get<double>("-s"), parser.get("-o")}).run(system, egfunc);
 }
 
 void Distributor::qdyn(argparse::ArgumentParser& parser) {
@@ -551,13 +552,13 @@ void Distributor::qdyn(argparse::ArgumentParser& parser) {
     std::cout << "\n" + std::string(104, '-') + "\nQUANTUM DYNAMICS\n" << std::string(104, '-') + "\n\n";
 
     // perform the dynamics
-    Qdyn::Results qdres = Qdyn({parser.get<int>("-p"), parser.get<int>("-i"), parser.get<int>("-n"), parser.get<double>("-r"), parser.get<double>("-s"), parser.get<double>("-t"), parser.get<bool>("--no-real")}).run(system);
+    QD::Results qdres = QD({parser.get("-f"), parser.get<int>("-i"), parser.get<int>("-n"), parser.get<double>("-s"), parser.get<double>("-t"), parser.get<bool>("--no-real")}).run(system);
 
     // print the energies
     if (parser.get<bool>("--no-real")) std::cout << "\nIMAGINARY TIME PROPAGATION ENERGIES\n" << Matrix(qdres.energy) << std::endl;
 
     // save the wavefunction
-    Utility::SaveWavefunction(parser.get<std::string>("-o"), qdres.r, qdres.states);
+    Utility::SaveWavefunction(parser.get<std::string>("-o"), qdres.r, qdres.states, qdres.energy);
 }
 
 void Distributor::integrals() {

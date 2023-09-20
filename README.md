@@ -29,7 +29,7 @@
 </p>
 
 <p align="center">
-Hazel is a collection of various electronic structure methods. It works similarly to the other available quantum programs. It is provided with an input file with system and calculation specification and prints the results to the terminal. Part of the software is also a molecular viewer.
+Hazel is a collection of various electronic structure methods. It works similarly to the other available quantum programs. It is provided with a geometry file, the calculation is specified int the command line and results are printed to the terminal.
 </p>
 
 ## ✨ Features
@@ -52,7 +52,7 @@ Below are all the important features of Hazel divided into categories.
 * Gradients for HF (Analytical) and MP2 (Numerical)
 * HF and RMP2 Steepest Descent Optimization
 * Potential Energy Surface Scan
-* Exact Quantum Dyamics for HO
+* Exact Quantum Dyamics
 * Molecular Dynamics
 
 ## 🛠️ Compilation

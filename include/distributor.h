@@ -4,10 +4,10 @@
 #include <filesystem>
 
 #include "optimizer.h"
-#include "dynamics.h"
 #include "utility.h"
 #include "lambda.h"
-#include "qdyn.h"
+#include "qd.h"
+#include "md.h"
 
 #include <xc.h>
 
