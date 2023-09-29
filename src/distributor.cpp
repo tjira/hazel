@@ -163,7 +163,8 @@ Distributor::~Distributor() {
 
 void Distributor::run() {
     // initialize the system
-    std::ifstream stream(program.get("-f")); system = System(stream, program.get("-b"), program.get<int>("-c"), program.get<int>("-s")); stream.close();
+    std::string basis = program.get("-b"); std::replace(basis.begin(), basis.end(), '*', 's'), std::replace(basis.begin(), basis.end(), '+', 'p');
+    std::ifstream stream(program.get("-f")); system = System(stream, basis, program.get<int>("-c"), program.get<int>("-s")); stream.close();
 
     // print the title with number of threads
     std::cout << "QUANTUM HAZEL" << std::endl;
@@ -176,7 +177,7 @@ void Distributor::run() {
     std::printf("\nAVAILABLE CORES: %d\nUSED THREADS: %d\n", std::thread::hardware_concurrency(), nthread);
 
     // print the system block
-    std::cout << "\n" + std::string(104, '-') + "\nSYSTEM SPECIFICATION (" + system.basis + ")\n" << std::string(104, '-') + "\n\n";
+    std::cout << "\n" + std::string(104, '-') + "\nSYSTEM SPECIFICATION (" + program.get("-b") + ")\n" << std::string(104, '-') + "\n\n";
     std::printf("-- ATOMS: %d, ELECTRONS: %d, NBF: %d\n", (int)system.atoms.size(), system.electrons, (int)system.shells.nbf());
     std::printf("-- CHARGE: %d, MULTIPLICITY: %d\n", system.charge, system.multi);
     std::cout << "\nSYSTEM COORDINATES\n" << system.coords << std::endl; 
@@ -503,9 +504,12 @@ void Distributor::scan(argparse::ArgumentParser& parser) {
 
     // perform the scan
     for (int i = 0; i < geoms; i++) {
-        // create the system, start the timer and calculate the energy
-        system = System(stream, program.get("-b"), program.get<int>("-c"), program.get<int>("-s"));
-        Timer::Timepoint start = Timer::Now(); double E = efunc(system); energies.push_back(E);
+        // create the system
+        std::string basis = program.get("-b"); std::replace(basis.begin(), basis.end(), '*', 's'), std::replace(basis.begin(), basis.end(), '+', 'p');
+        system = System(stream, basis, program.get<int>("-c"), program.get<int>("-s")); Timer::Timepoint start = Timer::Now();
+
+        // start the timer and calculate the energy
+        double E = efunc(system); energies.push_back(E);
 
         // print the energy
         std::printf("%4d %20.14f %s\n", i + 1, E, Timer::Format(Timer::Elapsed(start)).c_str());
