@@ -30,15 +30,17 @@ if (${STANDALONE})
     FetchContent_MakeAvailable(eigen libint)
 endif()
 
-# find packages and include directories
-include_directories(include lib)
+# include directories
+include_directories(${CMAKE_BINARY_DIR}/include include lib)
+
+# find packages
 find_package(Eigen3 REQUIRED)
 find_package(OpenMP REQUIRED)
 
 # add hazel executable
 add_executable(hazel src/ci.cpp src/distributor.cpp src/eigen.cpp src/gradient.cpp src/hessian.cpp src/hf.cpp src/integral.cpp src/lambda.cpp src/main.cpp src/md.cpp src/mp.cpp src/optimizer.cpp src/qd.cpp src/system.cpp src/timer.cpp src/transform.cpp src/utility.cpp)
 target_compile_definitions(hazel PRIVATE CXXFLAGS="${CXXFLAGS}" DATADIR="${PROJECT_SOURCE_DIR}")
-target_link_libraries(hazel Eigen3::Eigen int2.a)
+target_link_libraries(hazel Eigen3::Eigen libint2)
 
 # link OpenMP on build type
 if (CMAKE_BUILD_TYPE STREQUAL Release AND OPENMP_FOUND)
