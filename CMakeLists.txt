@@ -1,11 +1,15 @@
 cmake_minimum_required(VERSION 3.16)
 set(CMAKE_CXX_STANDARD 20)
-# include(FetchContent)
+include(FetchContent)
 project(Hazel)
+
+# set policies
+cmake_policy(SET CMP0135 NEW)
 
 # set cmake variables
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(BUILD_TESTING OFF)
 
 # set compiler flags
 set(CMAKE_CXX_FLAGS_DEBUG "-g -pg -Og -fprofile-arcs -ftest-coverage -Wall -Wextra")
@@ -18,6 +22,13 @@ elseif (CMAKE_BUILD_TYPE STREQUAL Release)
     set(CXXFLAGS ${CMAKE_CXX_FLAGS_RELEASE})
 endif()
 
+# download dependencies if needed
+if (WIN32)
+    FetchContent_Declare(libint URL https://github.com/evaleev/libint/releases/download/v2.7.2/libint-2.7.2-mpqc4-x2c.tgz)
+    FetchContent_Declare(eigen GIT_REPOSITORY https://gitlab.com/libeigen/eigen.git GIT_TAG 3.4)
+    FetchContent_MakeAvailable(eigen libint)
+endif()
+
 # find packages and include directories
 include_directories(include lib)
 find_package(Eigen3 REQUIRED)
@@ -26,7 +37,14 @@ find_package(OpenMP REQUIRED)
 # add hazel executable
 add_executable(hazel src/ci.cpp src/distributor.cpp src/eigen.cpp src/gradient.cpp src/hessian.cpp src/hf.cpp src/integral.cpp src/lambda.cpp src/main.cpp src/md.cpp src/mp.cpp src/optimizer.cpp src/qd.cpp src/system.cpp src/timer.cpp src/transform.cpp src/utility.cpp)
 target_compile_definitions(hazel PRIVATE CXXFLAGS="${CXXFLAGS}" DATADIR="${PROJECT_SOURCE_DIR}")
-target_link_libraries(hazel Eigen3::Eigen int2.a xc.a)
+target_link_libraries(hazel Eigen3::Eigen)
+
+# link libraries
+if (WIN32)
+    target_link_libraries(hazel int2.a)
+else()
+    target_link_libraries(hazel int2.a)
+endif()
 
 # link OpenMP on build type
 if (CMAKE_BUILD_TYPE STREQUAL Release AND OPENMP_FOUND)

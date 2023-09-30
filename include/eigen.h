@@ -1,6 +1,6 @@
 #pragma once
 
-#define EIGEN_INITIALIZE_MATRICES_BY_ZERO
+#include "constant.h"
 
 #include <unsupported/Eigen/MatrixFunctions>
 #include <unsupported/Eigen/CXX11/Tensor>
@@ -51,4 +51,3 @@ inline Vector toVector(Tensor<1> A) {return Eigen::Map<Vector>(A.data(), A.dimen
 
 #include <libint2/diis.h>
 #include "argparse.hpp"
-#include "constant.h"

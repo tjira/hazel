@@ -1,6 +1,5 @@
 #pragma once
 
-#include <sys/utsname.h>
 #include <filesystem>
 
 #include "optimizer.h"
@@ -8,8 +7,6 @@
 #include "lambda.h"
 #include "qd.h"
 #include "md.h"
-
-#include <xc.h>
 
 #ifndef CXXFLAGS
 #define CXXFLAGS "---"

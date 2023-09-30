@@ -139,15 +139,18 @@ Distributor::Distributor(int argc, char** argv) : parsers(11), program("hazel", 
     // print all tha available bases if requested
     if (program.get<bool>("--show-bases")) {
         for (const auto& file : std::filesystem::directory_iterator(std::string(DATADIR) + "/basis")) {
-            if (file.path().filename() != "basis.sh") std::cout << file.path().filename().replace_extension().c_str() << std::endl;
+            if (file.path().filename() != "basis.sh") std::cout << file.path().filename().replace_extension() << std::endl;
         }
         exit(EXIT_SUCCESS);
     }
 
     // set the path to the basis functions
     if (!std::filesystem::is_directory(std::string(DATADIR) + "/basis")) {
+        #ifdef _WIN32
+        #else
         std::string path = std::filesystem::weakly_canonical(std::filesystem::path(argv[0])).parent_path();
         setenv("LIBINT_DATA_PATH", path.c_str(), true);
+        #endif
     }
     
     // set number of threads to use and cout flags
@@ -172,8 +175,8 @@ void Distributor::run() {
     // print the general info block
     std::cout << "\n" + std::string(104, '-') + "\nGENERAL INFO\n" << std::string(104, '-') + "\n\n";
     std::printf("COMPILATION TIMESTAMP: %s\nEXECUTION TIMESTAMP: %s\n", __TIMESTAMP__, Timer::Local().c_str());
-    std::printf("\nCOMPILER VERSION AND FLAGS: MACHINE %s, GCC %d.%d.%d (%s)", []{utsname unr; uname(&unr); return unr;}().machine, __GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__, CXXFLAGS);
-    std::printf("\nLIBRARIES: EIGEN %d.%d.%d, LIBINT %d.%d.%d, LIBXC %s\n", EIGEN_WORLD_VERSION, EIGEN_MAJOR_VERSION, EIGEN_MINOR_VERSION, LIBINT_MAJOR_VERSION, LIBINT_MINOR_VERSION, LIBINT_MICRO_VERSION, XC_VERSION);
+    std::printf("\nCOMPILER VERSION AND FLAGS: MACHINE ---, GCC %d.%d.%d (%s)", __GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__, CXXFLAGS);
+    std::printf("\nLIBRARIES: EIGEN %d.%d.%d, LIBINT %d.%d.%d\n", EIGEN_WORLD_VERSION, EIGEN_MAJOR_VERSION, EIGEN_MINOR_VERSION, LIBINT_MAJOR_VERSION, LIBINT_MINOR_VERSION, LIBINT_MICRO_VERSION);
     std::printf("\nAVAILABLE CORES: %d\nUSED THREADS: %d\n", std::thread::hardware_concurrency(), nthread);
 
     // print the system block
