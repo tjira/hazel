@@ -57,19 +57,44 @@ Below are all the important features of Hazel divided into categories.
 
 ## 🛠️ Compilation
 
-The software requires the [libint](https://github.com/evaleev/libint) and [libxc](https://gitlab.com/libxc/libxc) library. You can compile it yourself following the instructions on the webpages (or better yet execute `./script/libint.sh` and `./script/libxc.sh` from the root directory). Before compilation make sure that you have Boost and Eigen libraries installed. You can do that on debian-based distros using the following command.
+### The Simple Way
+
+The easiest cross-platform way to compile Hazel is using CMake with the following command.
+
+```bash
+cmake -B build -DCMAKE_BUILD_TYPE=Release -DSTANDALONE=ON .
+```
+
+If the configuration finished without errors, compile the project by running the following command.
+
+```bash
+cmake --build build
+```
+
+After the compilation the bin folder will be created along with the executable. Keep in mind that this way some of the features might be missing.
+
+### The Proper Way
+
+The proper way is only available on Linux. The software requires the [libint](https://github.com/evaleev/libint) library. Before the library compilation process, make sure you have [eigen](https://gitlab.com/libeigen/eigen) and [boost](https://github.com/boostorg/boost) installed. On debian-based distributions, you can do it with the following command.
 
 ```bash
 sudo apt install libboost-all-dev libeigen3-dev
 ```
 
-Make sure that you add the libint/libxc headers and library to the environmental variables `CPLUS_INCLUDE_PATH` and `LIBRARY_PATH`. You can then configure the project by the following command.
+To compile the library execute `./script/libint.sh` from the project root directory. This command creates the *libint* folder with the compiled library. Now, we export the necessary environment variables.
+
+```bash
+export CPLUS_INCLUDE_PATH="$PWD/libint/install/include:$CPLUS_INCLUDE_PATH"
+export LIBRARY_PATH="$PWD/libint/install/lib:$LIBRARY_PATH"
+```
+
+After this, the project configuration should finish without errors.
 
 ```bash
 cmake -B build -DCMAKE_BUILD_TYPE=Release .
 ```
 
-If the configuration finished without errors, compile the project by running the following command.
+And we can build with the following command.
 
 ```bash
 cmake --build build

@@ -4,6 +4,7 @@ include(FetchContent)
 project(Hazel)
 
 # set policies
+set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 cmake_policy(SET CMP0135 NEW)
 
 # set cmake variables
@@ -23,7 +24,7 @@ elseif (CMAKE_BUILD_TYPE STREQUAL Release)
 endif()
 
 # download dependencies if needed
-if (WIN32)
+if (${STANDALONE})
     FetchContent_Declare(libint URL https://github.com/evaleev/libint/releases/download/v2.7.2/libint-2.7.2-mpqc4-x2c.tgz)
     FetchContent_Declare(eigen GIT_REPOSITORY https://gitlab.com/libeigen/eigen.git GIT_TAG 3.4)
     FetchContent_MakeAvailable(eigen libint)
@@ -37,14 +38,7 @@ find_package(OpenMP REQUIRED)
 # add hazel executable
 add_executable(hazel src/ci.cpp src/distributor.cpp src/eigen.cpp src/gradient.cpp src/hessian.cpp src/hf.cpp src/integral.cpp src/lambda.cpp src/main.cpp src/md.cpp src/mp.cpp src/optimizer.cpp src/qd.cpp src/system.cpp src/timer.cpp src/transform.cpp src/utility.cpp)
 target_compile_definitions(hazel PRIVATE CXXFLAGS="${CXXFLAGS}" DATADIR="${PROJECT_SOURCE_DIR}")
-target_link_libraries(hazel Eigen3::Eigen)
-
-# link libraries
-if (WIN32)
-    target_link_libraries(hazel int2.a)
-else()
-    target_link_libraries(hazel int2.a)
-endif()
+target_link_libraries(hazel Eigen3::Eigen int2.a)
 
 # link OpenMP on build type
 if (CMAKE_BUILD_TYPE STREQUAL Release AND OPENMP_FOUND)

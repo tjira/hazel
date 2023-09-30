@@ -36,8 +36,7 @@ jobs:
       - name: Upload Artifacts
         uses: actions/upload-artifact@v3
         with:
-          path: |
-            bin/hazel
+          path: bin/hazel
 
   build-windows:
     runs-on: windows-latest
@@ -46,17 +45,15 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Configure Hazel
-        run: cmake -B build -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+        run: cmake -B build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DSTANDALONE=ON -G "Unix Makefiles"
 
       - name: Build Hazel
-        run: |
-          cmake --build build --parallel 2
+        run: cmake --build build --parallel 2
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v3
         with:
-          path: |
-            bin/hazel.exe
+          path: bin/hazel.exe
 
   release:
     runs-on: ubuntu-latest
@@ -68,7 +65,7 @@ jobs:
       - name: Download Artifacts
         uses: actions/download-artifact@v3
 
-      - name: Copy Binaries to Root Folder
+      - name: Copy Binaries to the Root Folder
         run: cp artifact/hazel artifact/hazel.exe ${{github.workspace}}
 
       - name: Create Packages
