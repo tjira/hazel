@@ -25,16 +25,20 @@ endif()
 
 # download dependencies if needed
 if (${STANDALONE})
-    FetchContent_Declare(libint URL https://github.com/evaleev/libint/releases/download/v2.7.2/libint-2.7.2-mpqc4-x2c.tgz)
+    FetchContent_Declare(libint URL https://github.com/evaleev/libint/releases/download/v2.7.2/libint-2.7.2-mpqc4.tgz)
     FetchContent_Declare(eigen GIT_REPOSITORY https://gitlab.com/libeigen/eigen.git GIT_TAG 3.4)
     FetchContent_MakeAvailable(eigen libint)
+    if (WIN32)
+        file(READ ${libint_SOURCE_DIR}/include/libint2/boys.h CONTENT)
+        string(REPLACE "32ul)" "32ull)" CONTENT "${CONTENT}")
+        file(WRITE ${libint_SOURCE_DIR}/include/libint2/boys.h "${CONTENT}")
+    endif()
 endif()
 
 # include directories
 include_directories(${CMAKE_BINARY_DIR}/include include lib)
 
 # find packages
-find_package(Eigen3 REQUIRED)
 find_package(OpenMP REQUIRED)
 
 # add hazel executable
