@@ -16,6 +16,12 @@ set(BUILD_TESTING OFF)
 set(CMAKE_CXX_FLAGS_DEBUG "-g -pg -Og -fprofile-arcs -ftest-coverage -Wall -Wextra")
 set(CMAKE_CXX_FLAGS_RELEASE "-s -O2")
 
+# add static flag if on windows
+if (UNIX)
+    string(APPEND CMAKE_CXX_FLAGS_RELEASE " -static")
+    string(APPEND CMAKE_CXX_FLAGS_DEBUG " -static")
+endif()
+
 # set the variable that contains the compile flags
 if (CMAKE_BUILD_TYPE STREQUAL Debug)
     set(CXXFLAGS ${CMAKE_CXX_FLAGS_DEBUG})
