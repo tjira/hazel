@@ -33,6 +33,8 @@ if (${STANDALONE})
         string(REPLACE "32ul)" "32ull)" CONTENT "${CONTENT}")
         file(WRITE ${libint_SOURCE_DIR}/include/libint2/boys.h "${CONTENT}")
     endif()
+else()
+    find_package(Eigen3 REQUIRED)
 endif()
 
 # include directories
