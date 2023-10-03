@@ -16,6 +16,12 @@ set(BUILD_TESTING OFF)
 set(CMAKE_CXX_FLAGS_DEBUG "-g -pg -Og -fprofile-arcs -ftest-coverage -Wall -Wextra")
 set(CMAKE_CXX_FLAGS_RELEASE "-s -O2")
 
+# static link on windows
+if (WIN32)
+    string(APPEND CMAKE_CXX_FLAGS_RELEASE " -static -static-libstdc++ -static-libgcc")
+    string(APPEND CMAKE_CXX_FLAGS_DEBUG " -static -static-libstdc++ -static-libgcc")
+endif()
+
 # set the variable that contains the compile flags
 if (CMAKE_BUILD_TYPE STREQUAL Debug)
     set(CXXFLAGS ${CMAKE_CXX_FLAGS_DEBUG})
