@@ -68,6 +68,9 @@ jobs:
       - name: Copy Binaries to the Root Folder
         run: cp artifact/hazel artifact/hazel.exe ${{github.workspace}}
 
+      - name: Remove Redundant Scripts
+        run: rm basis/basis.sh example/molecule/optimize.sh example/trajectory/trajectory.sh
+
       - name: Create Packages
         run: |
           tar -czf hazel-linux-amd64.tar.gz hazel basis example
