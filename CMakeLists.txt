@@ -17,9 +17,9 @@ set(CMAKE_CXX_FLAGS_DEBUG "-g -pg -Og -fprofile-arcs -ftest-coverage -Wall -Wext
 set(CMAKE_CXX_FLAGS_RELEASE "-s -O2")
 
 # add static flag if on windows
-if (UNIX)
-    string(APPEND CMAKE_CXX_FLAGS_RELEASE " -static")
-    string(APPEND CMAKE_CXX_FLAGS_DEBUG " -static")
+if (WIN32)
+    string(APPEND CMAKE_CXX_FLAGS_RELEASE " -static -static-libstdc++ -static-libgcc")
+    string(APPEND CMAKE_CXX_FLAGS_DEBUG " -static -static-libstdc++ -static-libgcc")
 endif()
 
 # set the variable that contains the compile flags
@@ -36,6 +36,7 @@ if (${STANDALONE})
     FetchContent_MakeAvailable(eigen libint)
     if (WIN32)
         file(READ ${libint_SOURCE_DIR}/include/libint2/boys.h CONTENT)
+        string(REPLACE "free(c);" "// free(c);" CONTENT "${CONTENT}")
         string(REPLACE "32ul)" "32ull)" CONTENT "${CONTENT}")
         file(WRITE ${libint_SOURCE_DIR}/include/libint2/boys.h "${CONTENT}")
     endif()
