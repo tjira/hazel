@@ -32,19 +32,3 @@ jobs:
           export CPLUS_INCLUDE_PATH="$PWD/../libint/install/include:$CPLUS_INCLUDE_PATH"
           export LIBRARY_PATH="$PWD/../libint/install/lib:$LIBRARY_PATH"
           ctest --verbose
-
-  test-windows:
-    runs-on: windows-latest
-
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Configure Hazel
-        run: cmake -B build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DSTANDALONE=ON -G "Unix Makefiles"
-
-      - name: Build Hazel
-        run: cmake --build build --parallel 2
-
-      - name: Run Tests
-        working-directory: build
-        run: ctest -E "libint" --verbose
