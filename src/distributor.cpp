@@ -148,10 +148,7 @@ Distributor::Distributor(int argc, char** argv) : parsers(11), program("hazel", 
     if (!std::filesystem::is_directory(std::string(DATADIR) + "/basis")) {
         auto path = std::filesystem::weakly_canonical(std::filesystem::path(argv[0])).parent_path();
         #ifdef _WIN32
-        char buffer[4096]; setlocale(LC_ALL, "C");
-        std::cout << path.string() << std::endl;
-        wcstombs(buffer, path.c_str(), path.string().size());
-        _putenv_s("LIBINT_DATA_PATH", buffer);
+        _putenv_s("LIBINT_DATA_PATH", path.string().c_str());
         #else
         setenv("LIBINT_DATA_PATH", path.c_str(), true);
         #endif
@@ -179,7 +176,7 @@ void Distributor::run() {
     // print the general info block
     std::cout << "\n" + std::string(104, '-') + "\nGENERAL INFO\n" << std::string(104, '-') + "\n\n";
     std::printf("COMPILATION TIMESTAMP: %s\nEXECUTION TIMESTAMP: %s\n", __TIMESTAMP__, Timer::Local().c_str());
-    std::printf("\nCOMPILER VERSION AND FLAGS: MACHINE ---, GCC %d.%d.%d (%s)", __GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__, CXXFLAGS);
+    std::printf("\nCOMPILER: %s, GCC %d.%d.%d (%s)", OS, __GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__, CXXFLAGS);
     std::printf("\nLIBRARIES: EIGEN %d.%d.%d, LIBINT %d.%d.%d\n", EIGEN_WORLD_VERSION, EIGEN_MAJOR_VERSION, EIGEN_MINOR_VERSION, LIBINT_MAJOR_VERSION, LIBINT_MINOR_VERSION, LIBINT_MICRO_VERSION);
     std::printf("\nAVAILABLE CORES: %d\nUSED THREADS: %d\n", std::thread::hardware_concurrency(), nthread);
 
