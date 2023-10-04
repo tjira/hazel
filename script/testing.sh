@@ -1,7 +1,7 @@
 #!/bin/bash
 
-SYSTEMS=("water" "ammonia" "methane")
-BASES=("3-21g" "sto-3g" "6-31g")
+SYSTEMS=("water" "ammonia" "formaldehyde" "methane" "ethane")
+BASES=("3-21g" "sto-3g" "6-31g" "6-31g*" "cc-pvdz")
 CMS=("0:1" "1:2" "-1:2")
 CORES=64
 
