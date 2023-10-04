@@ -146,9 +146,12 @@ Distributor::Distributor(int argc, char** argv) : parsers(11), program("hazel", 
 
     // set the path to the basis functions
     if (!std::filesystem::is_directory(std::string(DATADIR) + "/basis")) {
-        auto path = std::filesystem::weakly_canonical(std::filesystem::path(argv[0])).parent_path(); char buffer[4096];
+        auto path = std::filesystem::weakly_canonical(std::filesystem::path(argv[0])).parent_path();
         #ifdef _WIN32
-        wcstombs(buffer, path.c_str(), path.string().size()); _putenv_s("LIBINT_DATA_PATH", buffer);
+        char buffer[4096]; setlocale(LC_ALL, "C");
+        std::cout << path.string() << std::endl;
+        wcstombs(buffer, path.c_str(), path.string().size());
+        _putenv_s("LIBINT_DATA_PATH", buffer);
         #else
         setenv("LIBINT_DATA_PATH", path.c_str(), true);
         #endif
