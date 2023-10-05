@@ -178,7 +178,10 @@ void Distributor::run() {
     std::printf("COMPILATION TIMESTAMP: %s\nEXECUTION TIMESTAMP: %s\n", __TIMESTAMP__, Timer::Local().c_str());
     std::printf("\nCOMPILER: %s, GCC %d.%d.%d (%s)", OS, __GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__, CXXFLAGS);
     std::printf("\nLIBRARIES: EIGEN %d.%d.%d, LIBINT %d.%d.%d\n", EIGEN_WORLD_VERSION, EIGEN_MAJOR_VERSION, EIGEN_MINOR_VERSION, LIBINT_MAJOR_VERSION, LIBINT_MINOR_VERSION, LIBINT_MICRO_VERSION);
-    std::printf("\nAVAILABLE CORES: %d\nUSED THREADS: %d\n", std::thread::hardware_concurrency(), nthread);
+    #if defined(_OPENMP)
+    std::cout << "\n" + std::string(104, '-') + "\nOPENMP " << _OPENMP << "\n" << std::string(104, '-') + "\n\n";
+    std::printf("AVAILABLE CORES: %d\nUSED THREADS: %d\n", std::thread::hardware_concurrency(), nthread);
+    #endif
 
     // print the system block
     std::cout << "\n" + std::string(104, '-') + "\nSYSTEM SPECIFICATION (" + program.get("-b") + ")\n" << std::string(104, '-') + "\n\n";
