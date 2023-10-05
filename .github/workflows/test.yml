@@ -24,7 +24,7 @@ jobs:
         run: ./script/libint.sh
 
       - name: Configure Hazel
-        run: cmake -B build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+        run: cmake -B build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGOMP=ON
 
       - name: Run Tests
         working-directory: build

@@ -47,8 +47,11 @@ endif()
 # include directories
 include_directories(${CMAKE_BINARY_DIR}/include include lib)
 
-# find packages
-find_package(OpenMP REQUIRED)
+# find OpenMP if enabled
+if (${GOMP})
+    find_package(OpenMP REQUIRED)
+endif()
+unset(GOMP CACHE)
 
 # add hazel executable
 add_executable(hazel src/ci.cpp src/distributor.cpp src/eigen.cpp src/gradient.cpp src/hessian.cpp src/hf.cpp src/integral.cpp src/lambda.cpp src/main.cpp src/md.cpp src/mp.cpp src/optimizer.cpp src/qd.cpp src/system.cpp src/timer.cpp src/transform.cpp src/utility.cpp)
@@ -62,9 +65,8 @@ else()
     target_link_libraries(hazel int2.a)
 endif()
 
-
 # link OpenMP on build type
-if (CMAKE_BUILD_TYPE STREQUAL Release AND OPENMP_FOUND)
+if (OPENMP_FOUND AND CMAKE_BUILD_TYPE STREQUAL Release)
     target_link_libraries(hazel OpenMP::OpenMP_CXX)
 endif()
 
