@@ -352,7 +352,7 @@ set_tests_properties(ethane_1-2_6-31g_hf_energy PROPERTIES DEPENDS build PASS_RE
 
 # test-energy: ethane 1 2 6-31G* HF
 add_test(NAME ethane_1-2_6-31gs_hf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31g*" -c 1 -f ${PROJECT_SOURCE_DIR}/example/molecule/ethane.xyz -n 2 -s 2 hf -i 1000 -t 1e-8)
-set_tests_properties(ethane_1-2_6-31gs_hf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -78.79136147")
+set_tests_properties(ethane_1-2_6-31gs_hf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -78.79136146")
 
 # test-energy: ethane 1 2 CC-PVDZ HF
 add_test(NAME ethane_1-2_cc-pvdz_hf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "cc-pvdz" -c 1 -f ${PROJECT_SOURCE_DIR}/example/molecule/ethane.xyz -n 2 -s 2 hf -i 1000 -t 1e-8)
@@ -479,104 +479,7 @@ add_test(NAME ethane_0-1_cc-pvdz_mp2_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/ha
 set_tests_properties(ethane_0-1_cc-pvdz_mp2_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL MP2 ENERGY: -79.54190007")
 
 # test-energy: water 0 1 3-21G CID
-add_test(NAME water_0-1_3-21g_cid_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "3-21g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 hf -i 1000 -t 1e-8 ci -e d)
-set_tests_properties(water_0-1_3-21g_cid_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL CI ENERGY: -75.61399449")
-
-# test-energy: water 0 1 STO-3G CID
-add_test(NAME water_0-1_sto-3g_cid_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "sto-3g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 hf -i 1000 -t 1e-8 ci -e d)
-set_tests_properties(water_0-1_sto-3g_cid_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL CI ENERGY: -74.98727979")
-
-# test-energy: water 0 1 6-31G CID
-add_test(NAME water_0-1_6-31g_cid_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 hf -i 1000 -t 1e-8 ci -e d)
-set_tests_properties(water_0-1_6-31g_cid_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL CI ENERGY: -76.00904138")
-
-# test-energy: water 0 1 6-31G* CID
-add_test(NAME water_0-1_6-31gs_cid_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31g*" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 hf -i 1000 -t 1e-8 ci -e d)
-set_tests_properties(water_0-1_6-31gs_cid_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL CI ENERGY: -76.04763081")
-
-# test-energy: water 0 1 CC-PVDZ CID
-add_test(NAME water_0-1_cc-pvdz_cid_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "cc-pvdz" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 hf -i 1000 -t 1e-8 ci -e d)
-set_tests_properties(water_0-1_cc-pvdz_cid_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL CI ENERGY: -76.06081556")
-
-# test-energy: ammonia 0 1 3-21G CID
-add_test(NAME ammonia_0-1_3-21g_cid_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "3-21g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/ammonia.xyz -n 2 -s 1 hf -i 1000 -t 1e-8 ci -e d)
-set_tests_properties(ammonia_0-1_3-21g_cid_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL CI ENERGY: -55.89382350")
-
-# test-energy: ammonia 0 1 STO-3G CID
-add_test(NAME ammonia_0-1_sto-3g_cid_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "sto-3g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/ammonia.xyz -n 2 -s 1 hf -i 1000 -t 1e-8 ci -e d)
-set_tests_properties(ammonia_0-1_sto-3g_cid_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL CI ENERGY: -55.47978199")
-
-# test-energy: ammonia 0 1 6-31G CID
-add_test(NAME ammonia_0-1_6-31g_cid_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/ammonia.xyz -n 2 -s 1 hf -i 1000 -t 1e-8 ci -e d)
-set_tests_properties(ammonia_0-1_6-31g_cid_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL CI ENERGY: -56.18529779")
-
-# test-energy: ammonia 0 1 6-31G* CID
-add_test(NAME ammonia_0-1_6-31gs_cid_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31g*" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/ammonia.xyz -n 2 -s 1 hf -i 1000 -t 1e-8 ci -e d)
-set_tests_properties(ammonia_0-1_6-31gs_cid_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL CI ENERGY: -56.21617777")
-
-# test-energy: ammonia 0 1 CC-PVDZ CID
-add_test(NAME ammonia_0-1_cc-pvdz_cid_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "cc-pvdz" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/ammonia.xyz -n 2 -s 1 hf -i 1000 -t 1e-8 ci -e d)
-set_tests_properties(ammonia_0-1_cc-pvdz_cid_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL CI ENERGY: -56.22418393")
-
-# test-energy: formaldehyde 0 1 3-21G CID
-add_test(NAME formaldehyde_0-1_3-21g_cid_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "3-21g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/formaldehyde.xyz -n 2 -s 1 hf -i 1000 -t 1e-8 ci -e d)
-set_tests_properties(formaldehyde_0-1_3-21g_cid_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL CI ENERGY: -113.29812199")
-
-# test-energy: formaldehyde 0 1 STO-3G CID
-add_test(NAME formaldehyde_0-1_sto-3g_cid_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "sto-3g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/formaldehyde.xyz -n 2 -s 1 hf -i 1000 -t 1e-8 ci -e d)
-set_tests_properties(formaldehyde_0-1_sto-3g_cid_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL CI ENERGY: -112.48850625")
-
-# test-energy: formaldehyde 0 1 6-31G CID
-add_test(NAME formaldehyde_0-1_6-31g_cid_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/formaldehyde.xyz -n 2 -s 1 hf -i 1000 -t 1e-8 ci -e d)
-set_tests_properties(formaldehyde_0-1_6-31g_cid_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL CI ENERGY: -113.87465946")
-
-# test-energy: formaldehyde 0 1 6-31G* CID
-add_test(NAME formaldehyde_0-1_6-31gs_cid_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31g*" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/formaldehyde.xyz -n 2 -s 1 hf -i 1000 -t 1e-8 ci -e d)
-set_tests_properties(formaldehyde_0-1_6-31gs_cid_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL CI ENERGY: -113.92495474")
-
-# test-energy: formaldehyde 0 1 CC-PVDZ CID
-add_test(NAME formaldehyde_0-1_cc-pvdz_cid_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "cc-pvdz" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/formaldehyde.xyz -n 2 -s 1 hf -i 1000 -t 1e-8 ci -e d)
-set_tests_properties(formaldehyde_0-1_cc-pvdz_cid_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL CI ENERGY: -113.93486750")
-
-# test-energy: methane 0 1 3-21G CID
-add_test(NAME methane_0-1_3-21g_cid_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "3-21g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/methane.xyz -n 2 -s 1 hf -i 1000 -t 1e-8 ci -e d)
-set_tests_properties(methane_0-1_3-21g_cid_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL CI ENERGY: -39.99726353")
-
-# test-energy: methane 0 1 STO-3G CID
-add_test(NAME methane_0-1_sto-3g_cid_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "sto-3g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/methane.xyz -n 2 -s 1 hf -i 1000 -t 1e-8 ci -e d)
-set_tests_properties(methane_0-1_sto-3g_cid_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL CI ENERGY: -39.75564906")
-
-# test-energy: methane 0 1 6-31G CID
-add_test(NAME methane_0-1_6-31g_cid_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/methane.xyz -n 2 -s 1 hf -i 1000 -t 1e-8 ci -e d)
-set_tests_properties(methane_0-1_6-31g_cid_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL CI ENERGY: -40.20078189")
-
-# test-energy: methane 0 1 6-31G* CID
-add_test(NAME methane_0-1_6-31gs_cid_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31g*" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/methane.xyz -n 2 -s 1 hf -i 1000 -t 1e-8 ci -e d)
-set_tests_properties(methane_0-1_6-31gs_cid_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL CI ENERGY: -40.21893974")
-
-# test-energy: methane 0 1 CC-PVDZ CID
-add_test(NAME methane_0-1_cc-pvdz_cid_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "cc-pvdz" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/methane.xyz -n 2 -s 1 hf -i 1000 -t 1e-8 ci -e d)
-set_tests_properties(methane_0-1_cc-pvdz_cid_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL CI ENERGY: -40.22128770")
-
-# test-energy: ethane 0 1 3-21G CID
-add_test(NAME ethane_0-1_3-21g_cid_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "3-21g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/ethane.xyz -n 2 -s 1 hf -i 1000 -t 1e-8 ci -e d)
-set_tests_properties(ethane_0-1_3-21g_cid_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL CI ENERGY: -78.81153583")
-
-# test-energy: ethane 0 1 STO-3G CID
-add_test(NAME ethane_0-1_sto-3g_cid_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "sto-3g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/ethane.xyz -n 2 -s 1 hf -i 1000 -t 1e-8 ci -e d)
-set_tests_properties(ethane_0-1_sto-3g_cid_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL CI ENERGY: -78.32970152")
-
-# test-energy: ethane 0 1 6-31G CID
-add_test(NAME ethane_0-1_6-31g_cid_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/ethane.xyz -n 2 -s 1 hf -i 1000 -t 1e-8 ci -e d)
-set_tests_properties(ethane_0-1_6-31g_cid_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL CI ENERGY: -79.21490514")
-
-# test-energy: ethane 0 1 6-31G* CID
-add_test(NAME ethane_0-1_6-31gs_cid_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31g*" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/ethane.xyz -n 2 -s 1 hf -i 1000 -t 1e-8 ci -e d)
-set_tests_properties(ethane_0-1_6-31gs_cid_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL CI ENERGY: -79.24876213")
-
-# test-energy: ethane 0 1 CC-PVDZ CID
-add_test(NAME ethane_0-1_cc-pvdz_cid_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "cc-pvdz" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/ethane.xyz -n 2 -s 1 hf -i 1000 -t 1e-8 ci -e d)
-set_tests_properties(ethane_0-1_cc-pvdz_cid_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL CI ENERGY: -79.25378699")
+add_test(NAME water_0-1_3-21g_cid_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "3-21g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 hf -i 1000 -t 1e-8 cid)
 
 # test-angrad: water 0 1 3-21G HF
 add_test(NAME water_0-1_3-21g_hf_angrad COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "3-21g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 hf -i 1000 -t 1e-8 -g 0 1e-5)

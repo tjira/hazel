@@ -68,7 +68,7 @@ for SYSTEM in "${SYSTEMS[@]}"; do
             EXPECT=$(echo "$EXPECT" | sed -e 's/+/\\\\+/g')
 
             # print the test commands
-            printf 'add_test(NAME %s_%d-%d_%s_cid_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "%s" -c %d -f ${PROJECT_SOURCE_DIR}/example/molecule/%s.xyz -n 2 -s %d hf -i 1000 -t 1e-8 ci -e d)\n' \
+            printf 'add_test(NAME %s_%d-%d_%s_cid_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "%s" -c %d -f ${PROJECT_SOURCE_DIR}/example/molecule/%s.xyz -n 2 -s %d hf -i 1000 -t 1e-8 cid)\n' \
                    "$SYSTEM" "$CHARGE" "$MULT" $(echo "$BASIS" | sed -e 's/+/p/g' -e 's/*/s/g') "$BASIS" "$CHARGE" "$SYSTEM" "$MULT"
             printf 'set_tests_properties(%s_%d-%d_%s_cid_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "%s")\n' \
                    "$SYSTEM" "$CHARGE" "$MULT" $(echo "$BASIS" | sed -e 's/+/p/g' -e 's/*/s/g') "${EXPECT::-6}"

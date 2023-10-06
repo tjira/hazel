@@ -1,10 +1,8 @@
 #include "distributor.h"
 
-#define CONTAINS(V, E) [](std::vector<std::string> v, std::string e){return std::find(v.begin(), v.end(), e) != v.end();}(V, E)
 #define TIME(W) {Timer::Timepoint start = Timer::Now(); W; std::cout << Timer::Format(Timer::Elapsed(start)) << std::flush;}
-#define TOUPPER(S) [](std::string str) {for (auto& c : str) c = toupper(c); return str;}(S)
 
-Distributor::Distributor(int argc, char** argv) : parsers(11), program("hazel", "0.1", argparse::default_arguments::none), start(Timer::Now()) {
+Distributor::Distributor(int argc, char** argv) : parsers(12), program("hazel", "0.1", argparse::default_arguments::none), start(Timer::Now()) {
     // add level 1 parsers
     parsers.push_back(argparse::ArgumentParser("ints", "0.1", argparse::default_arguments::none)); program.add_subparser(parsers.at(parsers.size() - 1));
     parsers.push_back(argparse::ArgumentParser("scan", "0.1", argparse::default_arguments::none)); program.add_subparser(parsers.at(parsers.size() - 1));
@@ -14,7 +12,8 @@ Distributor::Distributor(int argc, char** argv) : parsers(11), program("hazel", 
 
     // add HF parsers
     parsers.push_back(argparse::ArgumentParser("mp2", "0.1", argparse::default_arguments::none)); program.at<argparse::ArgumentParser>("hf").add_subparser(parsers.at(parsers.size() - 1));
-    parsers.push_back(argparse::ArgumentParser("ci", "0.1", argparse::default_arguments::none)); program.at<argparse::ArgumentParser>("hf").add_subparser(parsers.at(parsers.size() - 1));
+    parsers.push_back(argparse::ArgumentParser("cis", "0.1", argparse::default_arguments::none)); program.at<argparse::ArgumentParser>("hf").add_subparser(parsers.at(parsers.size() - 1));
+    parsers.push_back(argparse::ArgumentParser("cid", "0.1", argparse::default_arguments::none)); program.at<argparse::ArgumentParser>("hf").add_subparser(parsers.at(parsers.size() - 1));
 
     // add level 2 parsers
     parsers.push_back(argparse::ArgumentParser("hf", "0.1", argparse::default_arguments::none)); program.at<argparse::ArgumentParser>("scan").add_subparser(parsers.at(parsers.size() - 1));
@@ -39,6 +38,7 @@ Distributor::Distributor(int argc, char** argv) : parsers(11), program("hazel", 
     // add positional arguments to the integral argument parser
     program.at<argparse::ArgumentParser>("ints").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
     program.at<argparse::ArgumentParser>("ints").add_argument("-p", "--print").help("-- Output printing options.").default_value<std::vector<std::string>>({}).append();
+    program.at<argparse::ArgumentParser>("ints").add_argument("-e", "--export").help("-- Export options.").default_value<std::vector<std::string>>({}).append();
 
     // add positional arguments to the HF argument parser
     program.at<argparse::ArgumentParser>("hf").add_argument("-d", "--diis").help("-- Start iteration and history length for DIIS algorithm.").default_value(std::vector<int>{3, 5}).nargs(2).scan<'i', int>();
@@ -46,7 +46,8 @@ Distributor::Distributor(int argc, char** argv) : parsers(11), program("hazel", 
     program.at<argparse::ArgumentParser>("hf").add_argument("-g", "--gradient").help("-- Analytical (0) or numerical (1) gradient calculation with step size.").default_value(std::vector<double>{0, 1e-5}).nargs(2).scan<'g', double>();
     program.at<argparse::ArgumentParser>("hf").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
     program.at<argparse::ArgumentParser>("hf").add_argument("-i", "--iters").help("-- Maximum number of iterations in SCF loop.").default_value(100).scan<'i', int>();
-    program.at<argparse::ArgumentParser>("hf").add_argument("-p", "--print").help("-- Printing options.").default_value<std::vector<std::string>>({}).append();
+    program.at<argparse::ArgumentParser>("hf").add_argument("-p", "--print").help("-- Output printing options.").default_value<std::vector<std::string>>({}).append();
+    program.at<argparse::ArgumentParser>("hf").add_argument("-e", "--export").help("-- Export options.").default_value<std::vector<std::string>>({}).append();
     program.at<argparse::ArgumentParser>("hf").add_argument("-o", "--optimize").help("-- Optimization with gradient threshold.").default_value(1e-8).scan<'g', double>();
     program.at<argparse::ArgumentParser>("hf").add_argument("-t", "--thresh").help("-- Threshold for conververgence in SCF loop.").default_value(1e-8).scan<'g', double>();
 
@@ -56,11 +57,17 @@ Distributor::Distributor(int argc, char** argv) : parsers(11), program("hazel", 
     program.at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("mp2").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
     program.at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("mp2").add_argument("-o", "--optimize").help("-- Optimize the provided system.").default_value(1e-4).scan<'g', double>();
     program.at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("mp2").add_argument("-p", "--print").help("-- Output printing options.").default_value<std::vector<std::string>>({}).append();
+    program.at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("mp2").add_argument("-e", "--export").help("-- Export options.").default_value<std::vector<std::string>>({}).append();
 
-    // add positional arguments to the CI argument parser
-    program.at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("ci").add_argument("-e", "--excitations").help("-- Excitations to consider.").default_value("d");
-    program.at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("ci").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
-    program.at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("ci").add_argument("-p", "--print").help("-- Printing options.").default_value<std::vector<std::string>>({}).append();
+    // add positional arguments to the CIS argument parser
+    program.at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("cis").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
+    program.at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("cis").add_argument("-e", "--export").help("-- Export options.").default_value<std::vector<std::string>>({}).append();
+    program.at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("cis").add_argument("-p", "--print").help("-- Printing options.").default_value<std::vector<std::string>>({}).append();
+
+    // add positional arguments to the CID argument parser
+    program.at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("cid").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
+    program.at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("cid").add_argument("-p", "--print").help("-- Printing options.").default_value<std::vector<std::string>>({}).append();
+    program.at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("cid").add_argument("-e", "--export").help("-- Export options.").default_value<std::vector<std::string>>({}).append();
 
     // add positional arguments to the SCAN argument parser
     program.at<argparse::ArgumentParser>("scan").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
@@ -118,8 +125,10 @@ Distributor::Distributor(int argc, char** argv) : parsers(11), program("hazel", 
         std::cout << program.at<argparse::ArgumentParser>("hf").help().str(); exit(EXIT_SUCCESS);
     } else if (program.is_subcommand_used("hf") && program.at<argparse::ArgumentParser>("hf").is_subcommand_used("mp2") && program.at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("mp2").get<bool>("-h")) {
         std::cout << program.at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("mp2").help().str(); exit(EXIT_SUCCESS);
-    } else if (program.is_subcommand_used("hf") && program.at<argparse::ArgumentParser>("hf").is_subcommand_used("ci") && program.at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("ci").get<bool>("-h")) {
-        std::cout << program.at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("ci").help().str(); exit(EXIT_SUCCESS);
+    } else if (program.is_subcommand_used("hf") && program.at<argparse::ArgumentParser>("hf").is_subcommand_used("cis") && program.at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("cis").get<bool>("-h")) {
+        std::cout << program.at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("cis").help().str(); exit(EXIT_SUCCESS);
+    } else if (program.is_subcommand_used("hf") && program.at<argparse::ArgumentParser>("hf").is_subcommand_used("cid") && program.at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("cid").get<bool>("-h")) {
+        std::cout << program.at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("cid").help().str(); exit(EXIT_SUCCESS);
     } else if (program.is_subcommand_used("scan") && program.at<argparse::ArgumentParser>("scan").get<bool>("-h")) {
         std::cout << program.at<argparse::ArgumentParser>("scan").help().str(); exit(EXIT_SUCCESS);
     } else if (program.is_subcommand_used("scan") && program.at<argparse::ArgumentParser>("scan").is_subcommand_used("hf") && program.at<argparse::ArgumentParser>("scan").at<argparse::ArgumentParser>("hf").get<bool>("-h")) {
@@ -196,7 +205,7 @@ void Distributor::run() {
     }
 
     // print the distances if requested
-    if (CONTAINS(program.get<std::vector<std::string>>("-p"), "dist")) std::cout << "\nDISTANCE MATRIX\n" << system.dists << std::endl; 
+    if (Utility::VectorContains(program.get<std::vector<std::string>>("-p"), "dist")) std::cout << "\nDISTANCE MATRIX\n" << system.dists << std::endl; 
 
     // calculate the integrals if needed
     if (program.is_subcommand_used("ints") || program.is_subcommand_used("hf")) integrals();
@@ -228,20 +237,24 @@ void Distributor::run() {
 void Distributor::rcirun(argparse::ArgumentParser& parser, const HF::ResultsRestricted& rhfres) {
     // print the CI method header and define J in MO basis
     std::cout << "\n" + std::string(104, '-') + "\nCI CORRELATION ENERGY\n" << std::string(104, '-') + "\n"; Tensor<4> Jmo;
-    std::printf("\n-- EXCITATIONS: %s\n", TOUPPER(parser.get("-e")).c_str()); CI::ResultsRestricted rcires;
+    CI::ResultsRestricted rcires;
 
     // transform the coulomb tensor
     std::cout << "\nCOULOMB TENSOR IN MO BASIS: " << std::flush; TIME(Jmo = Transform::Coulomb(system.ints.J, rhfres.C))
-    if (CONTAINS(parser.get<std::vector<std::string>>("-p"), "jmo")) {std::cout << "\n" << Jmo;} std::cout << "\n";
+    if (Utility::VectorContains(parser.get<std::vector<std::string>>("-p"), "jmo")) {std::cout << "\n" << Jmo;} std::cout << "\n";
+    if (Utility::VectorContains(parser.get<std::vector<std::string>>("-e"), "jmo")) Eigen::Write("JMO.mat", Jmo);
 
     // do the calculation
-    if (parser.get("-e") == "s") rcires = CI({rhfres}).rcis(system, Jmo);
-    if (parser.get("-e") == "d") rcires = CI({rhfres}).rcid(system, Jmo);
+    if (program.at<argparse::ArgumentParser>("hf").is_subcommand_used("cis")) rcires = CI({rhfres}).rcis(system, Jmo);
+    if (program.at<argparse::ArgumentParser>("hf").is_subcommand_used("cid")) rcires = CI({rhfres}).rcid(system, Jmo);
 
-    // print the result matrices
-    if (CONTAINS(parser.get<std::vector<std::string>>("-p"), "cih")) std::cout << "\nCI HAMILTONIAN\n" << rcires.H << "\n";
-    if (CONTAINS(parser.get<std::vector<std::string>>("-p"), "cie")) std::cout << "\nCI ENERGIES\n" << Matrix(rcires.eig) << "\n";
-    if (CONTAINS(parser.get<std::vector<std::string>>("-p"), "cic")) std::cout << "\nCI EXPANSION COEFFICIENTS\n" << rcires.C << "\n";
+    // print/save the result matrices
+    if (Utility::VectorContains(parser.get<std::vector<std::string>>("-p"), "cih")) std::cout << "\nCI HAMILTONIAN\n" << rcires.H << "\n";
+    if (Utility::VectorContains(parser.get<std::vector<std::string>>("-p"), "cie")) std::cout << "\nCI ENERGIES\n" << Matrix(rcires.eig) << "\n";
+    if (Utility::VectorContains(parser.get<std::vector<std::string>>("-p"), "cic")) std::cout << "\nCI EXPANSION COEFFICIENTS\n" << rcires.C << "\n";
+    if (Utility::VectorContains(parser.get<std::vector<std::string>>("-e"), "cih")) Eigen::Write("CIH.mat", rcires.H);
+    if (Utility::VectorContains(parser.get<std::vector<std::string>>("-e"), "cie")) Eigen::Write("CIE.mat", Matrix(rcires.eig));
+    if (Utility::VectorContains(parser.get<std::vector<std::string>>("-e"), "cic")) Eigen::Write("CIC.mat", rcires.C);
 
     // print the gradient and norm
     std::cout << "\nCI CORRELATION ENERGY: " << rcires.Ecorr << std::endl;
@@ -259,10 +272,13 @@ void Distributor::rhfrun(argparse::ArgumentParser& parser) {
     // perform the RHF calculation
     auto rhfres = HF(rhfopt).rscf(system, Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
 
-    // print the resulting RHF matrices and energies
-    if (CONTAINS(parser.get<std::vector<std::string>>("-p"), "eps")) std::cout << "\nORBITAL ENERGIES\n" << Matrix(rhfres.eps) << std::endl;
-    if (CONTAINS(parser.get<std::vector<std::string>>("-p"), "c")) std::cout << "\nCOEFFICIENT MATRIX\n" << rhfres.C << std::endl;
-    if (CONTAINS(parser.get<std::vector<std::string>>("-p"), "d")) std::cout << "\nDENSITY MATRIX\n" << rhfres.D << std::endl;
+    // print/export the resulting RHF matrices and energies
+    if (Utility::VectorContains(parser.get<std::vector<std::string>>("-p"), "eps")) std::cout << "\nORBITAL ENERGIES\n" << Matrix(rhfres.eps) << std::endl;
+    if (Utility::VectorContains(parser.get<std::vector<std::string>>("-p"), "c")) std::cout << "\nCOEFFICIENT MATRIX\n" << rhfres.C << std::endl;
+    if (Utility::VectorContains(parser.get<std::vector<std::string>>("-p"), "d")) std::cout << "\nDENSITY MATRIX\n" << rhfres.D << std::endl;
+    if (Utility::VectorContains(parser.get<std::vector<std::string>>("-e"), "eps")) Eigen::Write("EPS.mat", Matrix(rhfres.eps));
+    if (Utility::VectorContains(parser.get<std::vector<std::string>>("-e"), "c")) Eigen::Write("C.mat", rhfres.C);
+    if (Utility::VectorContains(parser.get<std::vector<std::string>>("-e"), "d")) Eigen::Write("D.mat", rhfres.D);
     std::cout << "\nTOTAL NUCLEAR REPULSION ENERGY: " << Integral::Repulsion(system) << std::endl;
     std::cout << "FINAL HARTREE-FOCK ENERGY: " << rhfres.E << std::endl;
 
@@ -272,7 +288,8 @@ void Distributor::rhfrun(argparse::ArgumentParser& parser) {
 
     // post RHF methods
     if (parser.is_subcommand_used("mp2")) rmp2run(parser.at<argparse::ArgumentParser>("mp2"), rhfres);
-    if (parser.is_subcommand_used("ci")) rcirun(parser.at<argparse::ArgumentParser>("ci"), rhfres);
+    if (parser.is_subcommand_used("cis")) rcirun(parser.at<argparse::ArgumentParser>("cis"), rhfres);
+    if (parser.is_subcommand_used("cid")) rcirun(parser.at<argparse::ArgumentParser>("cid"), rhfres);
 }
 
 void Distributor::rhff(argparse::ArgumentParser& parser, const HF::ResultsRestricted& rhfres) {
@@ -324,7 +341,7 @@ void Distributor::rhfo(argparse::ArgumentParser& parser) {
 
     // print the optimized coordinates and distances
     std::cout << "\nOPTIMIZED SYSTEM COORDINATES\n" << system.coords << std::endl; 
-    if (CONTAINS(parser.get<std::vector<std::string>>("-p"), "dist")) std::cout << "\nOPTIMIZED DISTANCE MATRIX\n" << system.dists << std::endl;
+    if (Utility::VectorContains(parser.get<std::vector<std::string>>("-p"), "dist")) std::cout << "\nOPTIMIZED DISTANCE MATRIX\n" << system.dists << std::endl;
 }
 
 void Distributor::uhfrun(argparse::ArgumentParser& parser) {
@@ -338,13 +355,19 @@ void Distributor::uhfrun(argparse::ArgumentParser& parser) {
     // perform the RHF calculation
     auto uhfres = HF(uhfopt).uscf(system, Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
 
-    // print the resulting RHF matrices and energies
-    if (CONTAINS(parser.get<std::vector<std::string>>("-p"), "epsa")) std::cout << "\nORBITAL ENERGIES (ALPHA)\n" << Matrix(uhfres.epsa) << std::endl;
-    if (CONTAINS(parser.get<std::vector<std::string>>("-p"), "epsb")) std::cout << "\nORBITAL ENERGIES (BETA)\n" << Matrix(uhfres.epsb) << std::endl;
-    if (CONTAINS(parser.get<std::vector<std::string>>("-p"), "ca")) std::cout << "\nCOEFFICIENT MATRIX (ALPHA)\n" << uhfres.Ca << std::endl;
-    if (CONTAINS(parser.get<std::vector<std::string>>("-p"), "cb")) std::cout << "\nCOEFFICIENT MATRIX (BETA)\n" << uhfres.Cb << std::endl;
-    if (CONTAINS(parser.get<std::vector<std::string>>("-p"), "da")) std::cout << "\nDENSITY MATRIX (ALPHA)\n" << uhfres.Da << std::endl;
-    if (CONTAINS(parser.get<std::vector<std::string>>("-p"), "db")) std::cout << "\nDENSITY MATRIX (BETA)\n" << uhfres.Db << std::endl;
+    // print/save the resulting RHF matrices and energies
+    if (Utility::VectorContains(parser.get<std::vector<std::string>>("-p"), "epsa")) std::cout << "\nORBITAL ENERGIES (ALPHA)\n" << Matrix(uhfres.epsa) << std::endl;
+    if (Utility::VectorContains(parser.get<std::vector<std::string>>("-p"), "epsb")) std::cout << "\nORBITAL ENERGIES (BETA)\n" << Matrix(uhfres.epsb) << std::endl;
+    if (Utility::VectorContains(parser.get<std::vector<std::string>>("-p"), "ca")) std::cout << "\nCOEFFICIENT MATRIX (ALPHA)\n" << uhfres.Ca << std::endl;
+    if (Utility::VectorContains(parser.get<std::vector<std::string>>("-p"), "cb")) std::cout << "\nCOEFFICIENT MATRIX (BETA)\n" << uhfres.Cb << std::endl;
+    if (Utility::VectorContains(parser.get<std::vector<std::string>>("-p"), "da")) std::cout << "\nDENSITY MATRIX (ALPHA)\n" << uhfres.Da << std::endl;
+    if (Utility::VectorContains(parser.get<std::vector<std::string>>("-p"), "db")) std::cout << "\nDENSITY MATRIX (BETA)\n" << uhfres.Db << std::endl;
+    if (Utility::VectorContains(parser.get<std::vector<std::string>>("-e"), "epsa")) Eigen::Write("EPSA.mat", Matrix(uhfres.epsa));
+    if (Utility::VectorContains(parser.get<std::vector<std::string>>("-e"), "epsb")) Eigen::Write("EPSB.mat", Matrix(uhfres.epsb));
+    if (Utility::VectorContains(parser.get<std::vector<std::string>>("-e"), "ca")) Eigen::Write("CA.mat", uhfres.Ca);
+    if (Utility::VectorContains(parser.get<std::vector<std::string>>("-e"), "cb")) Eigen::Write("CB.mat", uhfres.Cb);
+    if (Utility::VectorContains(parser.get<std::vector<std::string>>("-e"), "da")) Eigen::Write("DA.mat", uhfres.Da);
+    if (Utility::VectorContains(parser.get<std::vector<std::string>>("-e"), "db")) Eigen::Write("DB.mat", uhfres.Db);
     std::cout << "\nTOTAL NUCLEAR REPULSION ENERGY: " << Integral::Repulsion(system) << std::endl;
     std::cout << "FINAL HARTREE-FOCK ENERGY: " << uhfres.E << std::endl;
 
@@ -354,7 +377,8 @@ void Distributor::uhfrun(argparse::ArgumentParser& parser) {
 
     // post UHF methods
     if (parser.is_subcommand_used("mp2")) throw std::runtime_error("UMP2 NOT IMPLEMENTED");
-    if (parser.is_subcommand_used("ci")) throw std::runtime_error("UCI NOT IMPLEMENTED");
+    if (parser.is_subcommand_used("cis")) throw std::runtime_error("UCI NOT IMPLEMENTED");
+    if (parser.is_subcommand_used("cid")) throw std::runtime_error("UCI NOT IMPLEMENTED");
 }
 
 void Distributor::uhff(argparse::ArgumentParser& parser, const HF::ResultsUnrestricted& uhfres) {
@@ -406,7 +430,7 @@ void Distributor::uhfo(argparse::ArgumentParser& parser) {
 
     // print the optimized coordinates and distances
     std::cout << "\nOPTIMIZED SYSTEM COORDINATES\n" << system.coords << std::endl; 
-    if (CONTAINS(parser.get<std::vector<std::string>>("-p"), "dist")) std::cout << "\nOPTIMIZED DISTANCE MATRIX\n" << system.dists << std::endl;
+    if (Utility::VectorContains(parser.get<std::vector<std::string>>("-p"), "dist")) std::cout << "\nOPTIMIZED DISTANCE MATRIX\n" << system.dists << std::endl;
 }
 
 void Distributor::rmp2run(argparse::ArgumentParser& parser, const HF::ResultsRestricted& rhfres) {
@@ -415,7 +439,8 @@ void Distributor::rmp2run(argparse::ArgumentParser& parser, const HF::ResultsRes
 
     // transform the coulomb tensor to MO basis
     std::cout << "\nCOULOMB TENSOR IN MO BASIS: " << std::flush; TIME(Jmo = Transform::Coulomb(system.ints.J, rhfres.C))
-    if (CONTAINS(parser.get<std::vector<std::string>>("-p"), "jmo")) {std::cout << "\n" << Jmo;} std::cout << "\n";
+    if (Utility::VectorContains(parser.get<std::vector<std::string>>("-p"), "jmo")) {std::cout << "\n" << Jmo;} std::cout << "\n";
+    if (Utility::VectorContains(parser.get<std::vector<std::string>>("-e"), "jmo")) Eigen::Write("JMO.mat", Jmo);
 
     // perform the MP2 calculation
     double Ecorr = MP({rhfres}).rmp2(system, Jmo);
@@ -475,7 +500,7 @@ void Distributor::rmp2o(argparse::ArgumentParser& parser) {
 
     // print the optimized coordinates and distances
     std::cout << "\nOPTIMIZED SYSTEM COORDINATES\n" << system.coords << std::endl;
-    if (CONTAINS(parser.get<std::vector<std::string>>("-p"), "dist")) std::cout << "\nOPTIMIZED DISTANCE MATRIX\n" << system.dists << std::endl;
+    if (Utility::VectorContains(parser.get<std::vector<std::string>>("-p"), "dist")) std::cout << "\nOPTIMIZED DISTANCE MATRIX\n" << system.dists << std::endl;
 }
 
 void Distributor::scan(argparse::ArgumentParser& parser) {
@@ -580,26 +605,34 @@ void Distributor::integrals() {
     // calculate the overlap integral
     std::cout << "\nOVERLAP INTEGRAL: " << std::flush; TIME(system.ints.S = Integral::Overlap(system))
     std::cout << " " << Eigen::MemMatrix(system.ints.S);
-    if (program.is_subcommand_used("ints") && CONTAINS(program.at<argparse::ArgumentParser>("ints").get<std::vector<std::string>>("-p"), "s")) std::cout << "\n" << system.ints.S << std::endl;
-    if (program.is_subcommand_used("hf") && CONTAINS(program.at<argparse::ArgumentParser>("hf").get<std::vector<std::string>>("-p"), "s")) std::cout << "\n" << system.ints.S << std::endl;
+    if (program.is_subcommand_used("ints") && Utility::VectorContains(program.at<argparse::ArgumentParser>("ints").get<std::vector<std::string>>("-p"), "s")) std::cout << "\n" << system.ints.S << std::endl;
+    if (program.is_subcommand_used("hf") && Utility::VectorContains(program.at<argparse::ArgumentParser>("hf").get<std::vector<std::string>>("-p"), "s")) std::cout << "\n" << system.ints.S << std::endl;
+    if (program.is_subcommand_used("ints") && Utility::VectorContains(program.at<argparse::ArgumentParser>("ints").get<std::vector<std::string>>("-e"), "s")) Eigen::Write("S.mat", system.ints.S);
+    if (program.is_subcommand_used("hf") && Utility::VectorContains(program.at<argparse::ArgumentParser>("hf").get<std::vector<std::string>>("-e"), "s")) Eigen::Write("S.mat", system.ints.S);
 
     // calculate the kinetic integral
     std::cout << "\nKINETIC INTEGRAL: " << std::flush; TIME(system.ints.T = Integral::Kinetic(system))
     std::cout << " " << Eigen::MemMatrix(system.ints.T);
-    if (program.is_subcommand_used("ints") && CONTAINS(program.at<argparse::ArgumentParser>("ints").get<std::vector<std::string>>("-p"), "t")) std::cout << "\n" << system.ints.T << std::endl;
-    if (program.is_subcommand_used("hf") && CONTAINS(program.at<argparse::ArgumentParser>("hf").get<std::vector<std::string>>("-p"), "t")) std::cout << "\n" << system.ints.T << std::endl;
+    if (program.is_subcommand_used("ints") && Utility::VectorContains(program.at<argparse::ArgumentParser>("ints").get<std::vector<std::string>>("-p"), "t")) std::cout << "\n" << system.ints.T << std::endl;
+    if (program.is_subcommand_used("hf") && Utility::VectorContains(program.at<argparse::ArgumentParser>("hf").get<std::vector<std::string>>("-p"), "t")) std::cout << "\n" << system.ints.T << std::endl;
+    if (program.is_subcommand_used("ints") && Utility::VectorContains(program.at<argparse::ArgumentParser>("ints").get<std::vector<std::string>>("-e"), "t")) Eigen::Write("T.mat", system.ints.S);
+    if (program.is_subcommand_used("hf") && Utility::VectorContains(program.at<argparse::ArgumentParser>("hf").get<std::vector<std::string>>("-e"), "t")) Eigen::Write("T.mat", system.ints.S);
 
     // calculate the nuclear-electron attraction integral
     std::cout << "\nNUCLEAR INTEGRAL: " << std::flush; TIME(system.ints.V = Integral::Nuclear(system))
     std::cout << " " << Eigen::MemMatrix(system.ints.V);
-    if (program.is_subcommand_used("ints") && CONTAINS(program.at<argparse::ArgumentParser>("ints").get<std::vector<std::string>>("-p"), "v")) std::cout << "\n" << system.ints.V << std::endl;
-    if (program.is_subcommand_used("hf") && CONTAINS(program.at<argparse::ArgumentParser>("hf").get<std::vector<std::string>>("-p"), "v")) std::cout << "\n" << system.ints.V << std::endl;
+    if (program.is_subcommand_used("ints") && Utility::VectorContains(program.at<argparse::ArgumentParser>("ints").get<std::vector<std::string>>("-p"), "v")) std::cout << "\n" << system.ints.V << std::endl;
+    if (program.is_subcommand_used("hf") && Utility::VectorContains(program.at<argparse::ArgumentParser>("hf").get<std::vector<std::string>>("-p"), "v")) std::cout << "\n" << system.ints.V << std::endl;
+    if (program.is_subcommand_used("ints") && Utility::VectorContains(program.at<argparse::ArgumentParser>("ints").get<std::vector<std::string>>("-e"), "v")) Eigen::Write("V.mat", system.ints.S);
+    if (program.is_subcommand_used("hf") && Utility::VectorContains(program.at<argparse::ArgumentParser>("hf").get<std::vector<std::string>>("-e"), "v")) Eigen::Write("V.mat", system.ints.S);
 
     // calculate the electron-electron repulsion integral
     if (!program.get<bool>("--no-coulomb")) {std::cout << "\nCOULOMB INTEGRAL: " << std::flush; TIME(system.ints.J = Integral::Coulomb(system))}
     if (!program.get<bool>("--no-coulomb")) std::cout << " " << Eigen::MemTensor(system.ints.J);
-    if (!program.get<bool>("--no-coulomb") && program.is_subcommand_used("ints") && CONTAINS(program.at<argparse::ArgumentParser>("ints").get<std::vector<std::string>>("-p"), "j")) std::cout << "\n" << system.ints.J;
-    if (!program.get<bool>("--no-coulomb") && program.is_subcommand_used("hf") && CONTAINS(program.at<argparse::ArgumentParser>("hf").get<std::vector<std::string>>("-p"), "j")) std::cout << "\n" << system.ints.J;
+    if (!program.get<bool>("--no-coulomb") && program.is_subcommand_used("ints") && Utility::VectorContains(program.at<argparse::ArgumentParser>("ints").get<std::vector<std::string>>("-p"), "j")) std::cout << "\n" << system.ints.J;
+    if (!program.get<bool>("--no-coulomb") && program.is_subcommand_used("hf") && Utility::VectorContains(program.at<argparse::ArgumentParser>("hf").get<std::vector<std::string>>("-p"), "j")) std::cout << "\n" << system.ints.J;
+    if (!program.get<bool>("--no-coulomb") && program.is_subcommand_used("ints") && Utility::VectorContains(program.at<argparse::ArgumentParser>("ints").get<std::vector<std::string>>("-e"), "j")) Eigen::Write("J.mat", system.ints.J);
+    if (!program.get<bool>("--no-coulomb") && program.is_subcommand_used("hf") && Utility::VectorContains(program.at<argparse::ArgumentParser>("hf").get<std::vector<std::string>>("-e"), "j")) Eigen::Write("J.mat", system.ints.J);
 
     // print new line
     std::cout << "\n";
@@ -609,26 +642,26 @@ void Distributor::integrals() {
         // calculate the derivative of overlap integral
         std::cout << "\nFIRST DERIVATIVE OF OVERLAP INTEGRAL: " << std::flush; TIME(system.dints.dS = Integral::dOverlap(system))
         std::cout << " " << Eigen::MemTensor(system.dints.dS);
-        if (program.is_subcommand_used("ints") && CONTAINS(program.at<argparse::ArgumentParser>("ints").get<std::vector<std::string>>("-p"), "ds")) std::cout << "\n" << system.dints.dS << std::endl;
-        if (program.is_subcommand_used("hf") && CONTAINS(program.at<argparse::ArgumentParser>("hf").get<std::vector<std::string>>("-p"), "ds")) std::cout << "\n" << system.dints.dS << std::endl;
+        if (program.is_subcommand_used("ints") && Utility::VectorContains(program.at<argparse::ArgumentParser>("ints").get<std::vector<std::string>>("-p"), "ds")) std::cout << "\n" << system.dints.dS << std::endl;
+        if (program.is_subcommand_used("hf") && Utility::VectorContains(program.at<argparse::ArgumentParser>("hf").get<std::vector<std::string>>("-p"), "ds")) std::cout << "\n" << system.dints.dS << std::endl;
 
         // calculate the derivative of kinetic integral
         std::cout << "\nFIRST DERIVATIVE OF KINETIC INTEGRAL: " << std::flush; TIME(system.dints.dT = Integral::dKinetic(system))
         std::cout << " " << Eigen::MemTensor(system.dints.dT);
-        if (program.is_subcommand_used("ints") && CONTAINS(program.at<argparse::ArgumentParser>("ints").get<std::vector<std::string>>("-p"), "dt")) std::cout << "\n" << system.dints.dT << std::endl;
-        if (program.is_subcommand_used("hf") && CONTAINS(program.at<argparse::ArgumentParser>("hf").get<std::vector<std::string>>("-p"), "dt")) std::cout << "\n" << system.dints.dT << std::endl;
+        if (program.is_subcommand_used("ints") && Utility::VectorContains(program.at<argparse::ArgumentParser>("ints").get<std::vector<std::string>>("-p"), "dt")) std::cout << "\n" << system.dints.dT << std::endl;
+        if (program.is_subcommand_used("hf") && Utility::VectorContains(program.at<argparse::ArgumentParser>("hf").get<std::vector<std::string>>("-p"), "dt")) std::cout << "\n" << system.dints.dT << std::endl;
 
         // calculate the derivative of nuclear-electron attraction integral
         std::cout << "\nFIRST DERIVATIVE OF NUCLEAR INTEGRAL: " << std::flush; TIME(system.dints.dV = Integral::dNuclear(system))
         std::cout << " " << Eigen::MemTensor(system.dints.dV);
-        if (program.is_subcommand_used("ints") && CONTAINS(program.at<argparse::ArgumentParser>("ints").get<std::vector<std::string>>("-p"), "dv")) std::cout << "\n" << system.dints.dV << std::endl;
-        if (program.is_subcommand_used("hf") && CONTAINS(program.at<argparse::ArgumentParser>("hf").get<std::vector<std::string>>("-p"), "dv")) std::cout << "\n" << system.dints.dV << std::endl;
+        if (program.is_subcommand_used("ints") && Utility::VectorContains(program.at<argparse::ArgumentParser>("ints").get<std::vector<std::string>>("-p"), "dv")) std::cout << "\n" << system.dints.dV << std::endl;
+        if (program.is_subcommand_used("hf") && Utility::VectorContains(program.at<argparse::ArgumentParser>("hf").get<std::vector<std::string>>("-p"), "dv")) std::cout << "\n" << system.dints.dV << std::endl;
 
         // calculate the derivative of electron-electron repulsion integral
         std::cout << "\nFIRST DERIVATIVE OF COULOMB INTEGRAL: " << std::flush; TIME(system.dints.dJ = Integral::dCoulomb(system))
         std::cout << " " << Eigen::MemTensor(system.dints.dJ);
-        if (program.is_subcommand_used("ints") && CONTAINS(program.at<argparse::ArgumentParser>("ints").get<std::vector<std::string>>("-p"), "dj")) std::cout << "\n" << system.dints.dJ;
-        if (program.is_subcommand_used("hf") && CONTAINS(program.at<argparse::ArgumentParser>("hf").get<std::vector<std::string>>("-p"), "dj")) std::cout << "\n" << system.dints.dJ;
+        if (program.is_subcommand_used("ints") && Utility::VectorContains(program.at<argparse::ArgumentParser>("ints").get<std::vector<std::string>>("-p"), "dj")) std::cout << "\n" << system.dints.dJ;
+        if (program.is_subcommand_used("hf") && Utility::VectorContains(program.at<argparse::ArgumentParser>("hf").get<std::vector<std::string>>("-p"), "dj")) std::cout << "\n" << system.dints.dJ;
 
         // print new line
         std::cout << "\n";

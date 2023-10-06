@@ -1,9 +1,6 @@
 #include "mp.h"
 
 double MP::rmp2(const System& system, const Tensor<4>& Jmo, bool) const {
-    // transform the coulomb tensor if not already
-    if (!Jmo.size()) const_cast<Tensor<4>&>(Jmo) = Transform::Coulomb(system.ints.J, ropt.rhfres.C);
-
     // define the correlation energy and nocc
     int nocc = system.electrons / 2; double Ecorr = 0;
 

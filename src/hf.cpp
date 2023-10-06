@@ -1,12 +1,6 @@
 #include "hf.h"
 
 HF::ResultsRestricted HF::rscf(const System& system, Matrix D, bool print) const {
-    // calculate integrals if not provided
-    if (!system.ints.J.size() && !ropt.nocoulomb) const_cast<System&>(system).ints.J = Integral::Coulomb(system);
-    if (!system.ints.S.size()) const_cast<System&>(system).ints.S = Integral::Overlap(system);
-    if (!system.ints.T.size()) const_cast<System&>(system).ints.T = Integral::Kinetic(system);
-    if (!system.ints.V.size()) const_cast<System&>(system).ints.V = Integral::Nuclear(system);
-
     // create all the necessary matrices, calculate ERI and initialize DIIS
     Matrix H = system.ints.T + system.ints.V, C, F; Vector eps; int nocc = system.electrons / 2;
     Tensor<4> ERI = system.ints.J - 0.5 * system.ints.J.shuffle(Array<4>{0, 3, 2, 1});
