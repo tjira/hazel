@@ -258,6 +258,7 @@ double Integral::Repulsion(const System& system) {
             libint2::Atom a = system.atoms.at(i), b = system.atoms.at(j);
             double x = a.x - b.x, y = a.y - b.y, z = a.z - b.z;
             double dist = std::sqrt(x * x + y * y + z * z);
+            std::cout << dist << std::endl;
 
             // add the value to the repulsion
             repulsion += a.atomic_number * b.atomic_number / dist;

@@ -615,16 +615,16 @@ void Distributor::integrals() {
     std::cout << " " << Eigen::MemMatrix(system.ints.T);
     if (program.is_subcommand_used("ints") && Utility::VectorContains(program.at<argparse::ArgumentParser>("ints").get<std::vector<std::string>>("-p"), "t")) std::cout << "\n" << system.ints.T << std::endl;
     if (program.is_subcommand_used("hf") && Utility::VectorContains(program.at<argparse::ArgumentParser>("hf").get<std::vector<std::string>>("-p"), "t")) std::cout << "\n" << system.ints.T << std::endl;
-    if (program.is_subcommand_used("ints") && Utility::VectorContains(program.at<argparse::ArgumentParser>("ints").get<std::vector<std::string>>("-e"), "t")) Eigen::Write("T.mat", system.ints.S);
-    if (program.is_subcommand_used("hf") && Utility::VectorContains(program.at<argparse::ArgumentParser>("hf").get<std::vector<std::string>>("-e"), "t")) Eigen::Write("T.mat", system.ints.S);
+    if (program.is_subcommand_used("ints") && Utility::VectorContains(program.at<argparse::ArgumentParser>("ints").get<std::vector<std::string>>("-e"), "t")) Eigen::Write("T.mat", system.ints.T);
+    if (program.is_subcommand_used("hf") && Utility::VectorContains(program.at<argparse::ArgumentParser>("hf").get<std::vector<std::string>>("-e"), "t")) Eigen::Write("T.mat", system.ints.T);
 
     // calculate the nuclear-electron attraction integral
     std::cout << "\nNUCLEAR INTEGRAL: " << std::flush; TIME(system.ints.V = Integral::Nuclear(system))
     std::cout << " " << Eigen::MemMatrix(system.ints.V);
     if (program.is_subcommand_used("ints") && Utility::VectorContains(program.at<argparse::ArgumentParser>("ints").get<std::vector<std::string>>("-p"), "v")) std::cout << "\n" << system.ints.V << std::endl;
     if (program.is_subcommand_used("hf") && Utility::VectorContains(program.at<argparse::ArgumentParser>("hf").get<std::vector<std::string>>("-p"), "v")) std::cout << "\n" << system.ints.V << std::endl;
-    if (program.is_subcommand_used("ints") && Utility::VectorContains(program.at<argparse::ArgumentParser>("ints").get<std::vector<std::string>>("-e"), "v")) Eigen::Write("V.mat", system.ints.S);
-    if (program.is_subcommand_used("hf") && Utility::VectorContains(program.at<argparse::ArgumentParser>("hf").get<std::vector<std::string>>("-e"), "v")) Eigen::Write("V.mat", system.ints.S);
+    if (program.is_subcommand_used("ints") && Utility::VectorContains(program.at<argparse::ArgumentParser>("ints").get<std::vector<std::string>>("-e"), "v")) Eigen::Write("V.mat", system.ints.V);
+    if (program.is_subcommand_used("hf") && Utility::VectorContains(program.at<argparse::ArgumentParser>("hf").get<std::vector<std::string>>("-e"), "v")) Eigen::Write("V.mat", system.ints.V);
 
     // calculate the electron-electron repulsion integral
     if (!program.get<bool>("--no-coulomb")) {std::cout << "\nCOULOMB INTEGRAL: " << std::flush; TIME(system.ints.J = Integral::Coulomb(system))}

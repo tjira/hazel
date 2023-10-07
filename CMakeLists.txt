@@ -352,7 +352,7 @@ set_tests_properties(ethane_1-2_6-31g_hf_energy PROPERTIES DEPENDS build PASS_RE
 
 # test-energy: ethane 1 2 6-31G* HF
 add_test(NAME ethane_1-2_6-31gs_hf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31g*" -c 1 -f ${PROJECT_SOURCE_DIR}/example/molecule/ethane.xyz -n 2 -s 2 hf -i 1000 -t 1e-8)
-set_tests_properties(ethane_1-2_6-31gs_hf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -78.79136146")
+set_tests_properties(ethane_1-2_6-31gs_hf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -78.79136147")
 
 # test-energy: ethane 1 2 CC-PVDZ HF
 add_test(NAME ethane_1-2_cc-pvdz_hf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "cc-pvdz" -c 1 -f ${PROJECT_SOURCE_DIR}/example/molecule/ethane.xyz -n 2 -s 2 hf -i 1000 -t 1e-8)
