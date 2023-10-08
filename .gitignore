@@ -1,10 +1,12 @@
-# links
+# root links
 /compile_commands.json
 /trajectory.xyz
-/molecule.xyz
 /movie.xyz
 /hazel.cpp
 /hazel
+
+# general links
+molecule.xyz
 
 # profiling
 /profile.txt
