@@ -464,7 +464,10 @@ class HamiltonianGenerator:
         """
 
         unique1, unique2, sign = det1.getUniqueOrbitalsInMixIndexListsPlusSign(det2)
+        # print(unique1[0], unique1[1], unique2[0], unique2[1], sign * self.antiSym2eInt[unique1[0], unique1[1], unique2[0], unique2[1]])
+        # return 0
         return sign * self.antiSym2eInt[unique1[0], unique1[1], unique2[0], unique2[1]]
+        # return 0
 
     def calcMatrixElementDiffIn1(self, det1, det2):
         """
@@ -480,6 +483,7 @@ class HamiltonianGenerator:
         for n in common:
             Relem += self.antiSym2eInt[m, n, p, n]
         return sign * (Helem + Relem)
+        # return 0
 
     def calcMatrixElementIdentialDet(self, det):
         """
