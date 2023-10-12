@@ -29,6 +29,10 @@ std::ostream& Eigen::operator<<(std::ostream& os, const Ten<5>& A) {
     os << Mat(Eigen::Map<const Mat>(A.data(), A.dimension(0) * A.dimension(2) * A.dimension(4), A.dimension(1) * A.dimension(3))); return os;
 }
 
+std::ostream& Eigen::operator<<(std::ostream& os, const Ten<6>& A) {
+    os << Mat(Eigen::Map<const Mat>(A.data(), A.dimension(0) * A.dimension(2) * A.dimension(4), A.dimension(1) * A.dimension(3) * A.dimension(5))); return os;
+}
+
 std::string Eigen::MemMatrix(const Mat& A) {
     size_t byte = A.rows() * A.cols() * sizeof(double); std::stringstream stream;
     if (byte >= 1e9) stream << std::fixed << std::setprecision(2) << std::setw(6) << std::setfill('0') << byte / 1e9 << "GB";

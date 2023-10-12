@@ -71,9 +71,36 @@ CI::ResultsRestricted CI::rcis(const System& system, const Tensor<4>& Jmo, bool)
 
     // find the eigenvalues and eigenvectors of the CI Hamiltonian and extract energies
     Eigen::SelfAdjointEigenSolver<Matrix> solver(H); Matrix C = solver.eigenvectors();
-    Vector eig = solver.eigenvalues().array() + ropt.rhfres.Enuc;
-    double Ecorr = eig(0) - ropt.rhfres.E;
+    Vector eps = solver.eigenvalues().array() + ropt.rhfres.Enuc;
+    double Ecorr = eps(0) - ropt.rhfres.E;
 
     // return the results
-    return {C, H, eig, Ecorr};
+    return {C, H, eps, Ecorr};
+}
+
+CI::ResultsRestricted CI::rfci(const System& system, const Matrix& Hms, const Tensor<4>& Jms, bool) const {
+    // get all the possible determinants
+    std::vector<Determinant> psis = system.det().full();
+
+    // print the number of determinants
+    std::cout << "\nCONSIDERING " << psis.size() << " DETERMINANTS" << std::endl;
+
+    // antisymetrize the coulomb tensor and convert to physicist notation
+    Tensor<4> Jmsap = Jms.shuffle(Array<4>{0, 2, 1, 3}) - Jms.shuffle(Array<4>{0, 2, 3, 1});
+
+    // fill the CI hamiltonian
+    Matrix H(psis.size(), psis.size());
+    for (int i = 0; i < H.rows(); i++) {
+        for (int j = 0; j < i + 1; j++) {
+            H(i, j) = psis.at(i).hamilton(psis.at(j), Hms, Jmsap); H(j, i) = H(i, j);
+        }
+    }
+
+    // find the eigenvalues and eigenvectors of the CI Hamiltonian and extract energies
+    Eigen::SelfAdjointEigenSolver<Matrix> solver(H); Matrix C = solver.eigenvectors();
+    Vector eps = solver.eigenvalues().array() + ropt.rhfres.Enuc;
+    double Ecorr = eps(0) - ropt.rhfres.E;
+
+    // return the results
+    return {C, H, eps, Ecorr};
 }

@@ -2,7 +2,7 @@
 
 #define TIME(W) {Timer::Timepoint start = Timer::Now(); W; std::cout << Timer::Format(Timer::Elapsed(start)) << std::flush;}
 
-Distributor::Distributor(int argc, char** argv) : parsers(12), program("hazel", "0.1", argparse::default_arguments::none), start(Timer::Now()) {
+Distributor::Distributor(int argc, char** argv) : parsers(13), program("hazel", "0.1", argparse::default_arguments::none), start(Timer::Now()) {
     // add level 1 parsers
     parsers.push_back(argparse::ArgumentParser("ints", "0.1", argparse::default_arguments::none)); program.add_subparser(parsers.at(parsers.size() - 1));
     parsers.push_back(argparse::ArgumentParser("scan", "0.1", argparse::default_arguments::none)); program.add_subparser(parsers.at(parsers.size() - 1));
@@ -14,6 +14,7 @@ Distributor::Distributor(int argc, char** argv) : parsers(12), program("hazel", 
     parsers.push_back(argparse::ArgumentParser("mp2", "0.1", argparse::default_arguments::none)); program.at<argparse::ArgumentParser>("hf").add_subparser(parsers.at(parsers.size() - 1));
     parsers.push_back(argparse::ArgumentParser("cis", "0.1", argparse::default_arguments::none)); program.at<argparse::ArgumentParser>("hf").add_subparser(parsers.at(parsers.size() - 1));
     parsers.push_back(argparse::ArgumentParser("cid", "0.1", argparse::default_arguments::none)); program.at<argparse::ArgumentParser>("hf").add_subparser(parsers.at(parsers.size() - 1));
+    parsers.push_back(argparse::ArgumentParser("fci", "0.1", argparse::default_arguments::none)); program.at<argparse::ArgumentParser>("hf").add_subparser(parsers.at(parsers.size() - 1));
 
     // add level 2 parsers
     parsers.push_back(argparse::ArgumentParser("hf", "0.1", argparse::default_arguments::none)); program.at<argparse::ArgumentParser>("scan").add_subparser(parsers.at(parsers.size() - 1));
@@ -68,6 +69,11 @@ Distributor::Distributor(int argc, char** argv) : parsers(12), program("hazel", 
     program.at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("cid").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
     program.at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("cid").add_argument("-p", "--print").help("-- Printing options.").default_value<std::vector<std::string>>({}).append();
     program.at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("cid").add_argument("-e", "--export").help("-- Export options.").default_value<std::vector<std::string>>({}).append();
+
+    // add positional arguments to the FCI argument parser
+    program.at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("fci").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
+    program.at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("fci").add_argument("-p", "--print").help("-- Printing options.").default_value<std::vector<std::string>>({}).append();
+    program.at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("fci").add_argument("-e", "--export").help("-- Export options.").default_value<std::vector<std::string>>({}).append();
 
     // add positional arguments to the SCAN argument parser
     program.at<argparse::ArgumentParser>("scan").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
@@ -129,6 +135,8 @@ Distributor::Distributor(int argc, char** argv) : parsers(12), program("hazel", 
         std::cout << program.at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("cis").help().str(); exit(EXIT_SUCCESS);
     } else if (program.is_subcommand_used("hf") && program.at<argparse::ArgumentParser>("hf").is_subcommand_used("cid") && program.at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("cid").get<bool>("-h")) {
         std::cout << program.at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("cid").help().str(); exit(EXIT_SUCCESS);
+    } else if (program.is_subcommand_used("hf") && program.at<argparse::ArgumentParser>("hf").is_subcommand_used("fci") && program.at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("fci").get<bool>("-h")) {
+        std::cout << program.at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("fci").help().str(); exit(EXIT_SUCCESS);
     } else if (program.is_subcommand_used("scan") && program.at<argparse::ArgumentParser>("scan").get<bool>("-h")) {
         std::cout << program.at<argparse::ArgumentParser>("scan").help().str(); exit(EXIT_SUCCESS);
     } else if (program.is_subcommand_used("scan") && program.at<argparse::ArgumentParser>("scan").is_subcommand_used("hf") && program.at<argparse::ArgumentParser>("scan").at<argparse::ArgumentParser>("hf").get<bool>("-h")) {
@@ -236,24 +244,30 @@ void Distributor::run() {
 
 void Distributor::rcirun(argparse::ArgumentParser& parser, const HF::ResultsRestricted& rhfres) {
     // print the CI method header and define J in MO basis
-    std::cout << "\n" + std::string(104, '-') + "\nCI CORRELATION ENERGY\n" << std::string(104, '-') + "\n"; Tensor<4> Jmo;
-    CI::ResultsRestricted rcires;
+    std::cout << "\n" + std::string(104, '-') + "\nCI CORRELATION ENERGY\n" << std::string(104, '-') + "\n";
+    Matrix Hms; Tensor<4> Jms; CI::ResultsRestricted rcires;
 
     // transform the coulomb tensor
-    std::cout << "\nCOULOMB TENSOR IN MO BASIS: " << std::flush; TIME(Jmo = Transform::Coulomb(system.ints.J, rhfres.C))
-    if (Utility::VectorContains(parser.get<std::vector<std::string>>("-p"), "jmo")) {std::cout << "\n" << Jmo;} std::cout << "\n";
-    if (Utility::VectorContains(parser.get<std::vector<std::string>>("-e"), "jmo")) Eigen::Write("JMO.mat", Jmo);
+    std::cout << "\nCOULOMB TENSOR IN MS BASIS: " << std::flush; TIME(Jms = Transform::CoulombSpin(system.ints.J, rhfres.C))
+    if (Utility::VectorContains(parser.get<std::vector<std::string>>("-p"), "jms")) {std::cout << "\n" << Jms << "\n";} std::cout << "\n";
+    if (Utility::VectorContains(parser.get<std::vector<std::string>>("-e"), "jms")) Eigen::Write("JMS.mat", Jms);
+    
+    // calculate the Hamiltonian in molecular sorbital basis
+    std::cout << "HAMILTONIAN IN MS BASIS: " << std::flush; TIME(Hms = Transform::OneelecSpin(system.ints.T + system.ints.V, rhfres.C));
+    if (Utility::VectorContains(parser.get<std::vector<std::string>>("-p"), "hms")) {std::cout << "\n" << Hms;} std::cout << "\n";
+    if (Utility::VectorContains(parser.get<std::vector<std::string>>("-e"), "hms")) Eigen::Write("HMS.mat", Hms);
 
     // do the calculation
-    if (program.at<argparse::ArgumentParser>("hf").is_subcommand_used("cis")) rcires = CI({rhfres}).rcis(system, Jmo);
-    if (program.at<argparse::ArgumentParser>("hf").is_subcommand_used("cid")) rcires = CI({rhfres}).rcid(system, Jmo);
+    if (program.at<argparse::ArgumentParser>("hf").is_subcommand_used("cis")) rcires = CI({rhfres}).rcis(system, Jms);
+    if (program.at<argparse::ArgumentParser>("hf").is_subcommand_used("cid")) rcires = CI({rhfres}).rcid(system, Jms);
+    if (program.at<argparse::ArgumentParser>("hf").is_subcommand_used("fci")) rcires = CI({rhfres}).rfci(system, Hms, Jms);
 
     // print/save the result matrices
     if (Utility::VectorContains(parser.get<std::vector<std::string>>("-p"), "cih")) std::cout << "\nCI HAMILTONIAN\n" << rcires.H << "\n";
     if (Utility::VectorContains(parser.get<std::vector<std::string>>("-p"), "cie")) std::cout << "\nCI ENERGIES\n" << Matrix(rcires.eig) << "\n";
     if (Utility::VectorContains(parser.get<std::vector<std::string>>("-p"), "cic")) std::cout << "\nCI EXPANSION COEFFICIENTS\n" << rcires.C << "\n";
     if (Utility::VectorContains(parser.get<std::vector<std::string>>("-e"), "cih")) Eigen::Write("CIH.mat", rcires.H);
-    if (Utility::VectorContains(parser.get<std::vector<std::string>>("-e"), "cie")) Eigen::Write("CIE.mat", Matrix(rcires.eig));
+    if (Utility::VectorContains(parser.get<std::vector<std::string>>("-e"), "cie")) Eigen::Write("CIEPS.mat", Matrix(rcires.eig));
     if (Utility::VectorContains(parser.get<std::vector<std::string>>("-e"), "cic")) Eigen::Write("CIC.mat", rcires.C);
 
     // print the gradient and norm
@@ -290,6 +304,7 @@ void Distributor::rhfrun(argparse::ArgumentParser& parser) {
     if (parser.is_subcommand_used("mp2")) rmp2run(parser.at<argparse::ArgumentParser>("mp2"), rhfres);
     if (parser.is_subcommand_used("cis")) rcirun(parser.at<argparse::ArgumentParser>("cis"), rhfres);
     if (parser.is_subcommand_used("cid")) rcirun(parser.at<argparse::ArgumentParser>("cid"), rhfres);
+    if (parser.is_subcommand_used("fci")) rcirun(parser.at<argparse::ArgumentParser>("fci"), rhfres);
 }
 
 void Distributor::rhff(argparse::ArgumentParser& parser, const HF::ResultsRestricted& rhfres) {

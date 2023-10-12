@@ -1,8 +1,8 @@
 #pragma once
 
-#include <chrono>
 #include <iomanip>
 #include <sstream>
+#include <chrono>
 #include <string>
 
 namespace Timer {

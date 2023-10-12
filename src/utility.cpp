@@ -1,5 +1,44 @@
 #include "utility.h"
 
+std::vector<std::vector<int>> Utility::Combinations(int n, int k) {
+    // get the number of combinations and create resulting array
+    std::vector<std::vector<int>> combs(Factorial(n) / (Factorial(k) * Factorial(n - k)));
+
+    // create the bitmask that will get permuted
+    std::string bitmask(k, 1); bitmask.resize(n, 0);
+ 
+    // generate the combinations
+    for (size_t i = 0; i < combs.size(); i++) {
+        for (int j = 0; j < n; j++) {
+            if (bitmask[j]) combs.at(i).push_back(j);
+        }
+        std::prev_permutation(bitmask.begin(), bitmask.end());
+    }
+
+    // return the result
+    return combs;
+}
+
+Matrix Utility::Repeat(const Matrix& M, int count, int axis) {
+    Matrix N(axis == 0 ? count * M.rows() : M.rows(), axis == 1 ? count * M.cols() : M.cols());
+    if (axis == 0) {
+        for (int i = 0; i < M.rows(); i++) {
+            for (int j = 0; j < count; j++) {
+                N.row(i * count + j) = M.row(i);
+            }
+        }
+    } else if (axis == 1) {
+        for (int i = 0; i < M.cols(); i++) {
+            for (int j = 0; j < count; j++) {
+                N.col(i * count + j) = M.col(i);
+            }
+        }
+    } else {
+        throw std::runtime_error("UNKNOWN AXIS IN MATRIX REPEAT");
+    }
+    return N;
+}
+
 void Utility::SaveWavefunction(const std::string& fname, const CVector& r, const std::vector<std::vector<CVector>>& wfn, const Vector& energy) {
     int size = 0;
     for (size_t i = 0; i < wfn.size(); i++) {

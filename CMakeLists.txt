@@ -54,7 +54,7 @@ endif()
 unset(GOMP CACHE)
 
 # add hazel executable
-add_executable(hazel src/ci.cpp src/distributor.cpp src/eigen.cpp src/gradient.cpp src/hessian.cpp src/hf.cpp src/integral.cpp src/lambda.cpp src/main.cpp src/md.cpp src/mp.cpp src/optimizer.cpp src/qd.cpp src/system.cpp src/timer.cpp src/transform.cpp src/utility.cpp)
+add_executable(hazel src/ci.cpp src/determinant.cpp src/distributor.cpp src/eigen.cpp src/gradient.cpp src/hessian.cpp src/hf.cpp src/integral.cpp src/lambda.cpp src/main.cpp src/md.cpp src/mp.cpp src/optimizer.cpp src/qd.cpp src/system.cpp src/timer.cpp src/transform.cpp src/utility.cpp)
 target_compile_definitions(hazel PRIVATE CXXFLAGS="${CXXFLAGS}" DATADIR="${PROJECT_SOURCE_DIR}")
 target_link_libraries(hazel Eigen3::Eigen)
 

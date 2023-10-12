@@ -8,7 +8,7 @@ HF::ResultsRestricted HF::rscf(const System& system, Matrix D, bool print) const
     Eigen::IndexPair<int> first(2, 0), second(3, 1);
 
     // calculate the Fock matrix
-    if (system.ints.J.size()) F = H + toMatrix(ERI.contract(toTensor(D), Axes<2>{first, second}));
+    if (system.ints.J.size()) F = H + toMatrix(Tensor<2>(ERI.contract(toTensor(D), Axes<2>{first, second})));
     else F = H + Integral::Coulomb(system, D);
 
     // calculate the energy
@@ -23,7 +23,7 @@ HF::ResultsRestricted HF::rscf(const System& system, Matrix D, bool print) const
         Timer::Timepoint start = Timer::Now();
         
         // calculate the Fock matrix
-        if (system.ints.J.size()) F = H + toMatrix(ERI.contract(toTensor(D), Axes<2>{first, second}));
+        if (system.ints.J.size()) F = H + toMatrix(Tensor<2>(ERI.contract(toTensor(D), Axes<2>{first, second})));
         else F = H + Integral::Coulomb(system, D);
 
         // exrapolate the fock matrix
@@ -60,12 +60,6 @@ HF::ResultsRestricted HF::rscf(const System& system, Matrix D, bool print) const
 }
 
 HF::ResultsUnrestricted HF::uscf(const System& system, Matrix D, bool print) const {
-    // calculate integrals if not provided
-    if (!system.ints.J.size() && !uopt.nocoulomb) const_cast<System&>(system).ints.J = Integral::Coulomb(system);
-    if (!system.ints.S.size()) const_cast<System&>(system).ints.S = Integral::Overlap(system);
-    if (!system.ints.T.size()) const_cast<System&>(system).ints.T = Integral::Kinetic(system);
-    if (!system.ints.V.size()) const_cast<System&>(system).ints.V = Integral::Nuclear(system);
-
     // create all the necessary matrices, calculate K
     Tensor<4> K = system.ints.J.shuffle(Array<4>{0, 3, 2, 1}); Matrix Da = D, Db = D;
     Matrix H = system.ints.T + system.ints.V, Ca, Cb, Fa, Fb; Vector epsa, epsb;
@@ -80,10 +74,10 @@ HF::ResultsUnrestricted HF::uscf(const System& system, Matrix D, bool print) con
     int nb = (system.electrons - system.multi + 1) / 2;
 
     // create coulomb and exchange matrices for both spins
-    Matrix Ja = toMatrix(system.ints.J.contract(toTensor(Da), Axes<2>{first, second}));
-    Matrix Jb = toMatrix(system.ints.J.contract(toTensor(Db), Axes<2>{first, second}));
-    Matrix Ka = toMatrix(K.contract(toTensor(Da), Axes<2>{first, second}));
-    Matrix Kb = toMatrix(K.contract(toTensor(Db), Axes<2>{first, second}));
+    Matrix Ja = toMatrix(Tensor<2>(system.ints.J.contract(toTensor(Da), Axes<2>{first, second})));
+    Matrix Jb = toMatrix(Tensor<2>(system.ints.J.contract(toTensor(Db), Axes<2>{first, second})));
+    Matrix Ka = toMatrix(Tensor<2>(K.contract(toTensor(Da), Axes<2>{first, second})));
+    Matrix Kb = toMatrix(Tensor<2>(K.contract(toTensor(Db), Axes<2>{first, second})));
 
     // calculate the Fock matrix for alpha electrons
     if (system.ints.J.size()) Fa = H + 0.5 * (Ja + Jb - Ka);
@@ -105,10 +99,10 @@ HF::ResultsUnrestricted HF::uscf(const System& system, Matrix D, bool print) con
         Timer::Timepoint start = Timer::Now();
 
         // create coulomb and exchange matrices for both spins
-        Ja = toMatrix(system.ints.J.contract(toTensor(Da), Axes<2>{first, second}));
-        Jb = toMatrix(system.ints.J.contract(toTensor(Db), Axes<2>{first, second}));
-        Ka = toMatrix(K.contract(toTensor(Da), Axes<2>{first, second}));
-        Kb = toMatrix(K.contract(toTensor(Db), Axes<2>{first, second}));
+        Ja = toMatrix(Tensor<2>(system.ints.J.contract(toTensor(Da), Axes<2>{first, second})));
+        Jb = toMatrix(Tensor<2>(system.ints.J.contract(toTensor(Db), Axes<2>{first, second})));
+        Ka = toMatrix(Tensor<2>(K.contract(toTensor(Da), Axes<2>{first, second})));
+        Kb = toMatrix(Tensor<2>(K.contract(toTensor(Db), Axes<2>{first, second})));
         
         // calculate the Fock matrix for alpha electrons
         if (system.ints.J.size()) Fa = H + 0.5 * (Ja + Jb - Ka);

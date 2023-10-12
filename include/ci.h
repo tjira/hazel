@@ -14,8 +14,9 @@ public:
     CI(const OptionsRestricted& ropt) : ropt(ropt) {}
 
     // order methods
-    ResultsRestricted rcid(const System& system, const Tensor<4>& Jmo, bool print = true) const;
-    ResultsRestricted rcis(const System& system, const Tensor<4>& Jmo, bool print = true) const;
+    ResultsRestricted rcid(const System& system, const Tensor<4>& Jms, bool print = true) const;
+    ResultsRestricted rcis(const System& system, const Tensor<4>& Jms, bool print = true) const;
+    ResultsRestricted rfci(const System& system, const Matrix& Hms, const Tensor<4>& Jms, bool print = true) const;
 
 private:
     OptionsRestricted ropt;

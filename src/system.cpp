@@ -43,6 +43,10 @@ System& System::clearints() {
     ints = {}, dints = {}; return *this;
 }
 
+Determinant System::det() const {
+    return Determinant(ints.S.cols(), (electrons + multi - 1) / 2, (electrons - multi + 1) / 2);
+}
+
 void System::move(const Matrix& dir) {
     // shift the atoms
     for (size_t i = 0; i < atoms.size(); i++) {

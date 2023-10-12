@@ -78,6 +78,33 @@ Tensor<4> Transform::Coulomb(const Tensor<4>& J, const Matrix& C) {
     return Jmo;
 }
 
+Tensor<4> Kron(Matrix A, Tensor<4> B) {
+    Tensor<4> C(B.dimension(0), B.dimension(1), A.rows() * B.dimension(2), A.cols() * B.dimension(3)); C.setZero();
+    for (int i = 0; i < C.dimension(0); i++) {
+        for (int j = 0; j < C.dimension(1); j++) {
+            for (int k = 0; k < C.dimension(2); k++) {
+                for (int l = 0; l < C.dimension(3); l++) {
+                    C(i, j, k, l) = A(k / B.dimension(2), l / B.dimension(3)) * B(i, j, k % B.dimension(2), l % B.dimension(3));
+                }
+            }
+        }
+    }
+    return C;
+}
+
+Tensor<4> Transform::CoulombSpin(const Tensor<4>& J, const Matrix& C) {
+    // create the spin indices
+    Vector ind(2 * C.rows()); std::iota(ind.begin(), ind.end(), 0); ind = ind.unaryExpr([](auto s) {return double(int(s) % 2);});
+    BMatrix indm(ind.size(), ind.size()); for (int i = 0; i < ind.size(); i++) indm.row(i) = ind.transpose().array() == ind(i);
+
+    // coefficients in MS and coulomb tensor in AS basis
+    Matrix Cs = Utility::Repeat(C, 2, 1).replicate<2, 1>().array() * Utility::Repeat(indm.cast<double>(), C.rows(), 0).topRows(indm.rows()).array();
+    Tensor<4> Js = Eigen::Kron<4>(Matrix::Identity(2, 2), Eigen::Kron<4>(Matrix::Identity(2, 2), J).shuffle(Array<4>{3, 2, 1, 0}));
+
+    // return coulomb tensor in MS
+    return Coulomb(Js, Cs);
+}
+
 Matrix Transform::Oneelec(const Matrix& A, const Matrix& C) {
     // create the transformed matrix
     Matrix Amo(A.rows(), A.cols());
@@ -95,4 +122,16 @@ Matrix Transform::Oneelec(const Matrix& A, const Matrix& C) {
 
     // return the transformed matrix
     return Amo;
+}
+
+Matrix Transform::OneelecSpin(const Matrix& A, const Matrix& C) {
+    // expand the dimentsions of the MO basis matrix
+    Matrix Ams = Utility::Repeat(Utility::Repeat(Transform::Oneelec(A, C), 2, 0), 2, 1);
+
+    // create the spin indices
+    Vector ind(Ams.rows()); std::iota(ind.begin(), ind.end(), 0); ind = ind.unaryExpr([](auto s) {return double(int(s) % 2);});
+    BMatrix indm(ind.size(), ind.size()); for (int i = 0; i < ind.size(); i++) indm.row(i) = ind.transpose().array() == ind(i);
+
+    // element wise multiply and return
+    return Ams.array() * indm.cast<double>().array();
 }
