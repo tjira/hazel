@@ -6,16 +6,16 @@ Determinant::Determinant(int norb, int nocca, int noccb) : a(nocca), b(noccb), n
 
 Determinant::Determinant(int norb, const std::vector<int>& a, const std::vector<int>& b) : a(a), b(b), norb(norb) {}
 
-std::ostream& operator<<(std::ostream& os, const Determinant& det) {
+std::ostream& operator<<(std::ostream& os, const Determinant& second) {
     os << "|(";
-    for (size_t i = 0; i < det.a.size(); i++) {
-        if (i == det.a.size() - 1) os << det.a.at(i);
-        else os << det.a.at(i) << ",";
+    for (size_t i = 0; i < second.a.size(); i++) {
+        if (i == second.a.size() - 1) os << second.a.at(i);
+        else os << second.a.at(i) << ",";
     }
     os << "),(";
-    for (size_t i = 0; i < det.b.size(); i++) {
-        if (i == det.b.size() - 1) os << det.b.at(i);
-        else os << det.b.at(i) << ",";
+    for (size_t i = 0; i < second.b.size(); i++) {
+        if (i == second.b.size() - 1) os << second.b.at(i);
+        else os << second.b.at(i) << ",";
     }
     os << ")>";
     return os;
@@ -31,71 +31,77 @@ std::vector<Determinant> Determinant::full() const {
     return full;
 }
 
-double Determinant::hamilton(const Determinant& det, const Matrix& Hms, const Tensor<4>& Jms) const {
+double Determinant::hamilton(const Determinant& second, const Matrix& Hms, const Tensor<4>& Jms) const {
     // create all needed variables
-    std::vector<std::vector<int>> exc; int swaps = 0, diff = 0; double elem = 0;
-    std::vector<int> SOorig, SOdet, common; Determinant orig(*this);
+    int swaps = 0, diff = 0; double elem = 0; Determinant first(*this);
+    std::vector<int> firstso, secondso, common, unique;
     
-    // align the alpha electron in determinants
-    for (size_t i = 0; i < orig.a.size(); i++) {
-        if (orig.a.at(i) != det.a.at(i)) {
-            for (size_t j = i + 1; j < a.size(); j++) {
-                if (orig.a.at(i) == det.a.at(j)) {
-                    std::swap(orig.a.at(i), orig.a.at(j)), swaps++, i = -1; break;
+    // align the alpha electron in seterminants
+    for (size_t i = 0; i < first.a.size(); i++) {
+        if (first.a.at(i) != second.a.at(i)) {
+            for (size_t j = 0; j < a.size(); j++) {
+                if (first.a.at(i) == second.a.at(j)) {
+                    std::swap(first.a.at(i), first.a.at(j)), swaps++;
                 }
             }
         }
     }
 
     // align the beta electron in determinants
-    for (size_t i = 0; i < orig.b.size(); i++) {
-        if (orig.b.at(i) != det.b.at(i)) {
-            for (size_t j = i + 1; j < b.size(); j++) {
-                if (orig.b.at(i) == det.b.at(j)) {
-                    std::swap(orig.b.at(i), orig.b.at(j)), swaps++, i = -1; break;;
+    for (size_t i = 0; i < first.b.size(); i++) {
+        if (first.b.at(i) != second.b.at(i)) {
+            for (size_t j = 0; j < b.size(); j++) {
+                if (first.b.at(i) == second.b.at(j)) {
+                    std::swap(first.b.at(i), first.b.at(j)), swaps++;
                 }
             }
         }
     }
 
-    // fill the spinorbitals of the original determinant
-    for (int i = 0; i < orig.b.size(); i++) SOorig.push_back(2 * orig.b.at(i) + 1);
-    for (int i = 0; i < orig.a.size(); i++) SOorig.push_back(2 * orig.a.at(i));
+    // fill the spinorbitals of the firstinal determinant
+    for (size_t i = 0; i < first.b.size(); i++) firstso.push_back(2 * first.b.at(i) + 1);
+    for (size_t i = 0; i < first.a.size(); i++) firstso.push_back(2 * first.a.at(i));
 
     // fill the spinorbitals of the second determinant
-    for (int i = 0; i < det.b.size(); i++) SOdet.push_back(2 * det.b.at(i) + 1);
-    for (int i = 0; i < det.a.size(); i++) SOdet.push_back(2 * det.a.at(i));
+    for (size_t i = 0; i < second.b.size(); i++) secondso.push_back(2 * second.b.at(i) + 1);
+    for (size_t i = 0; i < second.a.size(); i++) secondso.push_back(2 * second.a.at(i));
 
     // fill in the common orbitals
-    for (int i = 0; i < SOorig.size(); i++) if (SOorig.at(i) == SOdet.at(i)) common.push_back(SOorig.at(i));
+    for (size_t i = 0; i < firstso.size(); i++) if (firstso.at(i) == secondso.at(i)) common.push_back(firstso.at(i));
 
     // get the number of different spinorbitals
-    for (int i = 0; i < orig.a.size(); i++) if (orig.a.at(i) != det.a.at(i)) diff++;
-    for (int i = 0; i < orig.b.size(); i++) if (orig.b.at(i) != det.b.at(i)) diff++;
+    for (size_t i = 0; i < first.a.size(); i++) if (first.a.at(i) != second.a.at(i)) diff++;
+    for (size_t i = 0; i < first.b.size(); i++) if (first.b.at(i) != second.b.at(i)) diff++;
 
-    // extract excitations and make sure to convert spatial orbital to spinorbital
-    for (int i = 0; i < orig.b.size(); i++) if (orig.b.at(i) > det.b.at(i)) exc.push_back({2 * det.b.at(i) + 1, 2 * orig.b.at(i) + 1});
-    for (int i = 0; i < orig.b.size(); i++) if (orig.b.at(i) < det.b.at(i)) exc.push_back({2 * orig.b.at(i) + 1, 2 * det.b.at(i) + 1});
-    for (int i = 0; i < orig.a.size(); i++) if (orig.a.at(i) > det.a.at(i)) exc.push_back({2 * det.a.at(i), 2 * orig.a.at(i)});
-    for (int i = 0; i < orig.a.size(); i++) if (orig.a.at(i) < det.a.at(i)) exc.push_back({2 * orig.a.at(i), 2 * det.a.at(i)});
+    // et number of unique orbitals
+    for (size_t i = 0; i < firstso.size(); i++) {
+        if (std::find(secondso.begin(), secondso.end(), firstso.at(i)) == secondso.end()) {
+            unique.push_back(firstso.at(i));
+        }
+    }
+    for (size_t i = 0; i < secondso.size(); i++) {
+        if (std::find(firstso.begin(), firstso.end(), secondso.at(i)) == firstso.end()) {
+            unique.push_back(secondso.at(i));
+        }
+    }
 
     // assign the matrix element
     if (diff == 0) {
-        for (int so : SOorig) elem += Hms(so, so);
-        for (size_t i = 0; i < SOorig.size(); i++) {
-            for (size_t j = i + 1; j < SOorig.size(); j++) {
-                elem += Jms(SOorig.at(i), SOorig.at(j), SOorig.at(i), SOorig.at(j));
+        for (int so : firstso) elem += Hms(so, so);
+        for (size_t i = 0; i < firstso.size(); i++) {
+            for (size_t j = i + 1; j < firstso.size(); j++) {
+                elem += Jms(firstso.at(i), firstso.at(j), firstso.at(i), firstso.at(j));
             }
         }
     } else if (diff == 1) {
-        elem += Hms(exc.at(0).at(0), exc.at(0).at(1));
+        elem += Hms(unique.at(0), unique.at(1));
         for (int so : common) {
-            elem += Jms(exc.at(0).at(0), so, exc.at(0).at(1), so);
+            elem += Jms(unique.at(0), so, unique.at(1), so);
         }
     } else if (diff == 2) {
-        elem = Jms(exc.at(0).at(1), exc.at(1).at(1), exc.at(0).at(0), exc.at(1).at(0));
+        elem = Jms(unique.at(0), unique.at(1), unique.at(2), unique.at(3));
     }
 
-    // return the matrix element
+    // return diff;
     return std::pow(-1, swaps) * elem;
 }
