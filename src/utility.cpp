@@ -19,6 +19,17 @@ std::vector<std::vector<int>> Utility::Combinations(int n, int k) {
     return combs;
 }
 
+std::vector<int> Utility::Common(const std::vector<int>& first, const std::vector<int>& second) {
+    // create the container
+    std::vector<int> common;
+
+    // fill the container
+    for (size_t i = 0; i < first.size(); i++) if (first.at(i) == second.at(i)) common.push_back(first.at(i));
+
+    // return the container
+    return common;
+}
+
 Matrix Utility::Repeat(const Matrix& M, int count, int axis) {
     Matrix N(axis == 0 ? count * M.rows() : M.rows(), axis == 1 ? count * M.cols() : M.cols());
     if (axis == 0) {
@@ -63,4 +74,16 @@ void Utility::SaveWavefunction(const std::string& fname, const CVector& r, const
             file << "\n";
         }
     }
+}
+
+std::vector<int> Utility::Unique(const std::vector<int>& first, const std::vector<int>& second) {
+    // create the container
+    std::vector<int> unique;
+
+    // fill the container
+    for (size_t i = 0; i < second.size(); i++) if (!VectorContains(first, second.at(i))) unique.push_back(second.at(i));
+    for (size_t i = 0; i < first.size(); i++) if (!VectorContains(second, first.at(i))) unique.push_back(first.at(i));
+
+    // return the container
+    return unique;
 }

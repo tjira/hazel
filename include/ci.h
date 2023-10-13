@@ -14,10 +14,15 @@ public:
     CI(const OptionsRestricted& ropt) : ropt(ropt) {}
 
     // order methods
-    ResultsRestricted rcid(const System& system, const Tensor<4>& Jms, bool print = true) const;
-    ResultsRestricted rcis(const System& system, const Tensor<4>& Jms, bool print = true) const;
+    ResultsRestricted rcisd(const System& system, const Matrix& Hms, const Tensor<4>& Jms, bool print = true) const;
+    ResultsRestricted rcid(const System& system, const Matrix& Hms, const Tensor<4>& Jms, bool print = true) const;
+    ResultsRestricted rcis(const System& system, const Matrix& Hms, const Tensor<4>& Jms, bool print = true) const;
     ResultsRestricted rfci(const System& system, const Matrix& Hms, const Tensor<4>& Jms, bool print = true) const;
 
 private:
+    // private functions
+    ResultsRestricted rsolve(const std::vector<Determinant>& dets, const Matrix& Hms, const Tensor<4>& Jms, bool print = true) const;
+
+    // private variables
     OptionsRestricted ropt;
 };

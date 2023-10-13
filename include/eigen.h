@@ -51,7 +51,6 @@ namespace Eigen {
 inline Tensor<2> toTensor(Matrix A) {return Eigen::TensorMap<Tensor<2>>(A.data(), A.rows(), A.cols());}
 inline Tensor<1> toTensor(Vector A) {return Eigen::TensorMap<Tensor<1>>(A.data(), A.size());}
 
-inline Matrix toMatrix(Tensor<4> A) {return Eigen::Map<Matrix>(A.data(), A.dimension(0) * A.dimension(2), A.dimension(1) * A.dimension(3));}
 inline Matrix toMatrix(Tensor<2> A) {return Eigen::Map<Matrix>(A.data(), A.dimension(0), A.dimension(1));}
 inline Vector toVector(Tensor<1> A) {return Eigen::Map<Vector>(A.data(), A.dimension(0));}
 
