@@ -6,6 +6,7 @@ class CI {
 public:
     struct OptionsRestricted {
         HF::ResultsRestricted rhfres;
+        std::vector<int> excits;
     };
     struct ResultsRestricted {
         Matrix C, H; Vector eig; double Ecorr;
@@ -14,10 +15,8 @@ public:
     CI(const OptionsRestricted& ropt) : ropt(ropt) {}
 
     // order methods
-    ResultsRestricted rcisd(const System& system, const Matrix& Hms, const Tensor<4>& Jms, bool print = true) const;
-    ResultsRestricted rcid(const System& system, const Matrix& Hms, const Tensor<4>& Jms, bool print = true) const;
-    ResultsRestricted rcis(const System& system, const Matrix& Hms, const Tensor<4>& Jms, bool print = true) const;
     ResultsRestricted rfci(const System& system, const Matrix& Hms, const Tensor<4>& Jms, bool print = true) const;
+    ResultsRestricted rci(const System& system, const Matrix& Hms, const Tensor<4>& Jms, bool print = true) const;
 
 private:
     // private functions

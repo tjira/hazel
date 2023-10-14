@@ -42,18 +42,17 @@ Below are all the important features of Hazel divided into categories.
 * Møller–Plesset Perturbation Theory
 * Full Configuration Interaction
 
-### Convergence Accelerators
-
-* Direct Inversion in the Iterative Subspace
-
 ### Additional Calculations
 
-* Numerical Hessians and Frequency Analysis for HF and MP2
-* Gradients for HF (Analytical) and MP2 (Numerical)
-* HF and RMP2 Steepest Descent Optimization
+* Gradients, Hessians and Frequency Analysis
+* Steepest Descent Optimization
 * Potential Energy Surface Scan
 * Exact Quantum Dyamics
 * Molecular Dynamics
+
+### Convergence Accelerators
+
+* Direct Inversion in the Iterative Subspace
 
 ## 🛠️ Compilation
 
