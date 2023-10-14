@@ -2,7 +2,7 @@
 
 #define TIME(W) {Timer::Timepoint start = Timer::Now(); W; std::cout << Timer::Format(Timer::Elapsed(start)) << std::flush;}
 
-Distributor::Distributor(int argc, char** argv) : parsers(15), program("hazel", "0.1", argparse::default_arguments::none), start(Timer::Now()) {
+Distributor::Distributor(int argc, char** argv) : parsers(25), program("hazel", "0.1", argparse::default_arguments::none), start(Timer::Now()) {
     // add level 1 parsers
     parsers.push_back(argparse::ArgumentParser("ints", "0.1", argparse::default_arguments::none)); program.add_subparser(parsers.at(parsers.size() - 1));
     parsers.push_back(argparse::ArgumentParser("scan", "0.1", argparse::default_arguments::none)); program.add_subparser(parsers.at(parsers.size() - 1));
@@ -23,8 +23,19 @@ Distributor::Distributor(int argc, char** argv) : parsers(15), program("hazel", 
     parsers.push_back(argparse::ArgumentParser("hf", "0.1", argparse::default_arguments::none)); program.at<argparse::ArgumentParser>("md").add_subparser(parsers.at(parsers.size() - 1));
 
     // add level 3 parsers
+    parsers.push_back(argparse::ArgumentParser("cisd", "0.1", argparse::default_arguments::none)); program.at<argparse::ArgumentParser>("scan").at<argparse::ArgumentParser>("hf").add_subparser(parsers.at(parsers.size() - 1));
     parsers.push_back(argparse::ArgumentParser("mp2", "0.1", argparse::default_arguments::none)); program.at<argparse::ArgumentParser>("scan").at<argparse::ArgumentParser>("hf").add_subparser(parsers.at(parsers.size() - 1));
+    parsers.push_back(argparse::ArgumentParser("cis", "0.1", argparse::default_arguments::none)); program.at<argparse::ArgumentParser>("scan").at<argparse::ArgumentParser>("hf").add_subparser(parsers.at(parsers.size() - 1));
+    parsers.push_back(argparse::ArgumentParser("cid", "0.1", argparse::default_arguments::none)); program.at<argparse::ArgumentParser>("scan").at<argparse::ArgumentParser>("hf").add_subparser(parsers.at(parsers.size() - 1));
+    parsers.push_back(argparse::ArgumentParser("fci", "0.1", argparse::default_arguments::none)); program.at<argparse::ArgumentParser>("scan").at<argparse::ArgumentParser>("hf").add_subparser(parsers.at(parsers.size() - 1));
+    parsers.push_back(argparse::ArgumentParser("ci", "0.1", argparse::default_arguments::none)); program.at<argparse::ArgumentParser>("scan").at<argparse::ArgumentParser>("hf").add_subparser(parsers.at(parsers.size() - 1));
+
     parsers.push_back(argparse::ArgumentParser("mp2", "0.1", argparse::default_arguments::none)); program.at<argparse::ArgumentParser>("md").at<argparse::ArgumentParser>("hf").add_subparser(parsers.at(parsers.size() - 1));
+    parsers.push_back(argparse::ArgumentParser("cisd", "0.1", argparse::default_arguments::none)); program.at<argparse::ArgumentParser>("md").at<argparse::ArgumentParser>("hf").add_subparser(parsers.at(parsers.size() - 1));
+    parsers.push_back(argparse::ArgumentParser("cis", "0.1", argparse::default_arguments::none)); program.at<argparse::ArgumentParser>("md").at<argparse::ArgumentParser>("hf").add_subparser(parsers.at(parsers.size() - 1));
+    parsers.push_back(argparse::ArgumentParser("cid", "0.1", argparse::default_arguments::none)); program.at<argparse::ArgumentParser>("md").at<argparse::ArgumentParser>("hf").add_subparser(parsers.at(parsers.size() - 1));
+    parsers.push_back(argparse::ArgumentParser("fci", "0.1", argparse::default_arguments::none)); program.at<argparse::ArgumentParser>("md").at<argparse::ArgumentParser>("hf").add_subparser(parsers.at(parsers.size() - 1));
+    parsers.push_back(argparse::ArgumentParser("ci", "0.1", argparse::default_arguments::none)); program.at<argparse::ArgumentParser>("md").at<argparse::ArgumentParser>("hf").add_subparser(parsers.at(parsers.size() - 1));
     
     // add positional arguments to the main argument parser
     program.add_argument("-b", "--basis").help("-- Basis set used to approximate atomic orbitals.").default_value(std::string("STO-3G"));
@@ -116,6 +127,22 @@ Distributor::Distributor(int argc, char** argv) : parsers(15), program("hazel", 
     // add positional arguments to the SCAN MP2 argument parser
     program.at<argparse::ArgumentParser>("scan").at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("mp2").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
 
+    // add positional arguments to the SCAN CI argument parser
+    program.at<argparse::ArgumentParser>("scan").at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("ci").add_argument("excitations").help("-- Help message.").nargs(argparse::nargs_pattern::at_least_one).scan<'i', int>();
+    program.at<argparse::ArgumentParser>("scan").at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("ci").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
+
+    // add positional arguments to the SCAN CIS argument parser
+    program.at<argparse::ArgumentParser>("scan").at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("cis").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
+
+    // add positional arguments to the SCAN CID argument parser
+    program.at<argparse::ArgumentParser>("scan").at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("cid").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
+
+    // add positional arguments to the SCAN CISD argument parser
+    program.at<argparse::ArgumentParser>("scan").at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("cisd").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
+
+    // add positional arguments to the SCAN FCI argument parser
+    program.at<argparse::ArgumentParser>("scan").at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("fci").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
+
     // add positional arguments to the QD argument parser
     program.at<argparse::ArgumentParser>("qd").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
     program.at<argparse::ArgumentParser>("qd").add_argument("-s", "--step").help("-- MD time step in atomic units.").default_value(0.1).scan<'g', double>();
@@ -142,6 +169,27 @@ Distributor::Distributor(int argc, char** argv) : parsers(15), program("hazel", 
     // add positional arguments to the MD MP2 argument parser
     program.at<argparse::ArgumentParser>("md").at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("mp2").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
     program.at<argparse::ArgumentParser>("md").at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("mp2").add_argument("-g", "--gradient").help("-- Analytical (0) or numerical (1) gradient calculation with step size.").default_value(std::vector<double>{0, 1e-5}).nargs(2).scan<'g', double>();
+
+    // add positional arguments to the MD CI argument parser
+    program.at<argparse::ArgumentParser>("md").at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("ci").add_argument("excitations").help("-- Help message.").nargs(argparse::nargs_pattern::at_least_one).scan<'i', int>();
+    program.at<argparse::ArgumentParser>("md").at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("ci").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
+    program.at<argparse::ArgumentParser>("md").at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("ci").add_argument("-g", "--gradient").help("-- Analytical (0) or numerical (1) gradient calculation with step size.").default_value(std::vector<double>{0, 1e-5}).nargs(2).scan<'g', double>();
+
+    // add positional arguments to the MD CIS argument parser
+    program.at<argparse::ArgumentParser>("md").at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("cis").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
+    program.at<argparse::ArgumentParser>("md").at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("cis").add_argument("-g", "--gradient").help("-- Analytical (0) or numerical (1) gradient calculation with step size.").default_value(std::vector<double>{0, 1e-5}).nargs(2).scan<'g', double>();
+
+    // add positional arguments to the MD CID argument parser
+    program.at<argparse::ArgumentParser>("md").at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("cid").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
+    program.at<argparse::ArgumentParser>("md").at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("cid").add_argument("-g", "--gradient").help("-- Analytical (0) or numerical (1) gradient calculation with step size.").default_value(std::vector<double>{0, 1e-5}).nargs(2).scan<'g', double>();
+
+    // add positional arguments to the MD CISD argument parser
+    program.at<argparse::ArgumentParser>("md").at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("cisd").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
+    program.at<argparse::ArgumentParser>("md").at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("cisd").add_argument("-g", "--gradient").help("-- Analytical (0) or numerical (1) gradient calculation with step size.").default_value(std::vector<double>{0, 1e-5}).nargs(2).scan<'g', double>();
+
+    // add positional arguments to the MD FCI argument parser
+    program.at<argparse::ArgumentParser>("md").at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("fci").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
+    program.at<argparse::ArgumentParser>("md").at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("fci").add_argument("-g", "--gradient").help("-- Analytical (0) or numerical (1) gradient calculation with step size.").default_value(std::vector<double>{0, 1e-5}).nargs(2).scan<'g', double>();
 
     // parse the arguments
     try {
@@ -677,6 +725,16 @@ void Distributor::scan(argparse::ArgumentParser& parser) {
         efunc = Lambda::EHF(rhfopt, Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
         if (parser.at<argparse::ArgumentParser>("hf").is_subcommand_used("mp2")) {
             efunc = Lambda::EMP2(rhfopt, Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
+        } else if (parser.at<argparse::ArgumentParser>("hf").is_subcommand_used("ci")) {
+            efunc = Lambda::ECI(rhfopt, {{}, program.at<argparse::ArgumentParser>("scan").at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("ci").get<std::vector<int>>("excitations")}, Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
+        } else if (parser.at<argparse::ArgumentParser>("hf").is_subcommand_used("cis")) {
+            efunc = Lambda::ECI(rhfopt, {{}, {1}}, Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
+        } else if (parser.at<argparse::ArgumentParser>("hf").is_subcommand_used("cid")) {
+            efunc = Lambda::ECI(rhfopt, {{}, {2}}, Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
+        } else if (parser.at<argparse::ArgumentParser>("hf").is_subcommand_used("cisd")) {
+            efunc = Lambda::ECI(rhfopt, {{}, {1, 2}}, Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
+        } else if (parser.at<argparse::ArgumentParser>("hf").is_subcommand_used("fci")) {
+            efunc = Lambda::ECI(rhfopt, {{}, {}}, Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
         }
     } else if (parser.is_subcommand_used("hf") && program.get<int>("-s") != 1) {
         efunc = Lambda::EHF(uhfopt, Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
@@ -728,11 +786,31 @@ void Distributor::dynamics(argparse::ArgumentParser& parser) {
         egfunc = Lambda::EGHF(rhfopt, parser.at<argparse::ArgumentParser>("hf").get<std::vector<double>>("-g"), Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
         if (parser.at<argparse::ArgumentParser>("hf").is_subcommand_used("mp2")) {
             egfunc = Lambda::EGMP2(rhfopt, parser.at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("mp2").get<std::vector<double>>("-g"), Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
+        } else if (parser.at<argparse::ArgumentParser>("hf").is_subcommand_used("ci")) {
+            egfunc = Lambda::EGCI(rhfopt, {{}, program.at<argparse::ArgumentParser>("scan").at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("ci").get<std::vector<int>>("excitations")}, parser.at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("ci").get<std::vector<double>>("-g"), Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
+        } else if (parser.at<argparse::ArgumentParser>("hf").is_subcommand_used("cis")) {
+            egfunc = Lambda::EGCI(rhfopt, {{}, {1}}, parser.at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("cis").get<std::vector<double>>("-g"), Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
+        } else if (parser.at<argparse::ArgumentParser>("hf").is_subcommand_used("cid")) {
+            egfunc = Lambda::EGCI(rhfopt, {{}, {2}}, parser.at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("cid").get<std::vector<double>>("-g"), Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
+        } else if (parser.at<argparse::ArgumentParser>("hf").is_subcommand_used("cisd")) {
+            egfunc = Lambda::EGCI(rhfopt, {{}, {1, 2}}, parser.at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("cisd").get<std::vector<double>>("-g"), Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
+        } else if (parser.at<argparse::ArgumentParser>("hf").is_subcommand_used("fci")) {
+            egfunc = Lambda::EGCI(rhfopt, {{}, {}}, parser.at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("fci").get<std::vector<double>>("-g"), Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
         }
     } else if (parser.is_subcommand_used("hf") && program.get<int>("-s") != 1) {
         egfunc = Lambda::EGHF(uhfopt, parser.at<argparse::ArgumentParser>("hf").get<std::vector<double>>("-g"), Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
         if (parser.at<argparse::ArgumentParser>("hf").is_subcommand_used("mp2")) {
             throw std::runtime_error("UMP2 NOT IMPLEMENTED");
+        } else if (parser.at<argparse::ArgumentParser>("hf").is_subcommand_used("ci")) {
+            throw std::runtime_error("UCI NOT IMPLEMENTED");
+        } else if (parser.at<argparse::ArgumentParser>("hf").is_subcommand_used("cis")) {
+            throw std::runtime_error("UCI NOT IMPLEMENTED");
+        } else if (parser.at<argparse::ArgumentParser>("hf").is_subcommand_used("cid")) {
+            throw std::runtime_error("UCI NOT IMPLEMENTED");
+        } else if (parser.at<argparse::ArgumentParser>("hf").is_subcommand_used("cisd")) {
+            throw std::runtime_error("UCI NOT IMPLEMENTED");
+        } else if (parser.at<argparse::ArgumentParser>("hf").is_subcommand_used("fci")) {
+            throw std::runtime_error("UCI NOT IMPLEMENTED");
         }
     } else throw std::runtime_error("INVALID METHOD FOR DYNAMICS SPECIFIED");
 
