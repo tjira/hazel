@@ -101,6 +101,51 @@ cmake --build build
 
 After the compilation the bin folder will be created along with the executable.
 
+## Printing Options
+
+In his section you find all the printing options implemented in Hazel. This also an overview of what data you, as a user, can extract from the software.
+
+* `hazel`
+    * `dist` - Distance matrix.
+* `ints`
+    * `dj` - Derivative of the coulomb integral in AO basis.
+    * `ds` - Derivative of the overlap integral in AO basis.
+    * `dt` - Derivaitve of the kinetic integral in AO basis.
+    * `dv` - Derivative of the nuclear integral in AO basis.
+    * `j` - Coulomb integral in AO basis (only if calculated).
+    * `s` - Overlap integral in AO basis.
+    * `t` - Kinetic integral in AO basis.
+    * `v` - Nuclear integral in AO basis.
+* `hf`
+    * `dist` - Optimized distance matrix (only for optimization).
+    * `dj` - Derivative of the coulomb integral in AO basis (only if it's are calculated).
+    * `ds` - Derivative of the overlap integral in AO basis (only if it's are calculated).
+    * `dt` - Derivaitve of the kinetic integral in AO basis (only if it's are calculated).
+    * `dv` - Derivative of the nuclear integral in AO basis (only if it's are calculated).
+    * `c` - Matrix of coefficients in MO basis.
+    * `ca` - Matrix of coefficients for alpha electrons electrons in MO basis (only for UHF).
+    * `cb` - Matrix of coefficients for beta electrons electrons in MO basis (only for UHF).
+    * `d` - Density matrix in MO basis.
+    * `da` - Density matrix for alpha electrons in MO basis (only for UHF).
+    * `db` - Density matrix for beta electrons in MO basis (only for UHF).
+    * `eps` - Orbital energies.
+    * `epsa` - Orbital energies for alpha electrons (only for UHF).
+    * `epsb` - Orbital energies for beta electrons (only for UHF).
+    * `j` - Coulomb integral in AO basis (only if calculated).
+    * `s` - Overlap integral in AO basis.
+    * `t` - Kinetic integral in AO basis.
+    * `v` - Nuclear integral in AO basis.
+* `hf mp2`
+    * `dist` - Optimized distance matrix (only for optimization).
+    * `jmo` - Coulomb integral in MO basis.
+* `hf ci`, `hf cis`, `hf cid`, `hf cisd`, `hf fci`
+    * `dist` - Optimized distance matrix (only for optimization).
+    * `hms` - Hamiltonian in MS basis.
+    * `jms` - Coulomb integral in MS basis.
+    * `cih` - Configuration interaction Hamiltonian.
+    * `cie` - Eigenvalues of CI Hamiltonian.
+    * `cic` - Eigenvectors of CI Hamiltonian.
+
 ## ⭐ Credits
 
 * [libint](https://github.com/evaleev/libint) - High-performance library for computing Gaussian integrals in quantum mechanics.
