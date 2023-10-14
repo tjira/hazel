@@ -40,7 +40,7 @@ Below are all the important features of Hazel divided into categories.
 
 * Hartree-Fock Method (RHF & UHF)
 * Møller–Plesset Perturbation Theory
-* Configuration Interaction (S & D)
+* Full Configuration Interaction
 
 ### Convergence Accelerators
 

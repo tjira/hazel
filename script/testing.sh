@@ -1,100 +1,52 @@
 #!/bin/bash
 
-SYSTEMS=("water" "ammonia" "formaldehyde" "methane" "ethane")
-BASES=("3-21g" "sto-3g" "6-31g" "6-31g*" "cc-pvdz")
-CMS=("0:1" "1:2" "-1:2")
-CORES=64
+HFOPT="-i 1000 -t 1e-8"; CORES=2
 
-printf '# TESTS %s\n' $(printf '=%.0s' {1..142})
+read -d '' HF << EOF
+add_test(NAME %s COMMAND \${PROJECT_SOURCE_DIR}/bin/hazel -b \"%s\" -c %d -f \${PROJECT_SOURCE_DIR}/example/molecule/%s.xyz -n 2 -s %d hf $HFOPT)
+set_tests_properties(%s PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "%s")
+EOF
 
-# Hartree-Fock Method
-for SYSTEM in "${SYSTEMS[@]}"; do
-    for CM in "${CMS[@]}"; do
-        for BASIS in "${BASES[@]}"; do
-            # extract charge and multiplicity
-            CMSPLIT=(${CM//:/ }); CHARGE=${CMSPLIT[0]}; MULT=${CMSPLIT[1]}
+read -d '' HFAG << EOF
+add_test(NAME %s COMMAND \${PROJECT_SOURCE_DIR}/bin/hazel -b \"%s\" -c %d -f \${PROJECT_SOURCE_DIR}/example/molecule/%s.xyz -n 2 -s %d hf $HFOPT -g 0 1e-5)
+set_tests_properties(%s PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "%s")
+EOF
 
-            # print the test specification
-            printf "\n# test-energy: %s %d %d %s HF\n" "$SYSTEM" "$CHARGE" "$MULT" "${BASIS^^}"
+read -d '' MP2 << EOF
+add_test(NAME %s COMMAND \${PROJECT_SOURCE_DIR}/bin/hazel -b \"%s\" -c %d -f \${PROJECT_SOURCE_DIR}/example/molecule/%s.xyz -n 2 -s %d hf $HFOPT mp2)
+set_tests_properties(%s PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "%s")
+EOF
 
-            # extract the expected output
-            EXPECT=$(./bin/hazel -b "$BASIS" -c "$CHARGE" -f "./example/molecule/$SYSTEM.xyz" -n $CORES -s "$MULT" hf -i 1000 -t 1e-8 | grep "FINAL HARTREE")
-            EXPECT=$(echo "$EXPECT" | sed -e 's/+/\\\\+/g')
+create() {
+    SYSTEM="$1"; CHARGE="$2"; MULT="$3"; BASIS="${4,,}"; METHOD="$5"; BASISFILE=$(echo "$BASIS" | sed -e 's/+/p/g ; s/*/s/g')
 
-            # print the test commands
-            printf 'add_test(NAME %s_%d-%d_%s_hf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "%s" -c %d -f ${PROJECT_SOURCE_DIR}/example/molecule/%s.xyz -n 2 -s %d hf -i 1000 -t 1e-8)\n' \
-                   "$SYSTEM" "$CHARGE" "$MULT" $(echo "$BASIS" | sed -e 's/+/p/g' -e 's/*/s/g') "$BASIS" "$CHARGE" "$SYSTEM" "$MULT"
-            printf 'set_tests_properties(%s_%d-%d_%s_hf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "%s")\n' \
-                   "$SYSTEM" "$CHARGE" "$MULT" $(echo "$BASIS" | sed -e 's/+/p/g' -e 's/*/s/g') "${EXPECT::-6}"
-        done
-    done
+    if [ "$METHOD" == "HF" ]; then
+        EXPECT=$(timeout 1s ./bin/hazel -b "$BASIS" -c "$CHARGE" -f "./example/molecule/$SYSTEM.xyz" -n $CORES -s "$MULT" hf $HFOPT | grep "FINAL HARTREE")
+        [[ "$EXPECT" ]] && printf "\n\n# test-energy: %s %d %d %s HF\n" "$SYSTEM" "$CHARGE" "$MULT" "${BASIS^^}"; TNAME="${SYSTEM}_${CHARGE}-${MULT}_${BASISFILE}_hf_energy"
+        [[ "$EXPECT" ]] && printf "$HF" "$TNAME" "$BASIS" "$CHARGE" "$SYSTEM" "$MULT" "$TNAME" "$(echo ${EXPECT::-6} | sed -e 's/+/\\\\+/g')"
+    elif [ "$METHOD" == "HFAG" ]; then
+        EXPECT=$(timeout 1s ./bin/hazel -b "$BASIS" -c "$CHARGE" -f "./example/molecule/$SYSTEM.xyz" -n $CORES -s "$MULT" hf $HFOPT -g 0 1e-5 | grep "NORM")
+        [[ "$EXPECT" ]] && printf "\n\n# test-gradient: %s %d %d %s HF\n" "$SYSTEM" "$CHARGE" "$MULT" "${BASIS^^}"; TNAME="${SYSTEM}_${CHARGE}-${MULT}_${BASISFILE}_hf_gradient"
+        [[ "$EXPECT" ]] && printf "$HFAG" "$TNAME" "$BASIS" "$CHARGE" "$SYSTEM" "$MULT" "$TNAME" "$(echo ${EXPECT} | sed -e 's/+/\\\\+/g')"
+    elif [ "$METHOD" == "MP2" ]; then
+        EXPECT=$(timeout 1s ./bin/hazel -b "$BASIS" -c "$CHARGE" -f "./example/molecule/$SYSTEM.xyz" -n $CORES -s "$MULT" hf $HFOPT mp2 | grep "FINAL MP2")
+        [[ "$EXPECT" ]] && printf "\n\n# test-energy: %s %d %d %s MP2\n" "$SYSTEM" "$CHARGE" "$MULT" "${BASIS^^}"; TNAME="${SYSTEM}_${CHARGE}-${MULT}_${BASISFILE}_mp2_energy"
+        [[ "$EXPECT" ]] && printf "$MP2" "$TNAME" "$BASIS" "$CHARGE" "$SYSTEM" "$MULT" "$TNAME" "$(echo ${EXPECT::-6} | sed -e 's/+/\\\\+/g')"
+    fi
+}
+
+printf '# TESTS %s' $(printf '=%.0s' {1..142})
+
+for SYSTEM in \
+"H2" "HF" "HCl" "water" "formaldehyde" "methane";
+do
+for BASIS in \
+"mini" "midi" "sto-2g" "sto-3g" "sto-4g" "sto-5g" "sto-6g" "3-21g" "4-31g" "6-21g" "6-31g" "6-31+g" "6-31++g" "6-31+g*" "6-31++g*" "6-31+g**" "6-31++g**" "6-311g" "6-311+g" "6-311++g" "6-311+g*" \
+"6-311++g*" "6-311+g**" "6-311++g**" "cc-pvdz" "cc-pvtz";
+do
+    create "$SYSTEM" 0 1 "$BASIS" "HF"; create "$SYSTEM" 0 1 "$BASIS" "MP2"; create "$SYSTEM" 0 1 "$BASIS" "HFAG"
+    create "$SYSTEM" 1 2 "$BASIS" "HF"; create "$SYSTEM" -1 2 "$BASIS" "HF"; create "$SYSTEM" 2 1 "$BASIS" "HF"
+done
 done
 
-# Møller–Plesset of Second Order
-for SYSTEM in "${SYSTEMS[@]}"; do
-    for CM in "${CMS[@]:0:1}"; do
-        for BASIS in "${BASES[@]}"; do
-            # extract charge and multiplicity
-            CMSPLIT=(${CM//:/ }); CHARGE=${CMSPLIT[0]}; MULT=${CMSPLIT[1]}
-
-            # print the test specification
-            printf "\n# test-energy: %s %d %d %s MP2\n" "$SYSTEM" "$CHARGE" "$MULT" "${BASIS^^}"
-
-            # extract the expected output
-            EXPECT=$(./bin/hazel -b "$BASIS" -c "$CHARGE" -f "./example/molecule/$SYSTEM.xyz" -n $CORES -s "$MULT" hf -i 1000 -t 1e-8 mp2 | grep "FINAL MP2")
-            EXPECT=$(echo "$EXPECT" | sed -e 's/+/\\\\+/g')
-
-            # print the test commands
-            printf 'add_test(NAME %s_%d-%d_%s_mp2_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "%s" -c %d -f ${PROJECT_SOURCE_DIR}/example/molecule/%s.xyz -n 2 -s %d hf -i 1000 -t 1e-8 mp2)\n' \
-                   "$SYSTEM" "$CHARGE" "$MULT" $(echo "$BASIS" | sed -e 's/+/p/g' -e 's/*/s/g') "$BASIS" "$CHARGE" "$SYSTEM" "$MULT"
-            printf 'set_tests_properties(%s_%d-%d_%s_mp2_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "%s")\n' \
-                   "$SYSTEM" "$CHARGE" "$MULT" $(echo "$BASIS" | sed -e 's/+/p/g' -e 's/*/s/g') "${EXPECT::-6}"
-        done
-    done
-done
-
-# Configuration Interaction Doubles
-for SYSTEM in "${SYSTEMS[@]}"; do
-    for CM in "${CMS[@]:0:1}"; do
-        for BASIS in "${BASES[@]}"; do
-            # extract charge and multiplicity
-            CMSPLIT=(${CM//:/ }); CHARGE=${CMSPLIT[0]}; MULT=${CMSPLIT[1]}
-
-            # print the test specification
-            printf "\n# test-energy: %s %d %d %s CID\n" "$SYSTEM" "$CHARGE" "$MULT" "${BASIS^^}"
-
-            # extract the expected output
-            EXPECT=$(./bin/hazel -b "$BASIS" -c "$CHARGE" -f "./example/molecule/$SYSTEM.xyz" -n $CORES -s "$MULT" hf -i 1000 -t 1e-8 ci -e d | grep "FINAL CI")
-            EXPECT=$(echo "$EXPECT" | sed -e 's/+/\\\\+/g')
-
-            # print the test commands
-            printf 'add_test(NAME %s_%d-%d_%s_cid_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "%s" -c %d -f ${PROJECT_SOURCE_DIR}/example/molecule/%s.xyz -n 2 -s %d hf -i 1000 -t 1e-8 cid)\n' \
-                   "$SYSTEM" "$CHARGE" "$MULT" $(echo "$BASIS" | sed -e 's/+/p/g' -e 's/*/s/g') "$BASIS" "$CHARGE" "$SYSTEM" "$MULT"
-            printf 'set_tests_properties(%s_%d-%d_%s_cid_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "%s")\n' \
-                   "$SYSTEM" "$CHARGE" "$MULT" $(echo "$BASIS" | sed -e 's/+/p/g' -e 's/*/s/g') "${EXPECT::-6}"
-        done
-    done
-done
-
-# Hartree-Fock Analytical Gradient
-for SYSTEM in "${SYSTEMS[@]}"; do
-    for CM in "${CMS[@]:0:1}"; do
-        for BASIS in "${BASES[@]}"; do
-            # extract charge and multiplicity
-            CMSPLIT=(${CM//:/ }); CHARGE=${CMSPLIT[0]}; MULT=${CMSPLIT[1]}
-
-            # print the test specification
-            printf "\n# test-angrad: %s %d %d %s HF\n" "$SYSTEM" "$CHARGE" "$MULT" "${BASIS^^}"
-
-            # extract the expected output
-            EXPECT=$(./bin/hazel -b "$BASIS" -c "$CHARGE" -f "./example/molecule/$SYSTEM.xyz" -n $CORES -s "$MULT" hf -i 1000 -t 1e-8 -g 0 1e-5 | grep "GRADIENT NORM")
-            EXPECT=$(echo "$EXPECT" | sed -e 's/+/\\\\+/g')
-
-            # print the test commands
-            printf 'add_test(NAME %s_%d-%d_%s_hf_angrad COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "%s" -c %d -f ${PROJECT_SOURCE_DIR}/example/molecule/%s.xyz -n 2 -s %d hf -i 1000 -t 1e-8 -g 0 1e-5)\n' \
-                   "$SYSTEM" "$CHARGE" "$MULT" $(echo "$BASIS" | sed -e 's/+/p/g' -e 's/*/s/g') "$BASIS" "$CHARGE" "$SYSTEM" "$MULT"
-            printf 'set_tests_properties(%s_%d-%d_%s_hf_angrad PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "%s")\n' \
-                   "$SYSTEM" "$CHARGE" "$MULT" $(echo "$BASIS" | sed -e 's/+/p/g' -e 's/*/s/g') "${EXPECT}"
-        done
-    done
-done
+echo ""
