@@ -101,7 +101,7 @@ cmake --build build
 
 After the compilation the bin folder will be created along with the executable.
 
-## Printing Options
+## 🖨️ Printing Options
 
 In his section you find all the printing options implemented in Hazel. This also an overview of what data you, as a user, can extract from the software.
 
