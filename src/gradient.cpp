@@ -5,7 +5,7 @@ Matrix Gradient::get(const System& system, const std::function<double(System)>& 
     Matrix G(system.atoms.size(), 3);
 
     // print the header
-    if (print) std::printf("  ELEM      dE [Eh/Bohr]        TIME\n");
+    if (print) std::printf("\n  ELEM      dE [Eh/Bohr]        TIME\n");
 
     // fill the gradient
     #if defined(_OPENMP)
@@ -33,9 +33,6 @@ Matrix Gradient::get(const System& system, const std::function<double(System)>& 
             if (print) std::printf("(%2d, %2d) %18.14f %s\n", i + 1, j + 1, G(i, j), Timer::Format(Timer::Elapsed(start)).c_str());
         }
     }
-
-    // print empty line
-    if (print) std::cout << std::endl;
 
     // return the gradient
     return G;

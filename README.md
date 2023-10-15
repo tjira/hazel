@@ -118,10 +118,10 @@ In his section you find all the printing options implemented in Hazel. This also
     * `v` - Nuclear integral in AO basis.
 * `hf`
     * `dist` - Optimized distance matrix (only for optimization).
-    * `dj` - Derivative of the coulomb integral in AO basis (only if it's are calculated).
-    * `ds` - Derivative of the overlap integral in AO basis (only if it's are calculated).
-    * `dt` - Derivaitve of the kinetic integral in AO basis (only if it's are calculated).
-    * `dv` - Derivative of the nuclear integral in AO basis (only if it's are calculated).
+    * `dj` - Derivative of the coulomb integral in AO basis (only if calculated).
+    * `ds` - Derivative of the overlap integral in AO basis (only if calculated).
+    * `dt` - Derivaitve of the kinetic integral in AO basis (only if calculated).
+    * `dv` - Derivative of the nuclear integral in AO basis (only if calculated).
     * `c` - Matrix of coefficients in MO basis.
     * `ca` - Matrix of coefficients for alpha electrons electrons in MO basis (only for UHF).
     * `cb` - Matrix of coefficients for beta electrons electrons in MO basis (only for UHF).

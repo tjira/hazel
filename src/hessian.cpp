@@ -18,7 +18,7 @@ Matrix Hessian::get(const System& system, const std::function<double(System)>& e
     Matrix H(3 * system.atoms.size(), 3 * system.atoms.size());
 
     // print the header
-    if (print) std::printf("  ELEM      dE [Eh/Bohr]        TIME\n");
+    if (print) std::printf("\n  ELEM      dE [Eh/Bohr]        TIME\n");
 
     // fill the gradient
     #if defined(_OPENMP)
@@ -51,9 +51,6 @@ Matrix Hessian::get(const System& system, const std::function<double(System)>& e
             if (print) std::printf("(%2d, %2d) %18.14f %s\n", i + 1, j + 1, H(i, j), Timer::Format(Timer::Elapsed(start)).c_str());
         }
     }
-
-    // print empty line
-    if (print) std::cout << std::endl;
 
     // return the hessian
     return H;

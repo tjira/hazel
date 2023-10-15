@@ -5,6 +5,7 @@
 #include "optimizer.h"
 #include "utility.h"
 #include "lambda.h"
+#include "printer.h"
 #include "qd.h"
 #include "md.h"
 

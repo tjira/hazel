@@ -18,11 +18,11 @@ Distributor::Distributor(int argc, char** argv) : parsers(25), program("hazel", 
     parsers.push_back(argparse::ArgumentParser("fci", "0.1", argparse::default_arguments::none)); program.at<argparse::ArgumentParser>("hf").add_subparser(parsers.at(parsers.size() - 1));
     parsers.push_back(argparse::ArgumentParser("ci", "0.1", argparse::default_arguments::none)); program.at<argparse::ArgumentParser>("hf").add_subparser(parsers.at(parsers.size() - 1));
 
-    // add level 2 parsers
+    // add side parsers
     parsers.push_back(argparse::ArgumentParser("hf", "0.1", argparse::default_arguments::none)); program.at<argparse::ArgumentParser>("scan").add_subparser(parsers.at(parsers.size() - 1));
     parsers.push_back(argparse::ArgumentParser("hf", "0.1", argparse::default_arguments::none)); program.at<argparse::ArgumentParser>("md").add_subparser(parsers.at(parsers.size() - 1));
 
-    // add level 3 parsers
+    // add scan parsers
     parsers.push_back(argparse::ArgumentParser("cisd", "0.1", argparse::default_arguments::none)); program.at<argparse::ArgumentParser>("scan").at<argparse::ArgumentParser>("hf").add_subparser(parsers.at(parsers.size() - 1));
     parsers.push_back(argparse::ArgumentParser("mp2", "0.1", argparse::default_arguments::none)); program.at<argparse::ArgumentParser>("scan").at<argparse::ArgumentParser>("hf").add_subparser(parsers.at(parsers.size() - 1));
     parsers.push_back(argparse::ArgumentParser("cis", "0.1", argparse::default_arguments::none)); program.at<argparse::ArgumentParser>("scan").at<argparse::ArgumentParser>("hf").add_subparser(parsers.at(parsers.size() - 1));
@@ -30,8 +30,9 @@ Distributor::Distributor(int argc, char** argv) : parsers(25), program("hazel", 
     parsers.push_back(argparse::ArgumentParser("fci", "0.1", argparse::default_arguments::none)); program.at<argparse::ArgumentParser>("scan").at<argparse::ArgumentParser>("hf").add_subparser(parsers.at(parsers.size() - 1));
     parsers.push_back(argparse::ArgumentParser("ci", "0.1", argparse::default_arguments::none)); program.at<argparse::ArgumentParser>("scan").at<argparse::ArgumentParser>("hf").add_subparser(parsers.at(parsers.size() - 1));
 
-    parsers.push_back(argparse::ArgumentParser("mp2", "0.1", argparse::default_arguments::none)); program.at<argparse::ArgumentParser>("md").at<argparse::ArgumentParser>("hf").add_subparser(parsers.at(parsers.size() - 1));
+    // add MD parsers
     parsers.push_back(argparse::ArgumentParser("cisd", "0.1", argparse::default_arguments::none)); program.at<argparse::ArgumentParser>("md").at<argparse::ArgumentParser>("hf").add_subparser(parsers.at(parsers.size() - 1));
+    parsers.push_back(argparse::ArgumentParser("mp2", "0.1", argparse::default_arguments::none)); program.at<argparse::ArgumentParser>("md").at<argparse::ArgumentParser>("hf").add_subparser(parsers.at(parsers.size() - 1));
     parsers.push_back(argparse::ArgumentParser("cis", "0.1", argparse::default_arguments::none)); program.at<argparse::ArgumentParser>("md").at<argparse::ArgumentParser>("hf").add_subparser(parsers.at(parsers.size() - 1));
     parsers.push_back(argparse::ArgumentParser("cid", "0.1", argparse::default_arguments::none)); program.at<argparse::ArgumentParser>("md").at<argparse::ArgumentParser>("hf").add_subparser(parsers.at(parsers.size() - 1));
     parsers.push_back(argparse::ArgumentParser("fci", "0.1", argparse::default_arguments::none)); program.at<argparse::ArgumentParser>("md").at<argparse::ArgumentParser>("hf").add_subparser(parsers.at(parsers.size() - 1));
@@ -143,16 +144,6 @@ Distributor::Distributor(int argc, char** argv) : parsers(25), program("hazel", 
     // add positional arguments to the SCAN FCI argument parser
     program.at<argparse::ArgumentParser>("scan").at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("fci").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
 
-    // add positional arguments to the QD argument parser
-    program.at<argparse::ArgumentParser>("qd").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
-    program.at<argparse::ArgumentParser>("qd").add_argument("-s", "--step").help("-- MD time step in atomic units.").default_value(0.1).scan<'g', double>();
-    program.at<argparse::ArgumentParser>("qd").add_argument("-i", "--iters").help("-- Number of iterations in dynamics.").default_value(1000).scan<'i', int>();
-    program.at<argparse::ArgumentParser>("qd").add_argument("-n", "--nstate").help("-- Number of states to consider.").default_value(3).scan<'i', int>();
-    program.at<argparse::ArgumentParser>("qd").add_argument("-o", "--output").help("-- Output of the wavefunction.").default_value("wavefunction.dat");
-    program.at<argparse::ArgumentParser>("qd").add_argument("-f", "--potfile").help("-- File with the PES.").default_value("pes.dat");
-    program.at<argparse::ArgumentParser>("qd").add_argument("-t", "--thresh").help("-- Threshold for conververgence in ITP loop.").default_value(1e-8).scan<'g', double>();
-    program.at<argparse::ArgumentParser>("qd").add_argument("--no-real").help("-- Help message.").default_value(false).implicit_value(true);
-
     // add positional arguments to the MD argument parser
     program.at<argparse::ArgumentParser>("md").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
     program.at<argparse::ArgumentParser>("md").add_argument("-s", "--step").help("-- MD time step in atomic units.").default_value(0.5).scan<'g', double>();
@@ -191,6 +182,16 @@ Distributor::Distributor(int argc, char** argv) : parsers(25), program("hazel", 
     program.at<argparse::ArgumentParser>("md").at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("fci").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
     program.at<argparse::ArgumentParser>("md").at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("fci").add_argument("-g", "--gradient").help("-- Analytical (0) or numerical (1) gradient calculation with step size.").default_value(std::vector<double>{0, 1e-5}).nargs(2).scan<'g', double>();
 
+    // add positional arguments to the QD argument parser
+    program.at<argparse::ArgumentParser>("qd").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
+    program.at<argparse::ArgumentParser>("qd").add_argument("-s", "--step").help("-- MD time step in atomic units.").default_value(0.1).scan<'g', double>();
+    program.at<argparse::ArgumentParser>("qd").add_argument("-i", "--iters").help("-- Number of iterations in dynamics.").default_value(1000).scan<'i', int>();
+    program.at<argparse::ArgumentParser>("qd").add_argument("-n", "--nstate").help("-- Number of states to consider.").default_value(3).scan<'i', int>();
+    program.at<argparse::ArgumentParser>("qd").add_argument("-o", "--output").help("-- Output of the wavefunction.").default_value("wavefunction.dat");
+    program.at<argparse::ArgumentParser>("qd").add_argument("-f", "--potfile").help("-- File with the PES.").default_value("pes.dat");
+    program.at<argparse::ArgumentParser>("qd").add_argument("-t", "--thresh").help("-- Threshold for conververgence in ITP loop.").default_value(1e-8).scan<'g', double>();
+    program.at<argparse::ArgumentParser>("qd").add_argument("--no-real").help("-- Help message.").default_value(false).implicit_value(true);
+
     // parse the arguments
     try {
         program.parse_args(argc, argv);
@@ -198,39 +199,16 @@ Distributor::Distributor(int argc, char** argv) : parsers(25), program("hazel", 
         std::cerr << error.what() << std::endl; exit(EXIT_FAILURE);
     }
 
-    // print help if requested
+    // print help of the base program if requested
     if (program.get<bool>("-h")) {
         std::cout << program.help().str(); exit(EXIT_SUCCESS);
-    } else if (program.is_subcommand_used("ints") && program.at<argparse::ArgumentParser>("ints").get<bool>("-h")) {
-        std::cout << program.at<argparse::ArgumentParser>("ints").help().str(); exit(EXIT_SUCCESS);
-    } else if (program.is_subcommand_used("hf") && program.at<argparse::ArgumentParser>("hf").get<bool>("-h")) {
-        std::cout << program.at<argparse::ArgumentParser>("hf").help().str(); exit(EXIT_SUCCESS);
-    } else if (program.is_subcommand_used("hf") && program.at<argparse::ArgumentParser>("hf").is_subcommand_used("mp2") && program.at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("mp2").get<bool>("-h")) {
-        std::cout << program.at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("mp2").help().str(); exit(EXIT_SUCCESS);
-    } else if (program.is_subcommand_used("hf") && program.at<argparse::ArgumentParser>("hf").is_subcommand_used("ci") && program.at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("ci").get<bool>("-h")) {
-        std::cout << program.at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("ci").help().str(); exit(EXIT_SUCCESS);
-    } else if (program.is_subcommand_used("hf") && program.at<argparse::ArgumentParser>("hf").is_subcommand_used("cis") && program.at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("cis").get<bool>("-h")) {
-        std::cout << program.at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("cis").help().str(); exit(EXIT_SUCCESS);
-    } else if (program.is_subcommand_used("hf") && program.at<argparse::ArgumentParser>("hf").is_subcommand_used("cid") && program.at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("cid").get<bool>("-h")) {
-        std::cout << program.at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("cid").help().str(); exit(EXIT_SUCCESS);
-    } else if (program.is_subcommand_used("hf") && program.at<argparse::ArgumentParser>("hf").is_subcommand_used("cisd") && program.at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("cisd").get<bool>("-h")) {
-        std::cout << program.at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("cisd").help().str(); exit(EXIT_SUCCESS);
-    } else if (program.is_subcommand_used("hf") && program.at<argparse::ArgumentParser>("hf").is_subcommand_used("fci") && program.at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("fci").get<bool>("-h")) {
-        std::cout << program.at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("fci").help().str(); exit(EXIT_SUCCESS);
-    } else if (program.is_subcommand_used("scan") && program.at<argparse::ArgumentParser>("scan").get<bool>("-h")) {
-        std::cout << program.at<argparse::ArgumentParser>("scan").help().str(); exit(EXIT_SUCCESS);
-    } else if (program.is_subcommand_used("scan") && program.at<argparse::ArgumentParser>("scan").is_subcommand_used("hf") && program.at<argparse::ArgumentParser>("scan").at<argparse::ArgumentParser>("hf").get<bool>("-h")) {
-        std::cout << program.at<argparse::ArgumentParser>("scan").at<argparse::ArgumentParser>("hf").help().str(); exit(EXIT_SUCCESS);
-    } else if (program.is_subcommand_used("scan") && program.at<argparse::ArgumentParser>("scan").is_subcommand_used("hf") && program.at<argparse::ArgumentParser>("scan").at<argparse::ArgumentParser>("hf").is_subcommand_used("mp2") && program.at<argparse::ArgumentParser>("scan").at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("mp2").get<bool>("-h")) {
-        std::cout << program.at<argparse::ArgumentParser>("scan").at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("mp2").help().str(); exit(EXIT_SUCCESS);
-    } else if (program.is_subcommand_used("qd") && program.at<argparse::ArgumentParser>("qd").get<bool>("-h")) {
-        std::cout << program.at<argparse::ArgumentParser>("qd").help().str(); exit(EXIT_SUCCESS);
-    } else if (program.is_subcommand_used("md") && program.at<argparse::ArgumentParser>("md").get<bool>("-h")) {
-        std::cout << program.at<argparse::ArgumentParser>("md").help().str(); exit(EXIT_SUCCESS);
-    } else if (program.is_subcommand_used("md") && program.at<argparse::ArgumentParser>("md").is_subcommand_used("hf") && program.at<argparse::ArgumentParser>("md").at<argparse::ArgumentParser>("hf").get<bool>("-h")) {
-        std::cout << program.at<argparse::ArgumentParser>("md").at<argparse::ArgumentParser>("hf").help().str(); exit(EXIT_SUCCESS);
-    } else if (program.is_subcommand_used("md") && program.at<argparse::ArgumentParser>("md").is_subcommand_used("hf") && program.at<argparse::ArgumentParser>("md").at<argparse::ArgumentParser>("hf").is_subcommand_used("mp2") && program.at<argparse::ArgumentParser>("md").at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("mp2").get<bool>("-h")) {
-        std::cout << program.at<argparse::ArgumentParser>("md").at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("mp2").help().str(); exit(EXIT_SUCCESS);
+    }
+
+    // print help of all the subparsers
+    for (const auto& parser : parsers) {
+        try {if (parser.get<bool>("-h")) {
+            std::cout << parser.help().str(); exit(EXIT_SUCCESS);
+        }} catch (std::exception) {}
     }
 
     // print all tha available bases if requested
@@ -254,12 +232,40 @@ Distributor::Distributor(int argc, char** argv) : parsers(25), program("hazel", 
     // set number of threads to use and cout flags
     std::cout << std::fixed << std::setprecision(14);
     nthread = program.get<int>("--nthread");
+
+    // catch unimplemented errors
+    if (program.get<int>("-s") != 1) {
+        if (program.is_subcommand_used("hf")) {
+            if (program.at<argparse::ArgumentParser>("hf").is_subcommand_used("mp2")) throw std::runtime_error("MP2 NOT IMPLEMENTED FOR UHF");
+            if (program.at<argparse::ArgumentParser>("hf").is_subcommand_used("ci")) throw std::runtime_error("CI NOT IMPLEMENTED FOR UHF");
+            if (program.at<argparse::ArgumentParser>("hf").is_subcommand_used("cis")) throw std::runtime_error("CIS NOT IMPLEMENTED FOR UHF");
+            if (program.at<argparse::ArgumentParser>("hf").is_subcommand_used("cid")) throw std::runtime_error("CID NOT IMPLEMENTED FOR UHF");
+            if (program.at<argparse::ArgumentParser>("hf").is_subcommand_used("cisd")) throw std::runtime_error("CISD NOT IMPLEMENTED FOR UHF");
+            if (program.at<argparse::ArgumentParser>("hf").is_subcommand_used("fci")) throw std::runtime_error("FCI NOT IMPLEMENTED FOR UHF");
+        } else if (program.is_subcommand_used("scan")) {
+            if (program.at<argparse::ArgumentParser>("scan").is_subcommand_used("hf")) {
+                if (program.at<argparse::ArgumentParser>("scan").at<argparse::ArgumentParser>("hf").is_subcommand_used("mp2")) throw std::runtime_error("MP2 NOT IMPLEMENTED FOR UHF");
+                if (program.at<argparse::ArgumentParser>("scan").at<argparse::ArgumentParser>("hf").is_subcommand_used("ci")) throw std::runtime_error("CI NOT IMPLEMENTED FOR UHF");
+                if (program.at<argparse::ArgumentParser>("scan").at<argparse::ArgumentParser>("hf").is_subcommand_used("cis")) throw std::runtime_error("CIS NOT IMPLEMENTED FOR UHF");
+                if (program.at<argparse::ArgumentParser>("scan").at<argparse::ArgumentParser>("hf").is_subcommand_used("cid")) throw std::runtime_error("CID NOT IMPLEMENTED FOR UHF");
+                if (program.at<argparse::ArgumentParser>("scan").at<argparse::ArgumentParser>("hf").is_subcommand_used("cisd")) throw std::runtime_error("CISD NOT IMPLEMENTED FOR UHF");
+                if (program.at<argparse::ArgumentParser>("scan").at<argparse::ArgumentParser>("hf").is_subcommand_used("fci")) throw std::runtime_error("FCI NOT IMPLEMENTED FOR UHF");
+            }
+        } else if (program.is_subcommand_used("md")) {
+            if (program.at<argparse::ArgumentParser>("md").is_subcommand_used("hf")) {
+                if (program.at<argparse::ArgumentParser>("md").at<argparse::ArgumentParser>("hf").is_subcommand_used("mp2")) throw std::runtime_error("MP2 NOT IMPLEMENTED FOR UHF");
+                if (program.at<argparse::ArgumentParser>("md").at<argparse::ArgumentParser>("hf").is_subcommand_used("ci")) throw std::runtime_error("CI NOT IMPLEMENTED FOR UHF");
+                if (program.at<argparse::ArgumentParser>("md").at<argparse::ArgumentParser>("hf").is_subcommand_used("cis")) throw std::runtime_error("CIS NOT IMPLEMENTED FOR UHF");
+                if (program.at<argparse::ArgumentParser>("md").at<argparse::ArgumentParser>("hf").is_subcommand_used("cid")) throw std::runtime_error("CID NOT IMPLEMENTED FOR UHF");
+                if (program.at<argparse::ArgumentParser>("md").at<argparse::ArgumentParser>("hf").is_subcommand_used("cisd")) throw std::runtime_error("CISD NOT IMPLEMENTED FOR UHF");
+                if (program.at<argparse::ArgumentParser>("md").at<argparse::ArgumentParser>("hf").is_subcommand_used("fci")) throw std::runtime_error("FCI NOT IMPLEMENTED FOR UHF");
+            }
+        }
+    }
 }
 
 Distributor::~Distributor() {
-    std::cout << "\n" + std::string(104, '-') << std::endl;
-    std::printf("TOTAL EXECUTION TIME: %s\n", Timer::Format(Timer::Elapsed(start)).c_str());
-    std::cout << std::string(104, '-') << std::endl;
+    std::cout << "\n"; Printer::Title(std::string("TOTAL EXECUTION TIME: ") + Timer::Format(Timer::Elapsed(start)).c_str());
 }
 
 void Distributor::run() {
@@ -267,33 +273,8 @@ void Distributor::run() {
     std::string basis = program.get("-b"); std::replace(basis.begin(), basis.end(), '*', 's'), std::replace(basis.begin(), basis.end(), '+', 'p');
     std::ifstream stream(program.get("-f")); system = System(stream, basis, program.get<int>("-c"), program.get<int>("-s")); stream.close();
 
-    // print the title with number of threads
-    std::cout << "QUANTUM HAZEL" << std::endl;
-
-    // print the general info block
-    std::cout << "\n" + std::string(104, '-') + "\nGENERAL INFO\n" << std::string(104, '-') + "\n\n";
-    std::printf("COMPILATION TIMESTAMP: %s\nEXECUTION TIMESTAMP: %s\n", __TIMESTAMP__, Timer::Local().c_str());
-    std::printf("\nCOMPILER: %s, GCC %d.%d.%d (%s)", OS, __GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__, CXXFLAGS);
-    std::printf("\nLIBRARIES: EIGEN %d.%d.%d, LIBINT %d.%d.%d\n", EIGEN_WORLD_VERSION, EIGEN_MAJOR_VERSION, EIGEN_MINOR_VERSION, LIBINT_MAJOR_VERSION, LIBINT_MINOR_VERSION, LIBINT_MICRO_VERSION);
-    #if defined(_OPENMP)
-    std::cout << "\n" + std::string(104, '-') + "\nOPENMP " << _OPENMP << "\n" << std::string(104, '-') + "\n\n";
-    std::printf("AVAILABLE CORES: %d\nUSED THREADS: %d\n", std::thread::hardware_concurrency(), nthread);
-    #endif
-
-    // print the system block
-    std::cout << "\n" + std::string(104, '-') + "\nSYSTEM SPECIFICATION (" + program.get("-b") + ")\n" << std::string(104, '-') + "\n\n";
-    std::printf("-- ATOMS: %d, ELECTRONS: %d, NBF: %d\n", (int)system.atoms.size(), system.electrons, (int)system.shells.nbf());
-    std::printf("-- CHARGE: %d, MULTIPLICITY: %d\n", system.charge, system.multi);
-    std::cout << "\nSYSTEM COORDINATES\n" << system.coords << std::endl; 
-
-    // center the molecule if not disabled
-    if (!program.get<bool>("--no-center")) {
-        Matrix dir(system.atoms.size(), 3); dir.rowwise() -= system.coords.colwise().sum() / system.atoms.size();
-        system.move(dir * A2BOHR); std::cout << "\nCENTERED SYSTEM COORDINATES\n" << system.coords << std::endl; 
-    }
-
-    // print the distances if requested
-    if (Utility::VectorContains<std::string>(program.get<std::vector<std::string>>("-p"), "dist")) std::cout << "\nDISTANCE MATRIX\n" << system.dists << std::endl; 
+    // print the initial stuff
+    Printer::Initial(program, system);
 
     // calculate the integrals if needed
     if (program.is_subcommand_used("ints") || program.is_subcommand_used("hf")) integrals();
@@ -306,32 +287,26 @@ void Distributor::run() {
         } else if (program.at<argparse::ArgumentParser>("hf").is_subcommand_used("mp2")) {
             if (program.at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("mp2").is_used("-o")) {
                 if (program.get<int>("-s") == 1) rmp2o(program.at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("mp2"));
-                else throw std::runtime_error("OPTIMIZATION FOR UMP2 NOT IMPLEMENTED");
             }
         } else if (program.at<argparse::ArgumentParser>("hf").is_subcommand_used("ci")) {
             if (program.at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("ci").is_used("-o")) {
                 if (program.get<int>("-s") == 1) rcio(program.at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("ci"));
-                else throw std::runtime_error("OPTIMIZATION FOR CI NOT IMPLEMENTED");
             }
         } else if (program.at<argparse::ArgumentParser>("hf").is_subcommand_used("cis")) {
             if (program.at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("cis").is_used("-o")) {
                 if (program.get<int>("-s") == 1) rcio(program.at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("cis"));
-                else throw std::runtime_error("OPTIMIZATION FOR CI NOT IMPLEMENTED");
             }
         } else if (program.at<argparse::ArgumentParser>("hf").is_subcommand_used("cid")) {
             if (program.at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("cid").is_used("-o")) {
                 if (program.get<int>("-s") == 1) rcio(program.at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("cid"));
-                else throw std::runtime_error("OPTIMIZATION FOR CI NOT IMPLEMENTED");
             }
         } else if (program.at<argparse::ArgumentParser>("hf").is_subcommand_used("cisd")) {
             if (program.at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("cisd").is_used("-o")) {
                 if (program.get<int>("-s") == 1) rcio(program.at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("cisd"));
-                else throw std::runtime_error("OPTIMIZATION FOR CI NOT IMPLEMENTED");
             }
         } else if (program.at<argparse::ArgumentParser>("hf").is_subcommand_used("fci")) {
             if (program.at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("fci").is_used("-o")) {
                 if (program.get<int>("-s") == 1) rcio(program.at<argparse::ArgumentParser>("hf").at<argparse::ArgumentParser>("fci"));
-                else throw std::runtime_error("OPTIMIZATION FOR CI NOT IMPLEMENTED");
             }
         }
     }
@@ -393,10 +368,9 @@ void Distributor::rcirun(argparse::ArgumentParser& parser, const HF::ResultsRest
 }
 
 void Distributor::rcif(argparse::ArgumentParser& parser, const HF::ResultsRestricted& rhfres) {
-    // print the CI frequency calculation header
-    if (parser.get<std::vector<double>>("-f").at(0)) std::cout << "\n" + std::string(104, '-') + "\nNUMERICAL HESSIAN FOR RESTRICTED CI METHOD\n";
-    else std::cout << "\n" + std::string(104, '-') + "\nANALYTICAL HESSIAN FOR RESTRICTED CI METHOD\n";
-    std::cout << std::string(104, '-') + "\n\n"; Matrix H; CI::OptionsRestricted rciopt;
+    // print the header for frequency calculation and define the gradient matrix
+    if (parser.get<std::vector<double>>("-g").at(0)) {std::cout << std::endl; Printer::Title("NUMERICAL FREQUENCIES FOR RESTRICTED CI");}
+    else {std::cout << std::endl; Printer::Title("ANALYTICAL FREQUENCIES FOR RESTRICTED CI");} Matrix H; CI::OptionsRestricted rciopt;
 
     // choose the correct method
     if (program.at<argparse::ArgumentParser>("hf").is_subcommand_used("ci")) rciopt.excits = parser.get<std::vector<int>>("excitations");
@@ -411,19 +385,23 @@ void Distributor::rcif(argparse::ArgumentParser& parser, const HF::ResultsRestri
     if (parser.get<std::vector<double>>("-f").at(0)) H = Hessian({parser.get<std::vector<double>>("-f").at(1)}).get(system, Lambda::ECI(rhfopt, rciopt, rhfres.D));
     else throw std::runtime_error("ANALYTICAL HESSIAN FOR RCI NOT IMPLEMENTED");
 
-    // print the Hessian with its norm and perform the frequency calculation
-    std::cout << "NUCLEAR HESSIAN\n" << H << "\n\nHESSIAN NORM: "; std::printf("%.2e\n", H.norm());
+    // print the Hessian and it's norm
+    Printer::Mat("\nNUCLEAR HESSIAN", H); std::printf("\nHESSIAN NORM: %.2e\n", H.norm());
+
+    // calculate the frequencies
     Vector freq = Hessian({parser.get<std::vector<double>>("-f").at(1)}).frequency(system, H);
 
-    // print the MP2 frequencies
-    std::cout << "\n" + std::string(104, '-') + "\nRESTRICTED CI FREQUENCY ANALYSIS\n" << std::string(104, '-') + "\n";
-    std::cout << "\nVIBRATIONAL FREQUENCIES\n" << Matrix(freq) << std::endl;
+    // print the frequencies
+    std::cout << std::endl; Printer::Title("RESTRICTED CI FREQUENCY ANALYSIS");
+    Printer::Mat("\nVIBRATIONAL FREQUENCIES", freq);
 }
 
 void Distributor::rcig(argparse::ArgumentParser& parser, const HF::ResultsRestricted& rhfres) {
-    // print the CI gradient method header and extract the HF options
-    if (parser.get<std::vector<double>>("-g").at(0)) std::cout << "\n" + std::string(104, '-') + "\nNUMERICAL GRADIENT FOR RESTRICTED CI METHOD\n" << std::string(104, '-') << "\n\n";
-    else {std::cout << "\n" + std::string(104, '-') + "\nANALYTICAL GRADIENT FOR RESTRICTED CI METHOD\n" << std::string(104, '-') << "\n\n";} Matrix G;
+    // print the header for gradient calculation and define the gradient matrix
+    if (parser.get<std::vector<double>>("-g").at(0)) {std::cout << std::endl; Printer::Title("NUMERICAL GRADIENT FOR RESTRICTED CI");}
+    else {std::cout << std::endl; Printer::Title("ANALYTICAL GRADIENT FOR RESTRICTED CI");} Matrix G; 
+
+    // extract the RHF options
     auto rhfopt = HF::OptionsRestricted::Load(program.at<argparse::ArgumentParser>("hf"), program.get<bool>("--no-coulomb")); CI::OptionsRestricted rciopt;
 
     // choose the correct method
@@ -436,15 +414,16 @@ void Distributor::rcig(argparse::ArgumentParser& parser, const HF::ResultsRestri
     if (parser.get<std::vector<double>>("-g").at(0)) G = Gradient({parser.get<std::vector<double>>("-g").at(1)}).get(system, Lambda::ECI(rhfopt, rciopt, rhfres.D));
     else throw std::runtime_error("ANALYTICAL GRADIENT FOR RCI NOT IMPLEMENTED");
 
-    // print the CI gradient with its norm
-    std::cout << G << "\n\nGRADIENT NORM: "; std::printf("%.2e\n", G.norm());
+    // print the gradient and it's norm
+    Printer::Mat("\nNUCLEAR GRADIENT", G); std::printf("\nGRADIENT NORM: %.2e\n", G.norm());
 }
 
 void Distributor::rcio(argparse::ArgumentParser& parser) {
-    // extract the HF options and print the MP2 optimization method header
+    // print the RHF optimization header
+    std::cout << std::endl; Printer::Title("RESTRICTED CI OPTIMIZATION"); CI::OptionsRestricted rciopt;
+
+    // extract the RHF options
     auto rhfopt = HF::OptionsRestricted::Load(program.at<argparse::ArgumentParser>("hf"), program.get<bool>("--no-coulomb"));
-    std::cout << "\n" + std::string(104, '-') + "\nRESTRICTED CI OPTIMIZATION\n" << std::string(104, '-') << "\n\n";
-    CI::OptionsRestricted rciopt;
 
     // choose the correct method
     if (program.at<argparse::ArgumentParser>("hf").is_subcommand_used("ci")) rciopt.excits = parser.get<std::vector<int>>("excitations");
@@ -456,8 +435,8 @@ void Distributor::rcio(argparse::ArgumentParser& parser) {
     system = Optimizer({parser.get<double>("-o")}).optimize(system, Lambda::EGCI(rhfopt, rciopt, parser.get<std::vector<double>>("-g"), Matrix::Zero(system.shells.nbf(), system.shells.nbf())));
 
     // print the optimized coordinates and distances
-    std::cout << "\nOPTIMIZED SYSTEM COORDINATES\n" << system.coords << std::endl;
-    if (Utility::VectorContains<std::string>(parser.get<std::vector<std::string>>("-p"), "dist")) std::cout << "\nOPTIMIZED DISTANCE MATRIX\n" << system.dists << std::endl;
+    Printer::Mat("\nOPTIMIZED SYSTEM COORDINATES", system.coords);
+    if (Utility::VectorContains<std::string>(parser.get<std::vector<std::string>>("-p"), "dist")) Printer::Mat("\nOPTIMIZED DISTANCE MATRIX", system.dists);
 }
 
 void Distributor::rhfrun(argparse::ArgumentParser& parser) {
@@ -465,8 +444,8 @@ void Distributor::rhfrun(argparse::ArgumentParser& parser) {
     auto rhfopt = HF::OptionsRestricted::Load(program.at<argparse::ArgumentParser>("hf"), program.get<bool>("--no-coulomb"));
 
     // print the RHF method header
-    std::cout << "\n" + std::string(104, '-') + "\nRESTRICTED HARTREE-FOCK METHOD\n" << std::string(104, '-') + "\n\n";
-    std::printf("-- MAXITER: %d, THRESH: %.2e\n-- DIIS: [START: %d, KEEP: %d]\n", rhfopt.maxiter, rhfopt.thresh, rhfopt.diis.start, rhfopt.diis.keep);
+    std::cout << std::endl; Printer::Title("RESTRICTED HARTREE-FOCK METHOD");
+    std::printf("\n-- MAXITER: %d, THRESH: %.2e\n-- DIIS: [START: %d, KEEP: %d]\n", rhfopt.maxiter, rhfopt.thresh, rhfopt.diis.start, rhfopt.diis.keep);
 
     // perform the RHF calculation
     auto rhfres = HF(rhfopt).rscf(system, Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
@@ -495,10 +474,9 @@ void Distributor::rhfrun(argparse::ArgumentParser& parser) {
 }
 
 void Distributor::rhff(argparse::ArgumentParser& parser, const HF::ResultsRestricted& rhfres) {
-    // print the Hessian header
-    if (parser.get<std::vector<double>>("-f").at(0)) std::cout << "\n" + std::string(104, '-') + "\nNUMERICAL HESSIAN FOR RESTRICTED HARTREE-FOCK\n";
-    else std::cout << "\n" + std::string(104, '-') + "\nANALYTICAL HESSIAN FOR RESTRICTED HARTREE-FOCK\n";
-    std::cout << std::string(104, '-') + "\n\n"; Matrix H;
+    // print the header for frequency calculation and define the hessian matrix
+    if (parser.get<std::vector<double>>("-g").at(0)) {std::cout << std::endl; Printer::Title("NUMERICAL FREQUENCIES FOR RESTRICTED HARTREE-FOCK");}
+    else {std::cout << std::endl; Printer::Title("ANALYTICAL FREQUENCIES FOR RESTRICTED HARTREE-FOCK");} Matrix H; 
 
     // extract the HF options
     auto rhfopt = HF::OptionsRestricted::Load(program.at<argparse::ArgumentParser>("hf"), program.get<bool>("--no-coulomb"));
@@ -507,20 +485,21 @@ void Distributor::rhff(argparse::ArgumentParser& parser, const HF::ResultsRestri
     if (parser.get<std::vector<double>>("-f").at(0)) H = Hessian({parser.get<std::vector<double>>("-f").at(1)}).get(system, Lambda::EHF(rhfopt, rhfres.D));
     else throw std::runtime_error("ANALYTICAL HESSIAN FOR RHF NOT IMPLEMENTED");
 
-    // print the Hessian with its norm and perform the frequency calculation
-    std::cout << "NUCLEAR HESSIAN\n" << H << "\n\nHESSIAN NORM: "; std::printf("%.2e\n", H.norm());
+    // print the Hessian and it's norm
+    Printer::Mat("\nNUCLEAR HESSIAN", H); std::printf("\nHESSIAN NORM: %.2e\n", H.norm());
+
+    // calculate the frequencies
     Vector freq = Hessian({parser.get<std::vector<double>>("-f").at(1)}).frequency(system, H);
 
     // print the frequencies
-    std::cout << "\n" + std::string(104, '-') + "\nRESTRICTED HARTREE-FOCK FREQUENCY ANALYSIS\n" << std::string(104, '-');
-    std::cout << "\n\nVIBRATIONAL FREQUENCIES\n" << Matrix(freq) << std::endl;
+    std::cout << std::endl; Printer::Title("RESTRICTED HARTREE-FOCK FREQUENCY ANALYSIS");
+    Printer::Mat("\nVIBRATIONAL FREQUENCIES", freq);
 }
 
 void Distributor::rhfg(argparse::ArgumentParser& parser, const HF::ResultsRestricted& rhfres) {
     // print the header for gradient calculation and define the gradient matrix
-    if (parser.get<std::vector<double>>("-g").at(0)) std::cout << "\n" + std::string(104, '-') + "\nNUMERICAL GRADIENT FOR RESTRICTED HARTREE-FOCK\n";
-    else std::cout << "\n" + std::string(104, '-') + "\nANALYTICAL GRADIENT FOR RESTRICTED HARTREE-FOCK\n";
-    std::cout << std::string(104, '-') + "\n\n"; Matrix G; 
+    if (parser.get<std::vector<double>>("-g").at(0)) {std::cout << std::endl; Printer::Title("NUMERICAL GRADIENT FOR RESTRICTED HARTREE-FOCK");}
+    else {std::cout << std::endl; Printer::Title("ANALYTICAL GRADIENT FOR RESTRICTED HARTREE-FOCK");} Matrix G; 
 
     // extract the HF options
     auto rhfopt = HF::OptionsRestricted::Load(program.at<argparse::ArgumentParser>("hf"), program.get<bool>("--no-coulomb"));
@@ -530,20 +509,22 @@ void Distributor::rhfg(argparse::ArgumentParser& parser, const HF::ResultsRestri
     else G = Gradient({parser.get<std::vector<double>>("-g").at(1)}).get(system, rhfres);
 
     // print the gradient and it's norm
-    std::cout << G << "\n\nGRADIENT NORM: "; std::printf("%.2e\n", G.norm());
+    Printer::Mat("\nNUCLEAR GRADIENT", G); std::printf("\nGRADIENT NORM: %.2e\n", G.norm());
 }
 
 void Distributor::rhfo(argparse::ArgumentParser& parser) {
-    // print the RHF optimization header and extract the HF options
-    std::cout << "\n" + std::string(104, '-') + "\nRESTRICTED HARTREE-FOCK OPTIMIZATION\n" << std::string(104, '-') + "\n\n";
+    // print the RHF optimization header
+    std::cout << std::endl; Printer::Title("RESTRICTED HARTREE-FOCK OPTIMIZATION");
+
+    // extract the HF options
     auto rhfopt = HF::OptionsRestricted::Load(program.at<argparse::ArgumentParser>("hf"), program.get<bool>("--no-coulomb"));
 
     // perform the optimization
     system = Optimizer({parser.get<double>("-o")}).optimize(system, Lambda::EGHF(rhfopt, parser.get<std::vector<double>>("-g"), Matrix::Zero(system.shells.nbf(), system.shells.nbf())));
 
     // print the optimized coordinates and distances
-    std::cout << "\nOPTIMIZED SYSTEM COORDINATES\n" << system.coords << std::endl; 
-    if (Utility::VectorContains<std::string>(parser.get<std::vector<std::string>>("-p"), "dist")) std::cout << "\nOPTIMIZED DISTANCE MATRIX\n" << system.dists << std::endl;
+    Printer::Mat("\nOPTIMIZED SYSTEM COORDINATES", system.coords);
+    if (Utility::VectorContains<std::string>(parser.get<std::vector<std::string>>("-p"), "dist")) Printer::Mat("\nOPTIMIZED DISTANCE MATRIX", system.dists);
 }
 
 void Distributor::uhfrun(argparse::ArgumentParser& parser) {
@@ -551,8 +532,8 @@ void Distributor::uhfrun(argparse::ArgumentParser& parser) {
     auto uhfopt = HF::OptionsUnrestricted::Load(program.at<argparse::ArgumentParser>("hf"), program.get<bool>("--no-coulomb"));
 
     // print the RHF method header
-    std::cout << "\n" + std::string(104, '-') + "\nUNRESTRICTED HARTREE-FOCK METHOD\n" << std::string(104, '-') + "\n\n";
-    std::printf("-- MAXITER: %d, THRESH: %.2e\n-- DIIS: [START: %d, KEEP: %d]\n", uhfopt.maxiter, uhfopt.thresh, uhfopt.diis.start, uhfopt.diis.keep);
+    std::cout << std::endl; Printer::Title("UNRESTRICTED HARTREE-FOCK METHOD");
+    std::printf("\n-- MAXITER: %d, THRESH: %.2e\n-- DIIS: [START: %d, KEEP: %d]\n", uhfopt.maxiter, uhfopt.thresh, uhfopt.diis.start, uhfopt.diis.keep);
 
     // perform the RHF calculation
     auto uhfres = HF(uhfopt).uscf(system, Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
@@ -576,21 +557,12 @@ void Distributor::uhfrun(argparse::ArgumentParser& parser) {
     // gradient and frequency
     if (parser.is_used("-g")) uhfg(parser, uhfres);
     if (parser.is_used("-f")) uhff(parser, uhfres);
-
-    // post UHF methods
-    if (parser.is_subcommand_used("mp2")) throw std::runtime_error("UMP2 NOT IMPLEMENTED");
-    if (parser.is_subcommand_used("ci")) throw std::runtime_error("UCI NOT IMPLEMENTED");
-    if (parser.is_subcommand_used("cis")) throw std::runtime_error("UCI NOT IMPLEMENTED");
-    if (parser.is_subcommand_used("cid")) throw std::runtime_error("UCI NOT IMPLEMENTED");
-    if (parser.is_subcommand_used("cisd")) throw std::runtime_error("UCI NOT IMPLEMENTED");
-    if (parser.is_subcommand_used("fci")) throw std::runtime_error("UCI NOT IMPLEMENTED");
 }
 
 void Distributor::uhff(argparse::ArgumentParser& parser, const HF::ResultsUnrestricted& uhfres) {
-    // print the Hessian header
-    if (parser.get<std::vector<double>>("-f").at(0)) std::cout << "\n" + std::string(104, '-') + "\nNUMERICAL HESSIAN FOR RESTRICTED HARTREE-FOCK\n";
-    else std::cout << "\n" + std::string(104, '-') + "\nANALYTICAL HESSIAN FOR RESTRICTED HARTREE-FOCK\n";
-    std::cout << std::string(104, '-') + "\n\n"; Matrix H;
+    // print the header for frequency calculation and define the hessian matrix
+    if (parser.get<std::vector<double>>("-g").at(0)) {std::cout << std::endl; Printer::Title("NUMERICAL FREQUENCIES FOR UNRESTRICTED HARTREE-FOCK");}
+    else {std::cout << std::endl; Printer::Title("ANALYTICAL FREQUENCIES FOR UNRESTRICTED HARTREE-FOCK");} Matrix H; 
 
     // extract the HF method options
     auto uhfopt = HF::OptionsUnrestricted::Load(program.at<argparse::ArgumentParser>("hf"), program.get<bool>("--no-coulomb"));
@@ -599,20 +571,21 @@ void Distributor::uhff(argparse::ArgumentParser& parser, const HF::ResultsUnrest
     if (parser.get<std::vector<double>>("-f").at(0)) H = Hessian({parser.get<std::vector<double>>("-f").at(1)}).get(system, Lambda::EHF(uhfopt, 0.5 * (uhfres.Da + uhfres.Db)));
     else throw std::runtime_error("ANALYTICAL HESSIAN FOR UHF NOT IMPLEMENTED");
 
-    // print the Hessian with its norm and perform the frequency calculation
-    std::cout << "NUCLEAR HESSIAN\n" << H << "\n\nHESSIAN NORM: "; std::printf("%.2e\n", H.norm());
+    // print the Hessian and it's norm
+    Printer::Mat("\nNUCLEAR HESSIAN", H); std::printf("\nHESSIAN NORM: %.2e\n", H.norm());
+
+    // calculate the frequencies
     Vector freq = Hessian({parser.get<std::vector<double>>("-f").at(1)}).frequency(system, H);
 
     // print the frequencies
-    std::cout << "\n" + std::string(104, '-') + "\nRESTRICTED HARTREE-FOCK FREQUENCY ANALYSIS\n" << std::string(104, '-');
-    std::cout << "\n\nVIBRATIONAL FREQUENCIES\n" << Matrix(freq) << std::endl;
+    std::cout << std::endl; Printer::Title("UNRESTRICTED HARTREE-FOCK FREQUENCY ANALYSIS");
+    Printer::Mat("\nVIBRATIONAL FREQUENCIES", freq);
 }
 
 void Distributor::uhfg(argparse::ArgumentParser& parser, const HF::ResultsUnrestricted& uhfres) {
     // print the header for gradient calculation and define the gradient matrix
-    if (parser.get<std::vector<double>>("-g").at(0)) std::cout << "\n" + std::string(104, '-') + "\nNUMERICAL GRADIENT FOR UNRESTRICTED HARTREE-FOCK\n";
-    else std::cout << "\n" + std::string(104, '-') + "\nANALYTICAL GRADIENT FOR UNRESTRICTED HARTREE-FOCK\n";
-    std::cout << std::string(104, '-') + "\n\n"; Matrix G; 
+    if (parser.get<std::vector<double>>("-g").at(0)) {std::cout << std::endl; Printer::Title("NUMERICAL GRADIENT FOR UNRESTRICTED HARTREE-FOCK");}
+    else {std::cout << std::endl; Printer::Title("ANALYTICAL GRADIENT FOR UNRESTRICTED HARTREE-FOCK");} Matrix G; 
 
     // extract the HF method options
     auto uhfopt = HF::OptionsUnrestricted::Load(program.at<argparse::ArgumentParser>("hf"), program.get<bool>("--no-coulomb"));
@@ -622,25 +595,27 @@ void Distributor::uhfg(argparse::ArgumentParser& parser, const HF::ResultsUnrest
     else throw std::runtime_error("ANALYTICAL GRADIENT FOR UHF NOT IMPLEMENTED");
 
     // print the gradient and it's norm
-    std::cout << G << "\n\nGRADIENT NORM: "; std::printf("%.2e\n", G.norm());
+    Printer::Mat("\nNUCLEAR GRADIENT", G); std::printf("\nGRADIENT NORM: %.2e\n", G.norm());
 }
 
 void Distributor::uhfo(argparse::ArgumentParser& parser) {
-    // print the UHF optimization header and extract the HF options
-    std::cout << "\n" + std::string(104, '-') + "\nUNRESTRICTED HARTREE-FOCK OPTIMIZATION\n" << std::string(104, '-') + "\n\n";
+    // print the UHF optimization header
+    std::cout << std::endl; Printer::Title("UNRESTRICTED HARTREE-FOCK OPTIMIZATION");
+
+    // extract the HF options
     auto uhfopt = HF::OptionsUnrestricted::Load(program.at<argparse::ArgumentParser>("hf"), program.get<bool>("--no-coulomb"));
 
     // perform the optimization
     system = Optimizer({parser.get<double>("-o")}).optimize(system, Lambda::EGHF(uhfopt, parser.get<std::vector<double>>("-g"), Matrix::Zero(system.shells.nbf(), system.shells.nbf())));
 
     // print the optimized coordinates and distances
-    std::cout << "\nOPTIMIZED SYSTEM COORDINATES\n" << system.coords << std::endl; 
-    if (Utility::VectorContains<std::string>(parser.get<std::vector<std::string>>("-p"), "dist")) std::cout << "\nOPTIMIZED DISTANCE MATRIX\n" << system.dists << std::endl;
+    Printer::Mat("\nOPTIMIZED SYSTEM COORDINATES", system.coords);
+    if (Utility::VectorContains<std::string>(parser.get<std::vector<std::string>>("-p"), "dist")) Printer::Mat("\nOPTIMIZED DISTANCE MATRIX", system.dists);
 }
 
 void Distributor::rmp2run(argparse::ArgumentParser& parser, const HF::ResultsRestricted& rhfres) {
-    // print the MP2 method header
-    std::cout << "\n" + std::string(104, '-') + "\nRESTRICTED MØLLER-PLESSET PERTRUBATION THEORY\n" << std::string(104, '-') + "\n"; Tensor<4> Jmo;
+    // print the MP2 method header and declare JMO tensor
+    std::cout << std::endl; Printer::Title("RESTRICTED MØLLER-PLESSET PERTRUBATION THEORY"); Tensor<4> Jmo;
 
     // transform the coulomb tensor to MO basis
     std::cout << "\nCOULOMB TENSOR IN MO BASIS: " << std::flush; TIME(Jmo = Transform::Coulomb(system.ints.J, rhfres.C))
@@ -660,10 +635,9 @@ void Distributor::rmp2run(argparse::ArgumentParser& parser, const HF::ResultsRes
 }
 
 void Distributor::rmp2f(argparse::ArgumentParser& parser, const HF::ResultsRestricted& rhfres) {
-    // print the MP2 frequency calculation header
-    if (parser.get<std::vector<double>>("-f").at(0)) std::cout << "\n" + std::string(104, '-') + "\nNUMERICAL HESSIAN FOR RESTRICTED MP2 METHOD\n";
-    else std::cout << "\n" + std::string(104, '-') + "\nANALYTICAL HESSIAN FOR RESTRICTED MP2 METHOD\n";
-    std::cout << std::string(104, '-') + "\n\n"; Matrix H; 
+    // print the header for frequency calculation and define the hessian matrix
+    if (parser.get<std::vector<double>>("-g").at(0)) {std::cout << std::endl; Printer::Title("NUMERICAL FREQUENCIES FOR RESTRICTED MP2");}
+    else {std::cout << std::endl; Printer::Title("ANALYTICAL FREQUENCIES FOR RESTRICTED MP2");} Matrix H; 
 
     // extract the HF options
     auto rhfopt = HF::OptionsRestricted::Load(program.at<argparse::ArgumentParser>("hf"), program.get<bool>("--no-coulomb"));
@@ -672,46 +646,49 @@ void Distributor::rmp2f(argparse::ArgumentParser& parser, const HF::ResultsRestr
     if (parser.get<std::vector<double>>("-f").at(0)) H = Hessian({parser.get<std::vector<double>>("-f").at(1)}).get(system, Lambda::EMP2(rhfopt, rhfres.D));
     else throw std::runtime_error("ANALYTICAL HESSIAN FOR RMP2 NOT IMPLEMENTED");
 
-    // print the Hessian with its norm and perform the frequency calculation
-    std::cout << "NUCLEAR HESSIAN\n" << H << "\n\nHESSIAN NORM: "; std::printf("%.2e\n", H.norm());
+    // print the Hessian and it's norm
+    Printer::Mat("\nNUCLEAR HESSIAN", H); std::printf("\nHESSIAN NORM: %.2e\n", H.norm());
+
+    // calculate the frequencies
     Vector freq = Hessian({parser.get<std::vector<double>>("-f").at(1)}).frequency(system, H);
 
-    // print the MP2 frequencies
-    std::cout << "\n" + std::string(104, '-') + "\nRESTRICTED MP2 FREQUENCY ANALYSIS\n" << std::string(104, '-') + "\n";
-    std::cout << "\nVIBRATIONAL FREQUENCIES\n" << Matrix(freq) << std::endl;
+    // print the frequencies
+    std::cout << std::endl; Printer::Title("RESTRICTED MP2 FREQUENCY ANALYSIS");
+    Printer::Mat("\nVIBRATIONAL FREQUENCIES", freq);
 }
 
 void Distributor::rmp2g(argparse::ArgumentParser& parser, const HF::ResultsRestricted& rhfres) {
-    // print the MP2 gradient method header and extract the HF options
-    if (parser.get<std::vector<double>>("-g").at(0)) std::cout << "\n" + std::string(104, '-') + "\nNUMERICAL GRADIENT FOR RESTRICTED MP2 METHOD\n" << std::string(104, '-') << "\n\n";
-    else {std::cout << "\n" + std::string(104, '-') + "\nANALYTICAL GRADIENT FOR RESTRICTED MP2 METHOD\n" << std::string(104, '-') << "\n\n";} Matrix G;
+    // print the header for gradient calculation and define the gradient matrix
+    if (parser.get<std::vector<double>>("-g").at(0)) {std::cout << std::endl; Printer::Title("NUMERICAL GRADIENT FOR RESTRICTED MP2");}
+    else {std::cout << std::endl; Printer::Title("ANALYTICAL GRADIENT FOR RESTRICTED MP2");} Matrix G; 
+
+    // extract the RHF options
     auto rhfopt = HF::OptionsRestricted::Load(program.at<argparse::ArgumentParser>("hf"), program.get<bool>("--no-coulomb"));
 
     // perform the MP2 gradient calculation
     if (parser.get<std::vector<double>>("-g").at(0)) G = Gradient({parser.get<std::vector<double>>("-g").at(1)}).get(system, Lambda::EMP2(rhfopt, rhfres.D));
     else throw std::runtime_error("ANALYTICAL GRADIENT FOR RMP2 NOT IMPLEMENTED");
 
-    // print the MP2 gradient with its norm
-    std::cout << G << "\n\nGRADIENT NORM: "; std::printf("%.2e\n", G.norm());
+    // print the gradient and it's norm
+    Printer::Mat("\nNUCLEAR GRADIENT", G); std::printf("\nGRADIENT NORM: %.2e\n", G.norm());
 }
 
 void Distributor::rmp2o(argparse::ArgumentParser& parser) {
     // extract the HF options and print the MP2 optimization method header
     auto rhfopt = HF::OptionsRestricted::Load(program.at<argparse::ArgumentParser>("hf"), program.get<bool>("--no-coulomb"));
-    std::cout << "\n" + std::string(104, '-') + "\nRESTRICTED MP2 OPTIMIZATION\n" << std::string(104, '-') << "\n\n";
+    std::cout << std::endl; Printer::Title("RESTRICTED MP2 OPTIMIZATION");
 
     // perform the optimization
     system = Optimizer({parser.get<double>("-o")}).optimize(system, Lambda::EGMP2(rhfopt, parser.get<std::vector<double>>("-g"), Matrix::Zero(system.shells.nbf(), system.shells.nbf())));
 
     // print the optimized coordinates and distances
-    std::cout << "\nOPTIMIZED SYSTEM COORDINATES\n" << system.coords << std::endl;
-    if (Utility::VectorContains<std::string>(parser.get<std::vector<std::string>>("-p"), "dist")) std::cout << "\nOPTIMIZED DISTANCE MATRIX\n" << system.dists << std::endl;
+    Printer::Mat("\nOPTIMIZED SYSTEM COORDINATES", system.coords);
+    if (Utility::VectorContains<std::string>(parser.get<std::vector<std::string>>("-p"), "dist")) Printer::Mat("\nOPTIMIZED DISTANCE MATRIX", system.dists);
 }
 
 void Distributor::scan(argparse::ArgumentParser& parser) {
     // print the energy scan header
-    std::cout << "\n" + std::string(104, '-') + "\nMOVIE ENERGY SCAN\n" << std::string(104, '-') + "\n";
-    std::printf("\nITER       Eel [Eh]           TIME    \n");
+    std::cout << std::endl; Printer::Title("ENERGY SCAN"); std::printf("\nITER       Eel [Eh]           TIME    \n");
 
     // extract the HF method options
     auto uhfopt = HF::OptionsUnrestricted::Load(program.at<argparse::ArgumentParser>("scan").at<argparse::ArgumentParser>("hf"), program.get<bool>("--no-coulomb"));
@@ -738,10 +715,7 @@ void Distributor::scan(argparse::ArgumentParser& parser) {
         }
     } else if (parser.is_subcommand_used("hf") && program.get<int>("-s") != 1) {
         efunc = Lambda::EHF(uhfopt, Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
-        if (parser.at<argparse::ArgumentParser>("hf").is_subcommand_used("mp2")) {
-            throw std::runtime_error("UMP2 NOT IMPLEMENTED");
-        }
-    } else throw std::runtime_error("INVALID METHOD FOR SCAN SPECIFIED");
+    }
 
     // count the number of geometries
     std::ifstream stream(program.get("-f")); std::string line; int lines;
@@ -772,7 +746,7 @@ void Distributor::scan(argparse::ArgumentParser& parser) {
 
 void Distributor::dynamics(argparse::ArgumentParser& parser) {
     // print the dynamics header
-    std::cout << "\n" + std::string(104, '-') + "\nMOLECULAR DYNAMICS\n" << std::string(104, '-') + "\n\n";
+    std::cout << std::endl; Printer::Title("MOLECULAR DYNAMICS");
 
     // extract the HF method options
     auto uhfopt = HF::OptionsUnrestricted::Load(program.at<argparse::ArgumentParser>("md").at<argparse::ArgumentParser>("hf"), program.get<bool>("--no-coulomb"));
@@ -799,20 +773,7 @@ void Distributor::dynamics(argparse::ArgumentParser& parser) {
         }
     } else if (parser.is_subcommand_used("hf") && program.get<int>("-s") != 1) {
         egfunc = Lambda::EGHF(uhfopt, parser.at<argparse::ArgumentParser>("hf").get<std::vector<double>>("-g"), Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
-        if (parser.at<argparse::ArgumentParser>("hf").is_subcommand_used("mp2")) {
-            throw std::runtime_error("UMP2 NOT IMPLEMENTED");
-        } else if (parser.at<argparse::ArgumentParser>("hf").is_subcommand_used("ci")) {
-            throw std::runtime_error("UCI NOT IMPLEMENTED");
-        } else if (parser.at<argparse::ArgumentParser>("hf").is_subcommand_used("cis")) {
-            throw std::runtime_error("UCI NOT IMPLEMENTED");
-        } else if (parser.at<argparse::ArgumentParser>("hf").is_subcommand_used("cid")) {
-            throw std::runtime_error("UCI NOT IMPLEMENTED");
-        } else if (parser.at<argparse::ArgumentParser>("hf").is_subcommand_used("cisd")) {
-            throw std::runtime_error("UCI NOT IMPLEMENTED");
-        } else if (parser.at<argparse::ArgumentParser>("hf").is_subcommand_used("fci")) {
-            throw std::runtime_error("UCI NOT IMPLEMENTED");
-        }
-    } else throw std::runtime_error("INVALID METHOD FOR DYNAMICS SPECIFIED");
+    }
 
     // perform the dynamics
     MD({parser.get<int>("-i"), parser.get<double>("-s"), parser.get("-o")}).run(system, egfunc);
@@ -820,7 +781,7 @@ void Distributor::dynamics(argparse::ArgumentParser& parser) {
 
 void Distributor::qdyn(argparse::ArgumentParser& parser) {
     // print the dynamics header
-    std::cout << "\n" + std::string(104, '-') + "\nQUANTUM DYNAMICS\n" << std::string(104, '-') + "\n\n";
+    std::cout << std::endl; Printer::Title("QUANTUM DYNAMICS");
 
     // perform the dynamics
     QD::Results qdres = QD({parser.get("-f"), parser.get<int>("-i"), parser.get<int>("-n"), parser.get<double>("-s"), parser.get<double>("-t"), parser.get<bool>("--no-real")}).run(system);
@@ -834,8 +795,7 @@ void Distributor::qdyn(argparse::ArgumentParser& parser) {
 
 void Distributor::integrals() {
     // print the integral calculation header
-    std::cout << "\n" + std::string(104, '-') + "\nINTEGRAL CALCULATION\n";
-    std::cout << std::string(104, '-') << std::endl;
+    std::cout << "\n"; Printer::Title("INTEGRAL CALCULATION");
 
     // calculate the overlap integral
     std::cout << "\nOVERLAP INTEGRAL: " << std::flush; TIME(system.ints.S = Integral::Overlap(system))
