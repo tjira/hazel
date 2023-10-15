@@ -12,7 +12,7 @@ env:
   BUILD_TYPE: Release
 
 jobs:
-  test-linux:
+  test_linux_x86-64_avx_openmp:
     runs-on: ubuntu-latest
 
     steps:
@@ -25,7 +25,7 @@ jobs:
         run: ./script/libint.sh
 
       - name: Configure Hazel
-        run: cmake -B build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGOMP=ON
+        run: cmake -B build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DAVX=ON -DGOMP=ON
 
       - name: Run Tests
         working-directory: build

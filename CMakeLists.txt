@@ -16,6 +16,12 @@ set(BUILD_TESTING OFF)
 set(CMAKE_CXX_FLAGS_DEBUG "-g -pg -Og -fprofile-arcs -ftest-coverage -Wall -Wextra")
 set(CMAKE_CXX_FLAGS_RELEASE "-s -O2")
 
+# enable AVX
+if (${AVX})
+    string(APPEND CMAKE_CXX_FLAGS_RELEASE " -mavx")
+endif()
+unset(AVX CACHE)
+
 # static link on windows
 if (WIN32)
     string(APPEND CMAKE_CXX_FLAGS_RELEASE " -static")

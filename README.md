@@ -61,7 +61,7 @@ Below are all the important features of Hazel divided into categories.
 The easiest cross-platform way to compile Hazel is using CMake with the following command.
 
 ```bash
-cmake -B build -DCMAKE_BUILD_TYPE=Release -DGOMP=ON -DSTANDALONE=ON .
+cmake -B build -DCMAKE_BUILD_TYPE=Release -DAVX=ON -DGOMP=ON -DSTANDALONE=ON .
 ```
 
 If the configuration finished without errors, compile the project by running the following command.
@@ -90,7 +90,7 @@ export LIBRARY_PATH="$PWD/libint/install/lib:$LIBRARY_PATH"
 After this, the project configuration should finish without errors.
 
 ```bash
-cmake -B build -DCMAKE_BUILD_TYPE=Release -DGOMP=ON .
+cmake -B build -DCMAKE_BUILD_TYPE=Release -DAVX=ON -DGOMP=ON .
 ```
 
 And we can build with the following command.
