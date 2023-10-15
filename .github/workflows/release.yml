@@ -12,7 +12,7 @@ env:
   BUILD_TYPE: Release
 
 jobs:
-  release_linux_x86-64:
+  build_linux_x86-64:
     runs-on: ubuntu-latest
 
     steps:
@@ -33,23 +33,12 @@ jobs:
           export LIBRARY_PATH="$PWD/libint/install/lib:$LIBRARY_PATH"
           cmake --build build --parallel 2
 
-      - name: Move the Executable to Root
-        run: mv bin/hazel .
-
-      - name: Remove Redundant Scripts
-        run: rm basis/basis.sh example/molecule/optimize.sh example/trajectory/trajectory.sh
-
-      - name: Create Package
-        run: tar -czf hazel_linux_x86-64.tar.gz hazel basis example
-
-      - name: Release Linux Version of Hazel
-        uses: svenstaro/upload-release-action@v2
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v3
         with:
-          repo_token: ${{secrets.GITHUB_TOKEN}}
-          file: hazel_linux_x86-64.tar.gz
-          tag: ${{github.ref}}
+          path: bin/hazel
 
-  release_win64:
+  build_windows_x86-64:
     runs-on: windows-latest
 
     steps:
@@ -61,18 +50,42 @@ jobs:
       - name: Build Hazel
         run: cmake --build build --parallel 2
 
-      - name: Move the Executable to Root
-        run: mv bin/hazel.exe .
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          path: bin/hazel.exe
+
+  release:
+    runs-on: ubuntu-latest
+    needs: [build-linux, build-windows]
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Download Artifacts
+        uses: actions/download-artifact@v3
+
+      - name: Copy Binaries to the Root Folder
+        run: cp artifact/hazel artifact/hazel.exe ${{github.workspace}}
 
       - name: Remove Redundant Scripts
         run: rm basis/basis.sh example/molecule/optimize.sh example/trajectory/trajectory.sh
 
-      - name: Create Package
-        run: zip -r hazel_win64.zip hazel.exe basis example
+      - name: Create Packages
+        run: |
+          tar -czf hazel_linux_x86-64.tar.gz hazel basis example
+          zip -r hazel_windows_x86-64.zip hazel.exe basis example
+
+      - name: Release Linux Version of Hazel
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{secrets.GITHUB_TOKEN}}
+          file: hazel_linux_x86-64.tar.gz
+          tag: ${{github.ref}}
 
       - name: Release Windows Version of Hazel
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{secrets.GITHUB_TOKEN}}
-          file: hazel_win64.zip
+          file: hazel_windows_x86-64.zip
           tag: ${{github.ref}}
