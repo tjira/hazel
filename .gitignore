@@ -1,12 +1,8 @@
 # root links
 /compile_commands.json
 /trajectory.xyz
+/molecule.xyz
 /movie.xyz
-/hazel.cpp
-/hazel
-
-# general links
-molecule.xyz
 
 # profiling
 /profile.txt
@@ -14,13 +10,13 @@ molecule.xyz
 
 # subfolders
 __pycache__/
-Testing/
 .cache/
 _site/
 build/
 bin/
 
 # exts
+*.clean
 *.lock
 *.dat
 *.log

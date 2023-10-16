@@ -70,6 +70,35 @@ jobs:
         with:
           path: bin/hazel_linux_x86-64_avx
 
+  build_linux_x86-64_avx_openmp:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install Packages
+        run: sudo apt install -y libboost-all-dev libeigen3-dev
+
+      - name: Build Libint
+        run: ./script/libint.sh
+
+      - name: Configure Hazel
+        run: cmake -B build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DAVX=ON -DGOMP=ON
+
+      - name: Build Hazel
+        run: |
+          export CPLUS_INCLUDE_PATH="$PWD/libint/install/include:$CPLUS_INCLUDE_PATH"
+          export LIBRARY_PATH="$PWD/libint/install/lib:$LIBRARY_PATH"
+          cmake --build build --parallel 2
+
+      - name: Rename Executable
+        run: mv bin/hazel bin/hazel_linux_x86-64_avx_openmp
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          path: bin/hazel_linux_x86-64_avx_openmp
+
   build_windows_x86-64:
     runs-on: windows-latest
 
@@ -110,9 +139,29 @@ jobs:
         with:
           path: bin/hazel_windows_x86-64_avx.exe
 
+  build_windows_x86-64_avx_openmp:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Configure Hazel
+        run: cmake -B build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DAVX=ON -DGOMP=ON -DSTANDALONE=ON -G "Unix Makefiles"
+
+      - name: Build Hazel
+        run: cmake --build build --parallel 2
+
+      - name: Rename Executable
+        run: mv bin/hazel.exe bin/hazel_windows_x86-64_avx_openmp.exe
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          path: bin/hazel_windows_x86-64_avx_openmp.exe
+
   release:
     runs-on: ubuntu-latest
-    needs: [build_linux_x86-64, build_linux_x86-64_avx, build_windows_x86-64, build_windows_x86-64_avx]
+    needs: [build_linux_x86-64, build_linux_x86-64_avx, build_linux_x86-64_avx_openmp, build_windows_x86-64, build_windows_x86-64_avx, build_windows_x86-64_avx_openmp]
 
     steps:
       - uses: actions/checkout@v3
@@ -121,7 +170,7 @@ jobs:
         uses: actions/download-artifact@v3
 
       - name: Remove Redundant Scripts
-        run: rm basis/basis.sh example/molecule/optimize.sh example/trajectory/trajectory.sh
+        run: rm basis/basis.sh example/generate.inp
 
       - name: Copy x86-64 Binaries to the Root Folder
         run: cp artifact/hazel_linux_x86-64 hazel && cp artifact/hazel_windows_x86-64.exe hazel.exe
@@ -139,6 +188,14 @@ jobs:
           tar -czf hazel_linux_x86-64_avx.tar.gz hazel basis example
           zip -r hazel_windows_x86-64_avx.zip hazel.exe basis example
 
+      - name: Copy x86-64_avx_openmp Binaries to the Root Folder
+        run: cp artifact/hazel_linux_x86-64_avx_openmp hazel && cp artifact/hazel_windows_x86-64_avx_openmp.exe hazel.exe
+
+      - name: Create x86-64_avx_openmp Packages
+        run: |
+          tar -czf hazel_linux_x86-64_avx_openmp.tar.gz hazel basis example
+          zip -r hazel_windows_x86-64_avx_openmp.zip hazel.exe basis example
+
       - name: Release linux_x86-64 Version of Hazel
         uses: svenstaro/upload-release-action@v2
         with:
@@ -153,6 +210,13 @@ jobs:
           file: hazel_linux_x86-64_avx.tar.gz
           tag: ${{github.ref}}
 
+      - name: Release linux_x86-64_avx_openmp Version of Hazel
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{secrets.GITHUB_TOKEN}}
+          file: hazel_linux_x86-64_avx_openmp.tar.gz
+          tag: ${{github.ref}}
+
       - name: Release windows_x86-64 Version of Hazel
         uses: svenstaro/upload-release-action@v2
         with:
@@ -165,4 +229,11 @@ jobs:
         with:
           repo_token: ${{secrets.GITHUB_TOKEN}}
           file: hazel_windows_x86-64_avx.zip
+          tag: ${{github.ref}}
+
+      - name: Release windows_x86-64_avx_openmp Version of Hazel
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{secrets.GITHUB_TOKEN}}
+          file: hazel_windows_x86-64_avx_openmp.zip
           tag: ${{github.ref}}

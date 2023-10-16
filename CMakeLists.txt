@@ -24,8 +24,8 @@ unset(AVX CACHE)
 
 # static link on windows
 if (WIN32)
-    string(APPEND CMAKE_CXX_FLAGS_RELEASE " -static")
-    string(APPEND CMAKE_CXX_FLAGS_DEBUG " -static")
+    string(APPEND CMAKE_CXX_FLAGS_RELEASE " -static -static-libgcc -static-libstdc++")
+    string(APPEND CMAKE_CXX_FLAGS_DEBUG " -static -static-libgcc -static-libstdc++")
 endif()
 
 # set the variable that contains the compile flags
