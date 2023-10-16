@@ -330,6 +330,9 @@ molecules = [
 if not os.path.exists("molecule"): os.makedirs("molecule")
 
 for molecule in molecules:
+    # continue if geometry already exists
+    if os.path.exists("molecule/" + molecule.name() + ".xyz"): continue
+
     # optimize the molecule
     E, wfn = optimize("scf", molecule=molecule, return_wfn=True)
 
