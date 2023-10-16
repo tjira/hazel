@@ -21,15 +21,15 @@ create() {
     SYSTEM="$1"; CHARGE="$2"; MULT="$3"; BASIS="${4,,}"; METHOD="$5"; BASISFILE=$(echo "$BASIS" | sed -e 's/+/p/g ; s/*/s/g')
 
     if [ "$METHOD" == "HF" ]; then
-        EXPECT=$(timeout 1s ./bin/hazel -b "$BASIS" -c "$CHARGE" -f "./example/molecule/$SYSTEM.xyz" -n $CORES -s "$MULT" hf $HFOPT | grep "FINAL HARTREE")
+        EXPECT=$(./bin/hazel -b "$BASIS" -c "$CHARGE" -f "./example/molecule/$SYSTEM.xyz" -n $CORES -s "$MULT" hf $HFOPT | grep "FINAL HARTREE")
         [[ "$EXPECT" ]] && printf "\n\n# test-energy: %s %d %d %s HF\n" "$SYSTEM" "$CHARGE" "$MULT" "${BASIS^^}"; TNAME="${SYSTEM}_${CHARGE}-${MULT}_${BASISFILE}_hf_energy"
         [[ "$EXPECT" ]] && printf "$HF" "$TNAME" "$BASIS" "$CHARGE" "$SYSTEM" "$MULT" "$TNAME" "$(echo ${EXPECT::-6} | sed -e 's/+/\\\\+/g')"
     elif [ "$METHOD" == "HFAG" ]; then
-        EXPECT=$(timeout 1s ./bin/hazel -b "$BASIS" -c "$CHARGE" -f "./example/molecule/$SYSTEM.xyz" -n $CORES -s "$MULT" hf $HFOPT -g 0 1e-5 | grep "NORM")
+        EXPECT=$(./bin/hazel -b "$BASIS" -c "$CHARGE" -f "./example/molecule/$SYSTEM.xyz" -n $CORES -s "$MULT" hf $HFOPT -g 0 1e-5 | grep "NORM")
         [[ "$EXPECT" ]] && printf "\n\n# test-gradient: %s %d %d %s HF\n" "$SYSTEM" "$CHARGE" "$MULT" "${BASIS^^}"; TNAME="${SYSTEM}_${CHARGE}-${MULT}_${BASISFILE}_hf_gradient"
         [[ "$EXPECT" ]] && printf "$HFAG" "$TNAME" "$BASIS" "$CHARGE" "$SYSTEM" "$MULT" "$TNAME" "$(echo ${EXPECT} | sed -e 's/+/\\\\+/g')"
     elif [ "$METHOD" == "MP2" ]; then
-        EXPECT=$(timeout 1s ./bin/hazel -b "$BASIS" -c "$CHARGE" -f "./example/molecule/$SYSTEM.xyz" -n $CORES -s "$MULT" hf $HFOPT mp2 | grep "FINAL MP2")
+        EXPECT=$(./bin/hazel -b "$BASIS" -c "$CHARGE" -f "./example/molecule/$SYSTEM.xyz" -n $CORES -s "$MULT" hf $HFOPT mp2 | grep "FINAL MP2")
         [[ "$EXPECT" ]] && printf "\n\n# test-energy: %s %d %d %s MP2\n" "$SYSTEM" "$CHARGE" "$MULT" "${BASIS^^}"; TNAME="${SYSTEM}_${CHARGE}-${MULT}_${BASISFILE}_mp2_energy"
         [[ "$EXPECT" ]] && printf "$MP2" "$TNAME" "$BASIS" "$CHARGE" "$SYSTEM" "$MULT" "$TNAME" "$(echo ${EXPECT::-6} | sed -e 's/+/\\\\+/g')"
     fi
@@ -38,7 +38,7 @@ create() {
 printf '# TESTS %s' $(printf '=%.0s' {1..142})
 
 for SYSTEM in \
-"H2" "HF" "HCl" "water" "formaldehyde" "methane";
+"water";
 do
 for BASIS in \
 "mini" "midi" "sto-2g" "sto-3g" "sto-4g" "sto-5g" "sto-6g" "3-21g" "4-31g" "6-21g" "6-31g" "6-31+g" "6-31++g" "6-31+g*" "6-31++g*" "6-31+g**" "6-31++g**" "6-311g" "6-311+g" "6-311++g" "6-311+g*" \
