@@ -61,8 +61,8 @@ CI::ResultsRestricted CI::rsolve(const std::vector<Determinant>& dets, const Mat
         }
     }
 
-    // print the matrix creation time
-    if (print) std::cout << Timer::Format(Timer::Elapsed(start)) << "\nFINDING THE EIGENVALUES: " << std::flush; start = Timer::Now();
+    // print the matrix creation time and reset the timer
+    if (print) {std::cout << Timer::Format(Timer::Elapsed(start)) << "\nFINDING THE EIGENVALUES: " << std::flush;} start = Timer::Now();
 
     // find the eigenvalues and eigenvectors of the CI Hamiltonian and extract energies
     Eigen::SelfAdjointEigenSolver<Matrix> solver(H); Matrix C = solver.eigenvectors();
