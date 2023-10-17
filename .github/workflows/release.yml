@@ -128,16 +128,19 @@ jobs:
 
       - name: Create x86-64 Packages
         run: |
-          tar -czf hazel_linux_x86-64.tar.gz hazel basis example
-          zip -r hazel_windows_x86-64.zip hazel.exe basis example
+          zip -r hazel_windows_x86-64.zip hazel.exe basis example LICENSE.md
+          tar -czf hazel_linux_x86-64.tar.gz hazel basis example LICENSE.md
 
       - name: Copy x86-64_openmp Binaries to the Root Folder
         run: cp artifact/hazel_linux_x86-64_openmp hazel && cp artifact/hazel_windows_x86-64_openmp.exe hazel.exe
 
+      - name: Copy the OMP Shared libraries o Root Folder
+        run: cp dll/*.dll .
+
       - name: Create x86-64_avx_openmp Packages
         run: |
-          tar -czf hazel_linux_x86-64_openmp.tar.gz hazel basis example
-          zip -r hazel_windows_x86-64_openmp.zip hazel.exe basis example
+          zip -r hazel_windows_x86-64_openmp.zip hazel.exe basis example LICENSE.md *.dll
+          tar -czf hazel_linux_x86-64_openmp.tar.gz hazel basis example LICENSE.md
 
       - name: Release linux_x86-64 Version of Hazel
         uses: svenstaro/upload-release-action@v2
