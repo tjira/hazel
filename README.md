@@ -116,29 +116,35 @@ In his section you find all the printing options implemented in Hazel. This also
     * `s` - Overlap integral in AO basis.
     * `t` - Kinetic integral in AO basis.
     * `v` - Nuclear integral in AO basis.
-* `hf`
+* `rhf`
     * `dist` - Optimized distance matrix (only for optimization).
     * `dj` - Derivative of the coulomb integral in AO basis (only if calculated).
     * `ds` - Derivative of the overlap integral in AO basis (only if calculated).
     * `dt` - Derivaitve of the kinetic integral in AO basis (only if calculated).
     * `dv` - Derivative of the nuclear integral in AO basis (only if calculated).
     * `c` - Matrix of coefficients in MO basis.
+    * `d` - Density matrix in MO basis.
+    * `eps` - Orbital energies.
+    * `j` - Coulomb integral in AO basis (only if calculated).
+    * `s` - Overlap integral in AO basis.
+    * `t` - Kinetic integral in AO basis.
+    * `v` - Nuclear integral in AO basis.
+* `uhf`
+    * `dist` - Optimized distance matrix (only for optimization).
     * `ca` - Matrix of coefficients for alpha electrons electrons in MO basis (only for UHF).
     * `cb` - Matrix of coefficients for beta electrons electrons in MO basis (only for UHF).
-    * `d` - Density matrix in MO basis.
     * `da` - Density matrix for alpha electrons in MO basis (only for UHF).
     * `db` - Density matrix for beta electrons in MO basis (only for UHF).
-    * `eps` - Orbital energies.
     * `epsa` - Orbital energies for alpha electrons (only for UHF).
     * `epsb` - Orbital energies for beta electrons (only for UHF).
     * `j` - Coulomb integral in AO basis (only if calculated).
     * `s` - Overlap integral in AO basis.
     * `t` - Kinetic integral in AO basis.
     * `v` - Nuclear integral in AO basis.
-* `hf mp2`
+* `rhf mp2`
     * `dist` - Optimized distance matrix (only for optimization).
     * `jmo` - Coulomb integral in MO basis.
-* `hf ci`, `hf cis`, `hf cid`, `hf cisd`, `hf fci`
+* `rhf ci`, `rhf cis`, `rhf cid`, `rhf cisd`, `rhf fci`
     * `dist` - Optimized distance matrix (only for optimization).
     * `hms` - Hamiltonian in MS basis.
     * `jms` - Coulomb integral in MS basis.
