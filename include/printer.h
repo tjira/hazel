@@ -1,6 +1,11 @@
 #pragma once
 
+#include "parser.h"
 #include "system.h"
+
+namespace argparse {
+    class ArgumentParser;
+};
 
 class Printer {
 public:

@@ -6,6 +6,7 @@
 #include "utility.h"
 #include "lambda.h"
 #include "printer.h"
+#include "parser.h"
 #include "qd.h"
 #include "md.h"
 
@@ -27,28 +28,26 @@ private:
     void integrals();
 
     // RHF distribution
-    void rhfrun(argparse::ArgumentParser& parser); void rhff(argparse::ArgumentParser& parser, const HF::ResultsRestricted& rhfres);
-    void rhfg(argparse::ArgumentParser& parser, const HF::ResultsRestricted& rhfres); void rhfo(argparse::ArgumentParser& parser);
+    void rhfrun(); void rhff(const HF::ResultsRestricted& rhfres);
+    void rhfg(const HF::ResultsRestricted& rhfres); void rhfo();
 
     // RHF distribution
-    void uhfrun(argparse::ArgumentParser& parser); void uhff(argparse::ArgumentParser& parser, const HF::ResultsUnrestricted& uhfres);
-    void uhfg(argparse::ArgumentParser& parser, const HF::ResultsUnrestricted& uhfres); void uhfo(argparse::ArgumentParser& parser);
+    void uhfrun(); void uhff(const HF::ResultsUnrestricted& uhfres);
+    void uhfg(const HF::ResultsUnrestricted& uhfres); void uhfo();
 
     // RCI distribution
-    void rcirun(argparse::ArgumentParser& parser, const HF::ResultsRestricted& rhfres); void rcif(argparse::ArgumentParser& parser, const HF::ResultsRestricted& rhfres);
-    void rcig(argparse::ArgumentParser& parser, const HF::ResultsRestricted& rhfres); void rcio(argparse::ArgumentParser& parser);
+    void rcirun(const HF::ResultsRestricted& rhfres); void rcif(const HF::ResultsRestricted& rhfres);
+    void rcig(const HF::ResultsRestricted& rhfres); void rcio();
 
     // RMP2 distribution
-    void rmp2run(argparse::ArgumentParser& parser, const HF::ResultsRestricted& rhfres); void rmp2f(argparse::ArgumentParser& parser, const HF::ResultsRestricted& rhfres);
-    void rmp2g(argparse::ArgumentParser& parser, const HF::ResultsRestricted& rhfres); void rmp2o(argparse::ArgumentParser& parser);
+    void rmp2run(const HF::ResultsRestricted& rhfres); void rmp2f(const HF::ResultsRestricted& rhfres);
+    void rmp2g(const HF::ResultsRestricted& rhfres); void rmp2o();
 
     // SCAN, MD and QD distribution
-    void scan(argparse::ArgumentParser& parser); void dynamics(argparse::ArgumentParser& parser); void qdyn(argparse::ArgumentParser& parser);
+    void scan(); void dynamics(); void qdyn();
 
 private:
     // argument parsers, timer and system
-    std::vector<argparse::ArgumentParser> parsers;
-    argparse::ArgumentParser program;
+    Parser parser; System system;
     Timer::Timepoint start;
-    System system;
 };

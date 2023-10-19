@@ -75,6 +75,7 @@ add_executable(hazel
     src/mp.cpp
     src/optimizer.cpp
     src/qd.cpp
+    src/parser.cpp
     src/printer.cpp
     src/system.cpp
     src/timer.cpp
