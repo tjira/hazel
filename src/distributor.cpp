@@ -11,8 +11,8 @@ Distributor::~Distributor() {
 
 void Distributor::run() {
     // initialize the system
-    std::string basis = parser.get("-b"); std::replace(basis.begin(), basis.end(), '*', 's'), std::replace(basis.begin(), basis.end(), '+', 'p');
-    std::ifstream stream(parser.get("-f")); system = System(stream, basis, parser.get<int>("-c"), parser.get<int>("-s")); stream.close();
+    std::string basis = parser.get<std::string>("-b"); std::replace(basis.begin(), basis.end(), '*', 's'), std::replace(basis.begin(), basis.end(), '+', 'p');
+    std::ifstream stream(parser.get<std::string>("-f")); system = System(stream, basis, parser.get<int>("-c"), parser.get<int>("-s")); stream.close();
 
     // print the initial stuff
     Printer::Initial(parser.program, system);
@@ -507,7 +507,7 @@ void Distributor::scan() {
     }
 
     // count the number of geometries
-    std::ifstream stream(parser.get("-f")); std::string line; int lines;
+    std::ifstream stream(parser.get<std::string>("-f")); std::string line; int lines;
     for (lines = 0; std::getline(stream, line); lines++);
     int geoms = lines / (system.atoms.size() + 2);
     stream.clear(), stream.seekg(0);
@@ -515,7 +515,7 @@ void Distributor::scan() {
     // perform the scan
     for (int i = 0; i < geoms; i++) {
         // create the system
-        std::string basis = parser.get("-b"); std::replace(basis.begin(), basis.end(), '*', 's'), std::replace(basis.begin(), basis.end(), '+', 'p');
+        std::string basis = parser.get<std::string>("-b"); std::replace(basis.begin(), basis.end(), '*', 's'), std::replace(basis.begin(), basis.end(), '+', 'p');
         system = System(stream, basis, parser.get<int>("-c"), parser.get<int>("-s")); Timer::Timepoint start = Timer::Now();
 
         // start the timer and calculate the energy
@@ -526,7 +526,7 @@ void Distributor::scan() {
     }
     
     // save the file
-    std::ofstream file(parser.at("scan").get("-o"));
+    std::ofstream file(parser.at("scan").get<std::string>("-o"));
     file << std::fixed << std::setprecision(14) << "# i              E\n";
     for (size_t i = 0; i < energies.size(); i++) {
         file << std::setw(5) << i << " " << std::setw(20) << energies.at(i) << "\n";
@@ -563,7 +563,7 @@ void Distributor::dynamics() {
     }
 
     // perform the dynamics
-    MD({parser.at("md").get<int>("-i"), parser.at("md").get<double>("-s"), parser.at("md").get("-o")}).run(system, egfunc);
+    MD({parser.at("md").get<int>("-i"), parser.at("md").get<double>("-s"), parser.at("md").get<std::string>("-o")}).run(system, egfunc);
 }
 
 void Distributor::qdyn() {
@@ -571,7 +571,7 @@ void Distributor::qdyn() {
     std::cout << std::endl; Printer::Title("QUANTUM DYNAMICS");
 
     // perform the dynamics
-    QD::Results qdres = QD({parser.at("qd").get("-f"), parser.at("qd").get<int>("-i"), parser.at("qd").get<int>("-n"), parser.at("qd").get<double>("-s"), parser.at("qd").get<double>("-t"), parser.at("qd").get<bool>("--no-real")}).run(system);
+    QD::Results qdres = QD({parser.at("qd").get<std::string>("-f"), parser.at("qd").get<int>("-i"), parser.at("qd").get<int>("-n"), parser.at("qd").get<double>("-s"), parser.at("qd").get<double>("-t"), parser.at("qd").get<bool>("--no-real")}).run(system);
 
     // print the energies
     if (parser.at("qd").get<bool>("--no-real")) std::cout << "\nIMAGINARY TIME PROPAGATION ENERGIES\n" << Matrix(qdres.energy) << std::endl;

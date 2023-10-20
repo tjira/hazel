@@ -23,7 +23,7 @@ public:
     argparse::ArgumentParser program;
 };
 
-template <typename T = std::string>
+template <typename T>
 T Parser::get(const std::string& name) const {
     return program.get<T>(name);
 }
