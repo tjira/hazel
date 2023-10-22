@@ -1,53 +1,51 @@
 #include "parser.h"
 
 Parser::Parser(int argc, char** argv) : program("hazel", "0.1", argparse::default_arguments::none) {
-    // reserve space for parsers
-
     // add main parsers
     parsers.reserve(6);
-    parsers.insert({"ints", Parser("ints")}); program.add_subparser(parsers.at("ints").program);
-    parsers.insert({"md", Parser("md")}); program.add_subparser(parsers.at("md").program);
-    parsers.insert({"qd", Parser("qd")}); program.add_subparser(parsers.at("qd").program);
-    parsers.insert({"rhf", Parser("rhf")}); program.add_subparser(parsers.at("rhf").program);
-    parsers.insert({"scan", Parser("scan")}); program.add_subparser(parsers.at("scan").program);
-    parsers.insert({"uhf", Parser("uhf")}); program.add_subparser(parsers.at("uhf").program);
+    parsers.insert({"ints", std::make_shared<Parser>(Parser("ints"))}); program.add_subparser(at("ints").program);
+    parsers.insert({"md", std::make_shared<Parser>(Parser("md"))}); program.add_subparser(at("md").program);
+    parsers.insert({"qd", std::make_shared<Parser>(Parser("qd"))}); program.add_subparser(at("qd").program);
+    parsers.insert({"rhf", std::make_shared<Parser>(Parser("rhf"))}); program.add_subparser(at("rhf").program);
+    parsers.insert({"scan", std::make_shared<Parser>(Parser("scan"))}); program.add_subparser(at("scan").program);
+    parsers.insert({"uhf", std::make_shared<Parser>(Parser("uhf"))}); program.add_subparser(at("uhf").program);
 
     // add post RHF parsers
     at("rhf").parsers.reserve(6);
-    at("rhf").parsers.insert({"cisd", Parser("cisd")}); at("rhf").program.add_subparser(at("rhf").at("cisd").program);
-    at("rhf").parsers.insert({"mp2", Parser("mp2")}); at("rhf").program.add_subparser(at("rhf").at("mp2").program);
-    at("rhf").parsers.insert({"cis", Parser("cis")}); at("rhf").program.add_subparser(at("rhf").at("cis").program);
-    at("rhf").parsers.insert({"cid", Parser("cid")}); at("rhf").program.add_subparser(at("rhf").at("cid").program);
-    at("rhf").parsers.insert({"fci", Parser("fci")}); at("rhf").program.add_subparser(at("rhf").at("fci").program);
-    at("rhf").parsers.insert({"ci", Parser("ci")}); at("rhf").program.add_subparser(at("rhf").at("ci").program);
+    at("rhf").parsers.insert({"cisd", std::make_shared<Parser>(Parser("cisd"))}); at("rhf").program.add_subparser(at("rhf").at("cisd").program);
+    at("rhf").parsers.insert({"mp2", std::make_shared<Parser>(Parser("mp2"))}); at("rhf").program.add_subparser(at("rhf").at("mp2").program);
+    at("rhf").parsers.insert({"cis", std::make_shared<Parser>(Parser("cis"))}); at("rhf").program.add_subparser(at("rhf").at("cis").program);
+    at("rhf").parsers.insert({"cid", std::make_shared<Parser>(Parser("cid"))}); at("rhf").program.add_subparser(at("rhf").at("cid").program);
+    at("rhf").parsers.insert({"fci", std::make_shared<Parser>(Parser("fci"))}); at("rhf").program.add_subparser(at("rhf").at("fci").program);
+    at("rhf").parsers.insert({"ci", std::make_shared<Parser>(Parser("ci"))}); at("rhf").program.add_subparser(at("rhf").at("ci").program);
 
     // add parsers for MD
     at("md").parsers.reserve(2);
-    at("md").parsers.insert({"rhf", Parser("rhf")}); at("md").program.add_subparser(at("md").at("rhf").program);
-    at("md").parsers.insert({"uhf", Parser("uhf")}); at("md").program.add_subparser(at("md").at("uhf").program);
+    at("md").parsers.insert({"rhf", std::make_shared<Parser>(Parser("rhf"))}); at("md").program.add_subparser(at("md").at("rhf").program);
+    at("md").parsers.insert({"uhf", std::make_shared<Parser>(Parser("uhf"))}); at("md").program.add_subparser(at("md").at("uhf").program);
 
     // add MD post RHF parsers
     at("md").at("rhf").parsers.reserve(6);
-    at("md").at("rhf").parsers.insert({"cisd", Parser("cisd")}); at("md").at("rhf").program.add_subparser(at("md").at("rhf").at("cisd").program);
-    at("md").at("rhf").parsers.insert({"mp2", Parser("mp2")}); at("md").at("rhf").program.add_subparser(at("md").at("rhf").at("mp2").program);
-    at("md").at("rhf").parsers.insert({"cis", Parser("cis")}); at("md").at("rhf").program.add_subparser(at("md").at("rhf").at("cis").program);
-    at("md").at("rhf").parsers.insert({"cid", Parser("cid")}); at("md").at("rhf").program.add_subparser(at("md").at("rhf").at("cid").program);
-    at("md").at("rhf").parsers.insert({"fci", Parser("fci")}); at("md").at("rhf").program.add_subparser(at("md").at("rhf").at("fci").program);
-    at("md").at("rhf").parsers.insert({"ci", Parser("ci")}); at("md").at("rhf").program.add_subparser(at("md").at("rhf").at("ci").program);
+    at("md").at("rhf").parsers.insert({"cisd", std::make_shared<Parser>(Parser("cisd"))}); at("md").at("rhf").program.add_subparser(at("md").at("rhf").at("cisd").program);
+    at("md").at("rhf").parsers.insert({"mp2", std::make_shared<Parser>(Parser("mp2"))}); at("md").at("rhf").program.add_subparser(at("md").at("rhf").at("mp2").program);
+    at("md").at("rhf").parsers.insert({"cis", std::make_shared<Parser>(Parser("cis"))}); at("md").at("rhf").program.add_subparser(at("md").at("rhf").at("cis").program);
+    at("md").at("rhf").parsers.insert({"cid", std::make_shared<Parser>(Parser("cid"))}); at("md").at("rhf").program.add_subparser(at("md").at("rhf").at("cid").program);
+    at("md").at("rhf").parsers.insert({"fci", std::make_shared<Parser>(Parser("fci"))}); at("md").at("rhf").program.add_subparser(at("md").at("rhf").at("fci").program);
+    at("md").at("rhf").parsers.insert({"ci", std::make_shared<Parser>(Parser("ci"))}); at("md").at("rhf").program.add_subparser(at("md").at("rhf").at("ci").program);
 
     // add parsers for scan
     at("scan").parsers.reserve(2);
-    at("scan").parsers.insert({"rhf", Parser("rhf")}); at("scan").program.add_subparser(at("scan").at("rhf").program);
-    at("scan").parsers.insert({"uhf", Parser("uhf")}); at("scan").program.add_subparser(at("scan").at("uhf").program);
+    at("scan").parsers.insert({"rhf", std::make_shared<Parser>(Parser("rhf"))}); at("scan").program.add_subparser(at("scan").at("rhf").program);
+    at("scan").parsers.insert({"uhf", std::make_shared<Parser>(Parser("uhf"))}); at("scan").program.add_subparser(at("scan").at("uhf").program);
 
     // add scan post RHF parsers
     at("scan").at("rhf").parsers.reserve(6);
-    at("scan").at("rhf").parsers.insert({"cisd", Parser("cisd")}); at("scan").at("rhf").program.add_subparser(at("scan").at("rhf").at("cisd").program);
-    at("scan").at("rhf").parsers.insert({"mp2", Parser("mp2")}); at("scan").at("rhf").program.add_subparser(at("scan").at("rhf").at("mp2").program);
-    at("scan").at("rhf").parsers.insert({"cis", Parser("cis")}); at("scan").at("rhf").program.add_subparser(at("scan").at("rhf").at("cis").program);
-    at("scan").at("rhf").parsers.insert({"cid", Parser("cid")}); at("scan").at("rhf").program.add_subparser(at("scan").at("rhf").at("cid").program);
-    at("scan").at("rhf").parsers.insert({"fci", Parser("fci")}); at("scan").at("rhf").program.add_subparser(at("scan").at("rhf").at("fci").program);
-    at("scan").at("rhf").parsers.insert({"ci", Parser("ci")}); at("scan").at("rhf").program.add_subparser(at("scan").at("rhf").at("ci").program);
+    at("scan").at("rhf").parsers.insert({"cisd", std::make_shared<Parser>(Parser("cisd"))}); at("scan").at("rhf").program.add_subparser(at("scan").at("rhf").at("cisd").program);
+    at("scan").at("rhf").parsers.insert({"mp2", std::make_shared<Parser>(Parser("mp2"))}); at("scan").at("rhf").program.add_subparser(at("scan").at("rhf").at("mp2").program);
+    at("scan").at("rhf").parsers.insert({"cis", std::make_shared<Parser>(Parser("cis"))}); at("scan").at("rhf").program.add_subparser(at("scan").at("rhf").at("cis").program);
+    at("scan").at("rhf").parsers.insert({"cid", std::make_shared<Parser>(Parser("cid"))}); at("scan").at("rhf").program.add_subparser(at("scan").at("rhf").at("cid").program);
+    at("scan").at("rhf").parsers.insert({"fci", std::make_shared<Parser>(Parser("fci"))}); at("scan").at("rhf").program.add_subparser(at("scan").at("rhf").at("fci").program);
+    at("scan").at("rhf").parsers.insert({"ci", std::make_shared<Parser>(Parser("ci"))}); at("scan").at("rhf").program.add_subparser(at("scan").at("rhf").at("ci").program);
 
     // add arguments to the main argument parser
     program.add_argument("-b", "--basis").help("-- Basis set used to approximate atomic orbitals.").default_value(std::string("STO-3G"));

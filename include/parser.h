@@ -15,11 +15,11 @@ public:
     // methods
     bool used(const std::string& name) const {return program.is_subcommand_used(name);}
     bool has(const std::string& name) const {return program.is_used(name);}
-    Parser& at(const std::string& name) {return parsers.at(name);}
+    Parser& at(const std::string& name) {return *parsers.at(name);}
     template <typename T> T get(const std::string& name) const;
 
 public:
-    std::unordered_map<std::string, Parser> parsers;
+    std::unordered_map<std::string, std::shared_ptr<Parser>> parsers;
     argparse::ArgumentParser program;
 };
 
