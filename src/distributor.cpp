@@ -18,48 +18,25 @@ void Distributor::run() {
 
     // print error if spin is not 1 for RHF
     if (parser.get<int>("-s") != 1) {
-        if (parser.used("md") && parser.at("md").used("rhf")) {
+        if (parser.at("md").used("rhf")) {
             throw std::runtime_error("SPIN MUST BE 1 FOR RHF CALCULATIONS.");
-        } else if (parser.used("scan") && parser.at("scan").used("rhf")) {
+        } else if (parser.at("scan").used("rhf")) {
             throw std::runtime_error("SPIN MUST BE 1 FOR RHF CALCULATIONS.");
         } else if (parser.used("rhf")) throw std::runtime_error("SPIN MUST BE 1 FOR RHF CALCULATIONS.");
-        
     }
 
     // calculate the integrals if needed
     if (parser.used("ints") || parser.used("rhf") || parser.used("uhf")) integrals();
 
     // optimize the molecule
-    if (parser.used("rhf")) {
-        if (parser.at("rhf").has("-o")) rhfo();
-        else if (parser.at("rhf").used("mp2")) {
-            if (parser.at("rhf").at("mp2").has("-o")) {
-                rmp2o();
-            }
-        } else if (parser.at("rhf").used("ci")) {
-            if (parser.at("rhf").at("ci").has("-o")) {
-                rcio();
-            }
-        } else if (parser.at("rhf").used("cis")) {
-            if (parser.at("rhf").at("cis").has("-o")) {
-                rcio();
-            }
-        } else if (parser.at("rhf").used("cid")) {
-            if (parser.at("rhf").at("cid").has("-o")) {
-                rcio();
-            }
-        } else if (parser.at("rhf").used("cisd")) {
-            if (parser.at("rhf").at("cisd").has("-o")) {
-                rcio();
-            }
-        } else if (parser.at("rhf").used("fci")) {
-            if (parser.at("rhf").at("fci").has("-o")) {
-                rcio();
-            }
-        }
-    } else if (parser.used("uhf")) {
-        if (parser.at("uhf").has("-o")) uhfo();
-    }
+    if (parser.at("rhf").has("-o")) rhfo();
+    if (parser.at("rhf").at("mp2").has("-o")) rmp2o();
+    if (parser.at("rhf").at("ci").has("-o")) rcio();
+    if (parser.at("rhf").at("cis").has("-o")) rcio();
+    if (parser.at("rhf").at("cid").has("-o")) rcio();
+    if (parser.at("rhf").at("cisd").has("-o")) rcio();
+    if (parser.at("rhf").at("fci").has("-o")) rcio();
+    if (parser.at("uhf").has("-o")) uhfo();
 
     // distribute the calculations
     if (parser.used("scan")) scan();
@@ -70,10 +47,6 @@ void Distributor::run() {
 }
 
 void Distributor::rcirun(const HF::ResultsRestricted& rhfres) {
-    // print the CI method header and define J in MO basis
-    std::cout << "\n" + std::string(104, '-') + "\nRESTRICTED CONFIGURATION INTERACTION (";
-    Matrix Hms; Tensor<4> Jms; CI::ResultsRestricted rcires;
-
     // function to return the correct parser
     auto rciparser = [&]() -> Parser& {
         if (parser.at("rhf").used("ci")) return parser.at("rhf").at("ci");
@@ -84,19 +57,18 @@ void Distributor::rcirun(const HF::ResultsRestricted& rhfres) {
         else throw std::runtime_error("INVALID CI METHOD");
     };
 
-    // print the method name
-    if (parser.at("rhf").used("cisd")) std::cout << "CISD)\n" << std::string(104, '-') + "\n";
-    if (parser.at("rhf").used("cis")) std::cout << "CIS)\n" << std::string(104, '-') + "\n";
-    if (parser.at("rhf").used("cid")) std::cout << "CID)\n" << std::string(104, '-') + "\n";
-    if (parser.at("rhf").used("fci")) std::cout << "FCI)\n" << std::string(104, '-') + "\n";
-    if (parser.at("rhf").used("ci")) std::cout << "CI)\n" << std::string(104, '-') + "\n";
+    // print the CI method header
+    std::cout << "\n"; Printer::Title("RESTRICTED CONFIGURATION INTERACTION (" + Utility::ToUpper(rciparser().getName()) + ")");
+
+    // define the matrices and results
+    Matrix Hms; Tensor<4> Jms; CI::ResultsRestricted rcires;
 
     // transform the coulomb tensor
     std::cout << "\nCOULOMB INT IN MS BASIS: " << std::flush; TIME(Jms = Transform::CoulombSpin(system.ints.J, rhfres.C)) std::cout << " " << Eigen::MemTensor(Jms);
     if (Utility::VectorContains<std::string>(rciparser().get<std::vector<std::string>>("-p"), "jms")) {std::cout << "\n" << Jms << "\n";} std::cout << "\n";
     if (Utility::VectorContains<std::string>(rciparser().get<std::vector<std::string>>("-e"), "jms")) Eigen::Write("JMS.mat", Jms);
     
-    // calculate the Hamiltonian in molecular sorbital basis
+    // transform the hamiltonian
     std::cout << "HAMILTONIAN IN MS BASIS: " << std::flush; TIME(Hms = Transform::OneelecSpin(system.ints.T + system.ints.V, rhfres.C)) std::cout << " " << Eigen::MemMatrix(Hms);
     if (Utility::VectorContains<std::string>(rciparser().get<std::vector<std::string>>("-p"), "hms")) {std::cout << "\n" << Hms;} std::cout << "\n";
     if (Utility::VectorContains<std::string>(rciparser().get<std::vector<std::string>>("-e"), "hms")) Eigen::Write("HMS.mat", Hms);
@@ -115,10 +87,8 @@ void Distributor::rcirun(const HF::ResultsRestricted& rhfres) {
     if (Utility::VectorContains<std::string>(rciparser().get<std::vector<std::string>>("-e"), "cih")) Eigen::Write("CIH.mat", rcires.H);
     if (Utility::VectorContains<std::string>(rciparser().get<std::vector<std::string>>("-e"), "cie")) Eigen::Write("CIEPS.mat", Matrix(rcires.eig));
     if (Utility::VectorContains<std::string>(rciparser().get<std::vector<std::string>>("-e"), "cic")) Eigen::Write("CIC.mat", rcires.C);
-    if (Utility::VectorContains<std::string>(rciparser().get<std::vector<std::string>>("-e"), "dete")) Eigen::Write("CIC.mat", rcires.C);
-    if (Utility::VectorContains<std::string>(rciparser().get<std::vector<std::string>>("-e"), "dete")) Eigen::Write("CIC.mat", rcires.C);
 
-    // print the gradient and norm
+    // print the energy
     std::cout << "\nCI CORRELATION ENERGY: " << rcires.Ecorr << std::endl;
     std::cout << "FINAL CI ENERGY: " << rhfres.E + rcires.Ecorr << std::endl;
 
@@ -247,6 +217,8 @@ void Distributor::rhfrun() {
     if (Utility::VectorContains<std::string>(parser.at("rhf").get<std::vector<std::string>>("-e"), "eps")) Eigen::Write("EPS.mat", Matrix(rhfres.eps));
     if (Utility::VectorContains<std::string>(parser.at("rhf").get<std::vector<std::string>>("-e"), "c")) Eigen::Write("C.mat", rhfres.C);
     if (Utility::VectorContains<std::string>(parser.at("rhf").get<std::vector<std::string>>("-e"), "d")) Eigen::Write("D.mat", rhfres.D);
+
+    // print the resulting energy
     std::cout << "\nTOTAL NUCLEAR REPULSION ENERGY: " << Integral::Repulsion(system) << std::endl;
     std::cout << "FINAL HARTREE-FOCK ENERGY: " << rhfres.E << std::endl;
 
@@ -542,19 +514,19 @@ void Distributor::dynamics() {
     // get the energy and gradient function
     if (parser.at("md").used("rhf")) {
         auto rhfopt = HF::OptionsRestricted::Load(parser.at("md").at("rhf").program, parser.get<bool>("--no-coulomb"));
-        egfunc = Lambda::EGHF(rhfopt, parser.at("rhf").get<std::vector<double>>("-g"), Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
+        egfunc = Lambda::EGHF(rhfopt, parser.at("md").at("rhf").get<std::vector<double>>("-g"), Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
         if (parser.at("md").at("rhf").used("mp2")) {
-            egfunc = Lambda::EGMP2(rhfopt, parser.at("rhf").at("mp2").get<std::vector<double>>("-g"), Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
+            egfunc = Lambda::EGMP2(rhfopt, parser.at("md").at("rhf").at("mp2").get<std::vector<double>>("-g"), Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
         } else if (parser.at("md").at("rhf").used("ci")) {
-            egfunc = Lambda::EGCI(rhfopt, {{}, parser.at("scan").at("rhf").at("ci").get<std::vector<int>>("excitations")}, parser.at("rhf").at("ci").get<std::vector<double>>("-g"), Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
+            egfunc = Lambda::EGCI(rhfopt, {{}, parser.at("md").at("rhf").at("ci").get<std::vector<int>>("excitations")}, parser.at("md").at("rhf").at("ci").get<std::vector<double>>("-g"), Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
         } else if (parser.at("md").at("rhf").used("cis")) {
-            egfunc = Lambda::EGCI(rhfopt, {{}, {1}}, parser.at("rhf").at("cis").get<std::vector<double>>("-g"), Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
+            egfunc = Lambda::EGCI(rhfopt, {{}, {1}}, parser.at("md").at("rhf").at("cis").get<std::vector<double>>("-g"), Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
         } else if (parser.at("md").at("rhf").used("cid")) {
-            egfunc = Lambda::EGCI(rhfopt, {{}, {2}}, parser.at("rhf").at("cid").get<std::vector<double>>("-g"), Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
+            egfunc = Lambda::EGCI(rhfopt, {{}, {2}}, parser.at("md").at("rhf").at("cid").get<std::vector<double>>("-g"), Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
         } else if (parser.at("md").at("rhf").used("cisd")) {
-            egfunc = Lambda::EGCI(rhfopt, {{}, {1, 2}}, parser.at("rhf").at("cisd").get<std::vector<double>>("-g"), Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
+            egfunc = Lambda::EGCI(rhfopt, {{}, {1, 2}}, parser.at("md").at("rhf").at("cisd").get<std::vector<double>>("-g"), Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
         } else if (parser.at("md").at("rhf").used("fci")) {
-            egfunc = Lambda::EGCI(rhfopt, {{}, {}}, parser.at("rhf").at("fci").get<std::vector<double>>("-g"), Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
+            egfunc = Lambda::EGCI(rhfopt, {{}, {}}, parser.at("md").at("rhf").at("fci").get<std::vector<double>>("-g"), Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
         }
     } else if (parser.at("md").used("uhf")) {
         auto uhfopt = HF::OptionsUnrestricted::Load(parser.at("md").at("uhf").program, parser.get<bool>("--no-coulomb"));

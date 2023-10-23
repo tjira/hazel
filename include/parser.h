@@ -16,8 +16,8 @@ public:
     bool used(const std::string& name) const {return program.is_subcommand_used(name);}
     bool has(const std::string& name) const {return program.is_used(name);}
     Parser& at(const std::string& name) {return *parsers.at(name);}
+    std::string getName() const {return name;}; void help() const;
     template <typename T> T get(const std::string& name) const;
-    void help() const;
 
 public:
     std::unordered_map<std::string, std::shared_ptr<Parser>> parsers;
