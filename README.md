@@ -131,12 +131,12 @@ In his section you find all the printing options implemented in Hazel. This also
     * `v` - Nuclear integral in AO basis.
 * `uhf`
     * `dist` - Optimized distance matrix (only for optimization).
-    * `ca` - Matrix of coefficients for alpha electrons electrons in MO basis (only for UHF).
-    * `cb` - Matrix of coefficients for beta electrons electrons in MO basis (only for UHF).
-    * `da` - Density matrix for alpha electrons in MO basis (only for UHF).
-    * `db` - Density matrix for beta electrons in MO basis (only for UHF).
-    * `epsa` - Orbital energies for alpha electrons (only for UHF).
-    * `epsb` - Orbital energies for beta electrons (only for UHF).
+    * `ca` - Matrix of coefficients for alpha electrons electrons in MO basis.
+    * `cb` - Matrix of coefficients for beta electrons electrons in MO basis.
+    * `da` - Density matrix for alpha electrons in MO basis.
+    * `db` - Density matrix for beta electrons in MO basis.
+    * `epsa` - Orbital energies for alpha electrons.
+    * `epsb` - Orbital energies for beta electrons.
     * `j` - Coulomb integral in AO basis (only if calculated).
     * `s` - Overlap integral in AO basis.
     * `t` - Kinetic integral in AO basis.

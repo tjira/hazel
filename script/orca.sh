@@ -25,6 +25,7 @@ cleanup() {
 }
 
 inputOrca() {
+    [[ "$4" == "ccsd" ]] && echo -e "! $4 $5 HCORE NOFROZENCORE SCFCONV8 ENGRAD NUMGRAD\n*xyzfile $2 $3 $1" && return
     [[ "$4" == "cisd" ]] && echo -e "! $4 $5 HCORE NOFROZENCORE SCFCONV8 ENGRAD NUMGRAD\n*xyzfile $2 $3 $1" && return
     echo -e "! $4 $5 HCORE NOFROZENCORE SCFCONV8 ENGRAD\n*xyzfile $2 $3 $1"
 }
@@ -35,11 +36,19 @@ ATOMS=$(echo "$(wc -l < "$1") - 2" | bc)
 # cd to the input directory and run orca
 cd "$(dirname "$1")" && inputOrca "$(basename "$1")" "$2" "$3" "$4" "$5" > orca.inp && orca orca.inp > orca.out && cleanup
 
-# extract gradient and energy
+# extract gradient
+[[ "$4" == "ccsd" ]] && GRADIENT=$(grep -A $((ATOMS + 1)) "GRADIENT" orca.out | tail -n "$ATOMS" | awk '{printf("% 16.12f % 16.12f % 16.12f\n", $4, $5, $6)}')
 [[ "$4" == "cisd" ]] && GRADIENT=$(grep -A $((ATOMS + 1)) "GRADIENT" orca.out | tail -n "$ATOMS" | awk '{printf("% 16.12f % 16.12f % 16.12f\n", $4, $5, $6)}')
 [[ "$4" == "hf" ]] && GRADIENT=$(grep -A $((ATOMS + 2)) "GRADIENT" orca.out | tail -n "$ATOMS" | awk '{printf("% 16.12f % 16.12f % 16.12f\n", $4, $5, $6)}')
 [[ "$4" == "mp2" ]] && GRADIENT=$(grep -A "$ATOMS" "MP2 gradie" orca.out | tail -n "$ATOMS" | awk '{printf("% 16.12f % 16.12f % 16.12f\n", $2, $3, $4)}')
-ENERGY=$(grep "FINAL SINGLE POINT ENERGY" orca.out | awk '{print $5}')
+[[ "$4" == "fci" ]] && GRADIENT=$(grep -A $((ATOMS + 2)) "GRADIENT" orca.out | tail -n "$ATOMS" | awk '{printf("% 16.12f % 16.12f % 16.12f\n", $4, $5, $6)}')
+
+# extract energy
+[[ "$4" == "ccsd" ]] && ENERGY=$(grep "FINAL SINGLE POINT ENERGY" orca.out | awk '{print $5}')
+[[ "$4" == "cisd" ]] && ENERGY=$(grep "FINAL SINGLE POINT ENERGY" orca.out | awk '{print $5}')
+[[ "$4" == "hf" ]] && ENERGY=$(grep "FINAL SINGLE POINT ENERGY" orca.out | awk '{print $5}')
+[[ "$4" == "mp2" ]] && ENERGY=$(grep "FINAL SINGLE POINT ENERGY" orca.out | awk '{print $5}')
+[[ "$4" == "fci" ]] && ENERGY=$(grep "FINAL SINGLE POINT ENERGY" orca.out | tail -n 1 | awk '{print $5}')
 
 # print results
 echo "ENERGY: $ENERGY" && echo -e "GRADIENT:\n$GRADIENT"

@@ -10,14 +10,6 @@
 #include "qd.h"
 #include "md.h"
 
-#ifndef CXXFLAGS
-#define CXXFLAGS "---"
-#endif
-
-#ifndef DATADIR
-#define DATADIR ""
-#endif
-
 class Distributor {
 public:
     Distributor(int argc, char** argv);

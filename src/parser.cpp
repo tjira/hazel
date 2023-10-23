@@ -73,7 +73,7 @@ Parser::Parser(int argc, char** argv) : program("hazel", "0.1", argparse::defaul
     program.at<argparse::ArgumentParser>("rhf").add_argument("-p", "--print").help("-- Output printing options.").default_value<std::vector<std::string>>({}).append();
     program.at<argparse::ArgumentParser>("rhf").add_argument("-e", "--export").help("-- Export options.").default_value<std::vector<std::string>>({}).append();
     program.at<argparse::ArgumentParser>("rhf").add_argument("-o", "--optimize").help("-- Optimization with gradient threshold.").default_value(1e-8).scan<'g', double>();
-    program.at<argparse::ArgumentParser>("rhf").add_argument("-t", "--thresh").help("-- Threshold for conververgence in SCF loop.").default_value(1e-8).scan<'g', double>();
+    program.at<argparse::ArgumentParser>("rhf").add_argument("-t", "--thresh").help("-- Threshold for conververgence in SCF loop.").default_value(1e-12).scan<'g', double>();
 
     // add arguments to the UHF argument parser
     program.at<argparse::ArgumentParser>("uhf").add_argument("-d", "--diis").help("-- Start iteration and history length for DIIS algorithm.").default_value(std::vector<int>{3, 5}).nargs(2).scan<'i', int>();
@@ -84,7 +84,7 @@ Parser::Parser(int argc, char** argv) : program("hazel", "0.1", argparse::defaul
     program.at<argparse::ArgumentParser>("uhf").add_argument("-p", "--print").help("-- Output printing options.").default_value<std::vector<std::string>>({}).append();
     program.at<argparse::ArgumentParser>("uhf").add_argument("-e", "--export").help("-- Export options.").default_value<std::vector<std::string>>({}).append();
     program.at<argparse::ArgumentParser>("uhf").add_argument("-o", "--optimize").help("-- Optimization with gradient threshold.").default_value(1e-8).scan<'g', double>();
-    program.at<argparse::ArgumentParser>("uhf").add_argument("-t", "--thresh").help("-- Threshold for conververgence in SCF loop.").default_value(1e-8).scan<'g', double>();
+    program.at<argparse::ArgumentParser>("uhf").add_argument("-t", "--thresh").help("-- Threshold for conververgence in SCF loop.").default_value(1e-12).scan<'g', double>();
 
     // add arguments to the MP2 argument parser
     program.at<argparse::ArgumentParser>("rhf").at<argparse::ArgumentParser>("mp2").add_argument("-f", "--frequency").help("-- Analytical (0) or numerical (1) frequency calculation with step size.").default_value(std::vector<double>{1, 1e-4}).nargs(2).scan<'g', double>();
@@ -229,19 +229,7 @@ Parser::Parser(int argc, char** argv) : program("hazel", "0.1", argparse::defaul
         program.parse_args(argc, argv);
     } catch (const std::runtime_error& error) {
         std::cerr << error.what() << std::endl; exit(EXIT_FAILURE);
-    }
-
-    // print help of the base program if requested
-    if (program.get<bool>("-h")) {
-        std::cout << program.help().str(); exit(EXIT_SUCCESS);
-    }
-
-    // print help of all the subparsers
-    // for (const auto& parser : parsers) {
-    //     try {if (parser.get<bool>("-h")) {
-    //         std::cout << parser.help().str(); exit(EXIT_SUCCESS);
-    //     }} catch (const std::exception&) {}
-    // }
+    } help();
 
     // print all tha available bases if requested
     if (program.get<bool>("--show-bases")) {
@@ -264,4 +252,9 @@ Parser::Parser(int argc, char** argv) : program("hazel", "0.1", argparse::defaul
     // set number of threads to use and cout flags
     std::cout << std::fixed << std::setprecision(14);
     nthread = program.get<int>("--nthread");
+}
+
+void Parser::help() const {
+    if (has("-h")) {std::cout << program.help().str(); exit(EXIT_SUCCESS);}
+    for (const auto& parser : parsers) parser.second->help();
 }

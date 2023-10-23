@@ -2,8 +2,7 @@
 
 #define TIME(W) {Timer::Timepoint start = Timer::Now(); W; std::cout << Timer::Format(Timer::Elapsed(start)) << std::flush;}
 
-Distributor::Distributor(int argc, char** argv) : parser(argc, argv), start(Timer::Now()) {
-}
+Distributor::Distributor(int argc, char** argv) : parser(argc, argv), start(Timer::Now()) {}
 
 Distributor::~Distributor() {
     std::cout << "\n"; Printer::Title(std::string("TOTAL EXECUTION TIME: ") + Timer::Format(Timer::Elapsed(start)).c_str());
@@ -30,7 +29,7 @@ void Distributor::run() {
     // calculate the integrals if needed
     if (parser.used("ints") || parser.used("rhf") || parser.used("uhf")) integrals();
 
-    // optimize the molecule (restricted)
+    // optimize the molecule
     if (parser.used("rhf")) {
         if (parser.at("rhf").has("-o")) rhfo();
         else if (parser.at("rhf").used("mp2")) {
