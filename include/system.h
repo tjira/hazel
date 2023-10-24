@@ -2,6 +2,8 @@
 
 #include "determinant.h"
 
+#include <libint2/diis.h>
+
 inline std::unordered_map<int, double> masses = {
     {1, 01.007840},
     {6, 12.011000},

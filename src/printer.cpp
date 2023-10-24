@@ -1,6 +1,6 @@
 #include "printer.h"
 
-void Printer::Initial(const argparse::ArgumentParser& program, System& system) {
+void Printer::Initial(const Parser& program, System& system) {
     // print the title
     std::cout << "QUANTUM HAZEL\n\n";
 

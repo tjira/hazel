@@ -1,20 +1,20 @@
 #pragma once
 
 #include "integral.h"
-#include "system.h"
+#include "parser.h"
 
 class HF {
 public:
     struct OptionsRestricted {
-        static HF::OptionsRestricted Load(const argparse::ArgumentParser& parser, bool nocoulomb);
         struct {int start, keep;} diis; double thresh; int maxiter; bool nocoulomb;
+        static HF::OptionsRestricted Load(const Parser& parser, bool nocoulomb);
     };
     struct ResultsRestricted {
         Matrix C, D; Vector eps; double E, Eel, Enuc;
     };
     struct OptionsUnrestricted {
-        static HF::OptionsUnrestricted Load(const argparse::ArgumentParser& parser, bool nocoulomb);
         struct {int start, keep;} diis; double thresh; int maxiter; bool nocoulomb;
+        static HF::OptionsUnrestricted Load(const Parser& parser, bool nocoulomb);
     };
     struct ResultsUnrestricted {
         Matrix Ca, Cb, Da, Db; double E, Eel, Enuc; Vector epsa, epsb;
@@ -33,10 +33,10 @@ private:
     OptionsRestricted ropt;
 };
 
-inline HF::OptionsRestricted HF::OptionsRestricted::Load(const argparse::ArgumentParser& parser, bool nocoulomb) {
+inline HF::OptionsRestricted HF::OptionsRestricted::Load(const Parser& parser, bool nocoulomb) {
     return {{parser.get<std::vector<int>>("-d").at(0), parser.get<std::vector<int>>("-d").at(1)}, parser.get<double>("-t"), parser.get<int>("-i"), nocoulomb};
 }
 
-inline HF::OptionsUnrestricted HF::OptionsUnrestricted::Load(const argparse::ArgumentParser& parser, bool nocoulomb) {
+inline HF::OptionsUnrestricted HF::OptionsUnrestricted::Load(const Parser& parser, bool nocoulomb) {
     return {{parser.get<std::vector<int>>("-d").at(0), parser.get<std::vector<int>>("-d").at(1)}, parser.get<double>("-t"), parser.get<int>("-i"), nocoulomb};
 }

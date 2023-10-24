@@ -4,16 +4,12 @@
 
 class MP {
 public:
-    struct OptionsRestricted {
-        HF::ResultsRestricted rhfres;
-    };
-public:
     // constructor
-    MP(const OptionsRestricted& ropt) : ropt(ropt) {}
+    MP(const HF::ResultsRestricted& rhfres) : rhfres(rhfres) {}
 
     // methods
     double rmp2(const System& system, const Tensor<4>& Jmo, bool print = true) const;
 
 private:
-    OptionsRestricted ropt;
+    HF::ResultsRestricted rhfres;
 };

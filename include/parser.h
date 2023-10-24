@@ -1,7 +1,8 @@
 #pragma once
 
-#include "argparse.hpp"
 #include "constant.h"
+
+#include "argparse.hpp"
 
 #include <unordered_map>
 #include <filesystem>

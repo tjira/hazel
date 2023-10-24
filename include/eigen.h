@@ -6,6 +6,8 @@
 #include <unsupported/Eigen/CXX11/Tensor>
 #include <unsupported/Eigen/FFT>
 
+#include <fstream>
+
 typedef Eigen::Matrix<std::complex<double>, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor> CMatrix;
 typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor> Matrix;
 typedef Eigen::Matrix<bool, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor> BMatrix;
@@ -68,6 +70,3 @@ Tensor<T> Eigen::Kron(const Matrix<double, Dynamic, Dynamic, ColMajor>& A, const
     }
     return C;
 }
-
-#include <libint2/diis.h>
-#include "argparse.hpp"

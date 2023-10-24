@@ -14,7 +14,7 @@ void Distributor::run() {
     std::ifstream stream(parser.get<std::string>("-f")); system = System(stream, basis, parser.get<int>("-c"), parser.get<int>("-s")); stream.close();
 
     // print the initial stuff
-    Printer::Initial(parser.program, system);
+    Printer::Initial(parser, system);
 
     // print error if spin is not 1 for RHF
     if (parser.get<int>("-s") != 1) {
@@ -74,11 +74,11 @@ void Distributor::rcirun(const HF::ResultsRestricted& rhfres) {
     if (Utility::VectorContains<std::string>(rciparser().get<std::vector<std::string>>("-e"), "hms")) Eigen::Write("HMS.mat", Hms);
 
     // do the calculation
-    if (parser.at("rhf").used("ci")) rcires = CI({rhfres, parser.at("rhf").at("ci").get<std::vector<int>>("excitations")}).rci(system, Hms, Jms);
-    if (parser.at("rhf").used("cisd")) rcires = CI({rhfres, {1, 2}}).rci(system, Hms, Jms);
-    if (parser.at("rhf").used("cis")) rcires = CI({rhfres, {1}}).rci(system, Hms, Jms);
-    if (parser.at("rhf").used("cid")) rcires = CI({rhfres, {2}}).rci(system, Hms, Jms);
-    if (parser.at("rhf").used("fci")) rcires = CI({rhfres, {}}).rci(system, Hms, Jms);
+    if (parser.at("rhf").used("ci")) rcires = CI(rhfres).rci(system, parser.at("rhf").at("ci").get<std::vector<int>>("excitations"), Hms, Jms);
+    if (parser.at("rhf").used("cisd")) rcires = CI(rhfres).rci(system, {1, 2}, Hms, Jms);
+    if (parser.at("rhf").used("cis")) rcires = CI(rhfres).rci(system, {1}, Hms, Jms);
+    if (parser.at("rhf").used("cid")) rcires = CI(rhfres).rci(system, {2}, Hms, Jms);
+    if (parser.at("rhf").used("fci")) rcires = CI(rhfres).rci(system, {}, Hms, Jms);
 
     // print/save the result matrices
     if (Utility::VectorContains<std::string>(rciparser().get<std::vector<std::string>>("-p"), "cih")) std::cout << "\nCI HAMILTONIAN\n" << rcires.H << "\n";
@@ -110,19 +110,19 @@ void Distributor::rcif(const HF::ResultsRestricted& rhfres) {
 
     // print the header for frequency calculation and define the gradient matrix
     if (rciparser().get<std::vector<double>>("-g").at(0)) {std::cout << std::endl; Printer::Title("NUMERICAL FREQUENCIES FOR RESTRICTED CI");}
-    else {std::cout << std::endl; Printer::Title("ANALYTICAL FREQUENCIES FOR RESTRICTED CI");} Matrix H; CI::OptionsRestricted rciopt;
-
-    // choose the correct method
-    if (parser.at("rhf").used("ci")) rciopt.excits = parser.get<std::vector<int>>("excitations");
-    if (parser.at("rhf").used("cisd")) rciopt.excits = {1, 2};
-    if (parser.at("rhf").used("cis")) rciopt.excits = {1};
-    if (parser.at("rhf").used("cid")) rciopt.excits = {2};
+    else {std::cout << std::endl; Printer::Title("ANALYTICAL FREQUENCIES FOR RESTRICTED CI");} Matrix H;
 
     // extract the HF options
-    auto rhfopt = HF::OptionsRestricted::Load(parser.at("rhf").program, parser.get<bool>("--no-coulomb"));
+    auto rhfopt = HF::OptionsRestricted::Load(parser.at("rhf"), parser.get<bool>("--no-coulomb")); std::vector <int> excits;
+
+    // choose the correct method
+    if (parser.at("rhf").used("ci")) excits = parser.get<std::vector<int>>("excitations");
+    if (parser.at("rhf").used("cisd")) excits = {1, 2};
+    if (parser.at("rhf").used("cis")) excits = {1};
+    if (parser.at("rhf").used("cid")) excits = {2};
 
     // perform the Hessian calculation
-    if (rciparser().get<std::vector<double>>("-f").at(0)) H = Hessian({rciparser().get<std::vector<double>>("-f").at(1)}).get(system, Lambda::ECI(rhfopt, rciopt, rhfres.D));
+    if (rciparser().get<std::vector<double>>("-f").at(0)) H = Hessian({rciparser().get<std::vector<double>>("-f").at(1)}).get(system, Lambda::ECI(rhfopt, excits, rhfres.D));
     else throw std::runtime_error("ANALYTICAL HESSIAN FOR RCI NOT IMPLEMENTED");
 
     // print the Hessian and it's norm
@@ -151,17 +151,17 @@ void Distributor::rcig(const HF::ResultsRestricted& rhfres) {
     if (rciparser().get<std::vector<double>>("-g").at(0)) {std::cout << std::endl; Printer::Title("NUMERICAL GRADIENT FOR RESTRICTED CI");}
     else {std::cout << std::endl; Printer::Title("ANALYTICAL GRADIENT FOR RESTRICTED CI");} Matrix G; 
 
-    // extract the RHF options
-    auto rhfopt = HF::OptionsRestricted::Load(parser.at("rhf").program, parser.get<bool>("--no-coulomb")); CI::OptionsRestricted rciopt;
+    // extract the RHF and RCI options
+    auto rhfopt = HF::OptionsRestricted::Load(parser.at("rhf"), parser.get<bool>("--no-coulomb")); std::vector <int> excits;
 
     // choose the correct method
-    if (parser.at("rhf").used("ci")) rciopt.excits = parser.get<std::vector<int>>("excitations");
-    if (parser.at("rhf").used("cisd")) rciopt.excits = {1, 2};
-    if (parser.at("rhf").used("cis")) rciopt.excits = {1};
-    if (parser.at("rhf").used("cid")) rciopt.excits = {2};
+    if (parser.at("rhf").used("ci")) excits = parser.get<std::vector<int>>("excitations");
+    if (parser.at("rhf").used("cisd")) excits = {1, 2};
+    if (parser.at("rhf").used("cis")) excits = {1};
+    if (parser.at("rhf").used("cid")) excits = {2};
 
     // perform the CI gradient calculation
-    if (rciparser().get<std::vector<double>>("-g").at(0)) G = Gradient({rciparser().get<std::vector<double>>("-g").at(1)}).get(system, Lambda::ECI(rhfopt, rciopt, rhfres.D));
+    if (rciparser().get<std::vector<double>>("-g").at(0)) G = Gradient({rciparser().get<std::vector<double>>("-g").at(1)}).get(system, Lambda::ECI(rhfopt, excits, rhfres.D));
     else throw std::runtime_error("ANALYTICAL GRADIENT FOR RCI NOT IMPLEMENTED");
 
     // print the gradient and it's norm
@@ -170,10 +170,10 @@ void Distributor::rcig(const HF::ResultsRestricted& rhfres) {
 
 void Distributor::rcio() {
     // print the RHF optimization header
-    std::cout << std::endl; Printer::Title("RESTRICTED CI OPTIMIZATION"); CI::OptionsRestricted rciopt;
+    std::cout << std::endl; Printer::Title("RESTRICTED CI OPTIMIZATION");
 
     // extract the RHF options
-    auto rhfopt = HF::OptionsRestricted::Load(parser.at("rhf").program, parser.get<bool>("--no-coulomb"));
+    auto rhfopt = HF::OptionsRestricted::Load(parser.at("rhf"), parser.get<bool>("--no-coulomb")); std::vector <int> excits;
 
     // function to return the correct parser
     auto rciparser = [&]() -> Parser& {
@@ -186,13 +186,13 @@ void Distributor::rcio() {
     };
 
     // choose the correct method
-    if (parser.at("rhf").used("ci")) rciopt.excits = parser.get<std::vector<int>>("excitations");
-    if (parser.at("rhf").used("cisd")) rciopt.excits = {1, 2};
-    if (parser.at("rhf").used("cis")) rciopt.excits = {1};
-    if (parser.at("rhf").used("cid")) rciopt.excits = {2};
+    if (parser.at("rhf").used("ci")) excits = parser.get<std::vector<int>>("excitations");
+    if (parser.at("rhf").used("cisd")) excits = {1, 2};
+    if (parser.at("rhf").used("cis")) excits = {1};
+    if (parser.at("rhf").used("cid")) excits = {2};
 
     // perform the optimization
-    system = Optimizer({rciparser().get<double>("-o")}).optimize(system, Lambda::EGCI(rhfopt, rciopt, rciparser().get<std::vector<double>>("-g"), Matrix::Zero(system.shells.nbf(), system.shells.nbf())));
+    system = Optimizer({rciparser().get<double>("-o")}).optimize(system, Lambda::EGCI(rhfopt, excits, rciparser().get<std::vector<double>>("-g"), Matrix::Zero(system.shells.nbf(), system.shells.nbf())));
 
     // print the optimized coordinates and distances
     Printer::Mat("\nOPTIMIZED SYSTEM COORDINATES", system.coords);
@@ -201,7 +201,7 @@ void Distributor::rcio() {
 
 void Distributor::rhfrun() {
     // extract the HF options
-    auto rhfopt = HF::OptionsRestricted::Load(parser.at("rhf").program, parser.get<bool>("--no-coulomb"));
+    auto rhfopt = HF::OptionsRestricted::Load(parser.at("rhf"), parser.get<bool>("--no-coulomb"));
 
     // print the RHF method header
     std::cout << std::endl; Printer::Title("RESTRICTED HARTREE-FOCK METHOD");
@@ -241,7 +241,7 @@ void Distributor::rhff(const HF::ResultsRestricted& rhfres) {
     else {std::cout << std::endl; Printer::Title("ANALYTICAL FREQUENCIES FOR RESTRICTED HARTREE-FOCK");} Matrix H; 
 
     // extract the HF options
-    auto rhfopt = HF::OptionsRestricted::Load(parser.at("rhf").program, parser.get<bool>("--no-coulomb"));
+    auto rhfopt = HF::OptionsRestricted::Load(parser.at("rhf"), parser.get<bool>("--no-coulomb"));
 
     // perform the Hessian calculation
     if (parser.at("rhf").get<std::vector<double>>("-f").at(0)) H = Hessian({parser.at("rhf").get<std::vector<double>>("-f").at(1)}).get(system, Lambda::EHF(rhfopt, rhfres.D));
@@ -264,11 +264,11 @@ void Distributor::rhfg(const HF::ResultsRestricted& rhfres) {
     else {std::cout << std::endl; Printer::Title("ANALYTICAL GRADIENT FOR RESTRICTED HARTREE-FOCK");} Matrix G; 
 
     // extract the HF options
-    auto rhfopt = HF::OptionsRestricted::Load(parser.at("rhf").program, parser.get<bool>("--no-coulomb"));
+    auto rhfopt = HF::OptionsRestricted::Load(parser.at("rhf"), parser.get<bool>("--no-coulomb"));
 
     // calculate the numerical or analytical gradient
     if (parser.at("rhf").get<std::vector<double>>("-g").at(0)) G = Gradient({parser.at("rhf").get<std::vector<double>>("-g").at(1)}).get(system, Lambda::EHF(rhfopt, rhfres.D));
-    else G = Gradient({parser.at("rhf").get<std::vector<double>>("-g").at(1)}).get(system, rhfres);
+    else G = Gradient({parser.at("rhf").get<std::vector<double>>("-g").at(1)}).get(system, rhfres) + Integral::dRepulsion(system);
 
     // print the gradient and it's norm
     Printer::Mat("\nNUCLEAR GRADIENT", G); std::printf("\nGRADIENT NORM: %.2e\n", G.norm());
@@ -279,7 +279,7 @@ void Distributor::rhfo() {
     std::cout << std::endl; Printer::Title("RESTRICTED HARTREE-FOCK OPTIMIZATION");
 
     // extract the HF options
-    auto rhfopt = HF::OptionsRestricted::Load(parser.at("rhf").program, parser.get<bool>("--no-coulomb"));
+    auto rhfopt = HF::OptionsRestricted::Load(parser.at("rhf"), parser.get<bool>("--no-coulomb"));
 
     // perform the optimization
     system = Optimizer({parser.at("rhf").get<double>("-o")}).optimize(system, Lambda::EGHF(rhfopt, parser.at("rhf").get<std::vector<double>>("-g"), Matrix::Zero(system.shells.nbf(), system.shells.nbf())));
@@ -291,7 +291,7 @@ void Distributor::rhfo() {
 
 void Distributor::uhfrun() {
     // extract the HF method options
-    auto uhfopt = HF::OptionsUnrestricted::Load(parser.at("uhf").program, parser.get<bool>("--no-coulomb"));
+    auto uhfopt = HF::OptionsUnrestricted::Load(parser.at("uhf"), parser.get<bool>("--no-coulomb"));
 
     // print the RHF method header
     std::cout << std::endl; Printer::Title("UNRESTRICTED HARTREE-FOCK METHOD");
@@ -327,7 +327,7 @@ void Distributor::uhff(const HF::ResultsUnrestricted& uhfres) {
     else {std::cout << std::endl; Printer::Title("ANALYTICAL FREQUENCIES FOR UNRESTRICTED HARTREE-FOCK");} Matrix H; 
 
     // extract the HF method options
-    auto uhfopt = HF::OptionsUnrestricted::Load(parser.at("uhf").program, parser.get<bool>("--no-coulomb"));
+    auto uhfopt = HF::OptionsUnrestricted::Load(parser.at("uhf"), parser.get<bool>("--no-coulomb"));
 
     // perform the Hessian calculation
     if (parser.at("uhf").get<std::vector<double>>("-f").at(0)) H = Hessian({parser.at("uhf").get<std::vector<double>>("-f").at(1)}).get(system, Lambda::EHF(uhfopt, 0.5 * (uhfres.Da + uhfres.Db)));
@@ -350,7 +350,7 @@ void Distributor::uhfg(const HF::ResultsUnrestricted& uhfres) {
     else {std::cout << std::endl; Printer::Title("ANALYTICAL GRADIENT FOR UNRESTRICTED HARTREE-FOCK");} Matrix G; 
 
     // extract the HF method options
-    auto uhfopt = HF::OptionsUnrestricted::Load(parser.at("uhf").program, parser.get<bool>("--no-coulomb"));
+    auto uhfopt = HF::OptionsUnrestricted::Load(parser.at("uhf"), parser.get<bool>("--no-coulomb"));
 
     // calculate the numerical or analytical gradient
     if (parser.at("uhf").get<std::vector<double>>("-g").at(0)) G = Gradient({parser.at("uhf").get<std::vector<double>>("-g").at(1)}).get(system, Lambda::EHF(uhfopt, 0.5 * (uhfres.Da + uhfres.Db)));
@@ -365,7 +365,7 @@ void Distributor::uhfo() {
     std::cout << std::endl; Printer::Title("UNRESTRICTED HARTREE-FOCK OPTIMIZATION");
 
     // extract the HF options
-    auto uhfopt = HF::OptionsUnrestricted::Load(parser.at("uhf").program, parser.get<bool>("--no-coulomb"));
+    auto uhfopt = HF::OptionsUnrestricted::Load(parser.at("uhf"), parser.get<bool>("--no-coulomb"));
 
     // perform the optimization
     system = Optimizer({parser.at("uhf").get<double>("-o")}).optimize(system, Lambda::EGHF(uhfopt, parser.at("uhf").get<std::vector<double>>("-g"), Matrix::Zero(system.shells.nbf(), system.shells.nbf())));
@@ -385,7 +385,7 @@ void Distributor::rmp2run(const HF::ResultsRestricted& rhfres) {
     if (Utility::VectorContains<std::string>(parser.at("rhf").at("mp2").get<std::vector<std::string>>("-e"), "jmo")) Eigen::Write("JMO.mat", Jmo);
 
     // perform the MP2 calculation
-    double Ecorr = MP({rhfres}).rmp2(system, Jmo);
+    double Ecorr = MP(rhfres).rmp2(system, Jmo);
 
     // print the gradient and it's norm
     std::cout << "\nMP2 CORRELATION ENERGY: " << Ecorr << std::endl << "FINAL ";
@@ -402,7 +402,7 @@ void Distributor::rmp2f(const HF::ResultsRestricted& rhfres) {
     else {std::cout << std::endl; Printer::Title("ANALYTICAL FREQUENCIES FOR RESTRICTED MP2");} Matrix H; 
 
     // extract the HF options
-    auto rhfopt = HF::OptionsRestricted::Load(parser.at("rhf").program, parser.get<bool>("--no-coulomb"));
+    auto rhfopt = HF::OptionsRestricted::Load(parser.at("rhf"), parser.get<bool>("--no-coulomb"));
 
     // perform the Hessian calculation
     if (parser.at("rhf").at("mp2").get<std::vector<double>>("-f").at(0)) H = Hessian({parser.at("rhf").at("mp2").get<std::vector<double>>("-f").at(1)}).get(system, Lambda::EMP2(rhfopt, rhfres.D));
@@ -425,7 +425,7 @@ void Distributor::rmp2g(const HF::ResultsRestricted& rhfres) {
     else {std::cout << std::endl; Printer::Title("ANALYTICAL GRADIENT FOR RESTRICTED MP2");} Matrix G; 
 
     // extract the RHF options
-    auto rhfopt = HF::OptionsRestricted::Load(parser.at("rhf").program, parser.get<bool>("--no-coulomb"));
+    auto rhfopt = HF::OptionsRestricted::Load(parser.at("rhf"), parser.get<bool>("--no-coulomb"));
 
     // perform the MP2 gradient calculation
     if (parser.at("rhf").at("mp2").get<std::vector<double>>("-g").at(0)) G = Gradient({parser.at("rhf").at("mp2").get<std::vector<double>>("-g").at(1)}).get(system, Lambda::EMP2(rhfopt, rhfres.D));
@@ -437,7 +437,7 @@ void Distributor::rmp2g(const HF::ResultsRestricted& rhfres) {
 
 void Distributor::rmp2o() {
     // extract the HF options and print the MP2 optimization method header
-    auto rhfopt = HF::OptionsRestricted::Load(parser.at("rhf").program, parser.get<bool>("--no-coulomb"));
+    auto rhfopt = HF::OptionsRestricted::Load(parser.at("rhf"), parser.get<bool>("--no-coulomb"));
     std::cout << std::endl; Printer::Title("RESTRICTED MP2 OPTIMIZATION");
 
     // perform the optimization
@@ -457,23 +457,23 @@ void Distributor::scan() {
 
     // get the energy and gradient function
     if (parser.at("scan").used("rhf")) {
-        auto rhfopt = HF::OptionsRestricted::Load(parser.at("scan").at("rhf").program, parser.get<bool>("--no-coulomb"));
+        auto rhfopt = HF::OptionsRestricted::Load(parser.at("scan").at("rhf"), parser.get<bool>("--no-coulomb"));
         efunc = Lambda::EHF(rhfopt, Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
         if (parser.at("scan").at("rhf").used("mp2")) {
             efunc = Lambda::EMP2(rhfopt, Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
         } else if (parser.at("scan").at("rhf").used("ci")) {
-            efunc = Lambda::ECI(rhfopt, {{}, parser.at("scan").at("rhf").at("ci").get<std::vector<int>>("excitations")}, Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
+            efunc = Lambda::ECI(rhfopt, parser.at("scan").at("rhf").at("ci").get<std::vector<int>>("excitations"), Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
         } else if (parser.at("scan").at("rhf").used("cis")) {
-            efunc = Lambda::ECI(rhfopt, {{}, {1}}, Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
+            efunc = Lambda::ECI(rhfopt, {1}, Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
         } else if (parser.at("scan").at("rhf").used("cid")) {
-            efunc = Lambda::ECI(rhfopt, {{}, {2}}, Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
+            efunc = Lambda::ECI(rhfopt, {2}, Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
         } else if (parser.at("scan").at("rhf").used("cisd")) {
-            efunc = Lambda::ECI(rhfopt, {{}, {1, 2}}, Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
+            efunc = Lambda::ECI(rhfopt, {1, 2}, Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
         } else if (parser.at("scan").at("rhf").used("fci")) {
-            efunc = Lambda::ECI(rhfopt, {{}, {}}, Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
+            efunc = Lambda::ECI(rhfopt, {}, Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
         }
     } else if (parser.at("scan").used("uhf")) {
-        auto uhfopt = HF::OptionsUnrestricted::Load(parser.at("scan").at("uhf").program, parser.get<bool>("--no-coulomb"));
+        auto uhfopt = HF::OptionsUnrestricted::Load(parser.at("scan").at("uhf"), parser.get<bool>("--no-coulomb"));
         efunc = Lambda::EHF(uhfopt, Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
     }
 
@@ -513,23 +513,23 @@ void Distributor::dynamics() {
 
     // get the energy and gradient function
     if (parser.at("md").used("rhf")) {
-        auto rhfopt = HF::OptionsRestricted::Load(parser.at("md").at("rhf").program, parser.get<bool>("--no-coulomb"));
+        auto rhfopt = HF::OptionsRestricted::Load(parser.at("md").at("rhf"), parser.get<bool>("--no-coulomb"));
         egfunc = Lambda::EGHF(rhfopt, parser.at("md").at("rhf").get<std::vector<double>>("-g"), Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
         if (parser.at("md").at("rhf").used("mp2")) {
             egfunc = Lambda::EGMP2(rhfopt, parser.at("md").at("rhf").at("mp2").get<std::vector<double>>("-g"), Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
         } else if (parser.at("md").at("rhf").used("ci")) {
-            egfunc = Lambda::EGCI(rhfopt, {{}, parser.at("md").at("rhf").at("ci").get<std::vector<int>>("excitations")}, parser.at("md").at("rhf").at("ci").get<std::vector<double>>("-g"), Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
+            egfunc = Lambda::EGCI(rhfopt, parser.at("md").at("rhf").at("ci").get<std::vector<int>>("excitations"), parser.at("md").at("rhf").at("ci").get<std::vector<double>>("-g"), Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
         } else if (parser.at("md").at("rhf").used("cis")) {
-            egfunc = Lambda::EGCI(rhfopt, {{}, {1}}, parser.at("md").at("rhf").at("cis").get<std::vector<double>>("-g"), Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
+            egfunc = Lambda::EGCI(rhfopt, {1}, parser.at("md").at("rhf").at("cis").get<std::vector<double>>("-g"), Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
         } else if (parser.at("md").at("rhf").used("cid")) {
-            egfunc = Lambda::EGCI(rhfopt, {{}, {2}}, parser.at("md").at("rhf").at("cid").get<std::vector<double>>("-g"), Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
+            egfunc = Lambda::EGCI(rhfopt, {2}, parser.at("md").at("rhf").at("cid").get<std::vector<double>>("-g"), Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
         } else if (parser.at("md").at("rhf").used("cisd")) {
-            egfunc = Lambda::EGCI(rhfopt, {{}, {1, 2}}, parser.at("md").at("rhf").at("cisd").get<std::vector<double>>("-g"), Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
+            egfunc = Lambda::EGCI(rhfopt, {1, 2}, parser.at("md").at("rhf").at("cisd").get<std::vector<double>>("-g"), Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
         } else if (parser.at("md").at("rhf").used("fci")) {
-            egfunc = Lambda::EGCI(rhfopt, {{}, {}}, parser.at("md").at("rhf").at("fci").get<std::vector<double>>("-g"), Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
+            egfunc = Lambda::EGCI(rhfopt, {}, parser.at("md").at("rhf").at("fci").get<std::vector<double>>("-g"), Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
         }
     } else if (parser.at("md").used("uhf")) {
-        auto uhfopt = HF::OptionsUnrestricted::Load(parser.at("md").at("uhf").program, parser.get<bool>("--no-coulomb"));
+        auto uhfopt = HF::OptionsUnrestricted::Load(parser.at("md").at("uhf"), parser.get<bool>("--no-coulomb"));
         egfunc = Lambda::EGHF(uhfopt, parser.at("md").at("uhf").get<std::vector<double>>("-g"), Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
     }
 
@@ -542,7 +542,7 @@ void Distributor::qdyn() {
     std::cout << std::endl; Printer::Title("QUANTUM DYNAMICS");
 
     // perform the dynamics
-    QD::Results qdres = QD({parser.at("qd").get<std::string>("-f"), parser.at("qd").get<int>("-i"), parser.at("qd").get<int>("-n"), parser.at("qd").get<double>("-s"), parser.at("qd").get<double>("-t"), parser.at("qd").get<bool>("--no-real")}).run(system);
+    QD::Results qdres = QD(QD::Options::Load(parser.at("qd"))).run(system);
 
     // print the energies
     if (parser.at("qd").get<bool>("--no-real")) std::cout << "\nIMAGINARY TIME PROPAGATION ENERGIES\n" << Matrix(qdres.energy) << std::endl;

@@ -1,7 +1,6 @@
 #pragma once
 
 #include "utility.h"
-#include "eigen.h"
 #include "timer.h"
 
 class Determinant {

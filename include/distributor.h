@@ -1,14 +1,13 @@
 #pragma once
 
-#include <filesystem>
-
-#include "optimizer.h"
-#include "utility.h"
+#include "integral.h"
 #include "lambda.h"
-#include "printer.h"
-#include "parser.h"
-#include "qd.h"
 #include "md.h"
+#include "optimizer.h"
+#include "parser.h"
+#include "printer.h"
+#include "qd.h"
+#include "utility.h"
 
 class Distributor {
 public:
@@ -23,7 +22,7 @@ private:
     void rhfrun(); void rhff(const HF::ResultsRestricted& rhfres);
     void rhfg(const HF::ResultsRestricted& rhfres); void rhfo();
 
-    // RHF distribution
+    // UHF distribution
     void uhfrun(); void uhff(const HF::ResultsUnrestricted& uhfres);
     void uhfg(const HF::ResultsUnrestricted& uhfres); void uhfo();
 

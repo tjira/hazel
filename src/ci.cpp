@@ -1,8 +1,8 @@
 #include "ci.h"
 
-CI::ResultsRestricted CI::rci(const System& system, const Matrix& Hms, const Tensor<4>& Jms, bool print) const {
+CI::ResultsRestricted CI::rci(const System& system, const std::vector<int>& excits, const Matrix& Hms, const Tensor<4>& Jms, bool print) const {
     // do fci if empty excitations
-    if (ropt.excits.empty()) return rfci(system, Hms, Jms, print);
+    if (excits.empty()) return rfci(system, Hms, Jms, print);
 
     // start the timer
     Timer::Timepoint start = Timer::Now();
@@ -11,10 +11,10 @@ CI::ResultsRestricted CI::rci(const System& system, const Matrix& Hms, const Ten
     std::vector<Determinant> dets = system.det().full();
 
     // define the remove function
-    std::function<bool(Determinant)> remover = [this, dets](Determinant det) {
+    std::function<bool(Determinant)> remover = [dets, excits](Determinant det) {
         int swaps; std::tie(det, swaps) = det.align(dets.at(0));
         int diff = dets.at(0).differences(det);
-        for (int exc : ropt.excits) {
+        for (int exc : excits) {
             if (diff == exc) return false;
         }
         return true;
@@ -66,8 +66,8 @@ CI::ResultsRestricted CI::rsolve(const std::vector<Determinant>& dets, const Mat
 
     // find the eigenvalues and eigenvectors of the CI Hamiltonian and extract energies
     Eigen::SelfAdjointEigenSolver<Matrix> solver(H); Matrix C = solver.eigenvectors();
-    Vector eps = solver.eigenvalues().array() + ropt.rhfres.Enuc;
-    double Ecorr = eps(0) - ropt.rhfres.E;
+    Vector eps = solver.eigenvalues().array() + rhfres.Enuc;
+    double Ecorr = eps(0) - rhfres.E;
 
     // print the eigenproblem time
     if (print) std::cout << Timer::Format(Timer::Elapsed(start)) << std::endl;

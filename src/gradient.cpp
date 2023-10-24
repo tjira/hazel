@@ -39,12 +39,6 @@ Matrix Gradient::get(const System& system, const std::function<double(System)>& 
 }
 
 Matrix Gradient::get(const System& system, const HF::ResultsRestricted& rhfres, bool) const {
-    // calculate integral derivatives if not already calculated
-    if (!system.dints.dJ.size()) const_cast<System&>(system).dints.dJ = Integral::dCoulomb(system);
-    if (!system.dints.dS.size()) const_cast<System&>(system).dints.dS = Integral::dOverlap(system);
-    if (!system.dints.dT.size()) const_cast<System&>(system).dints.dT = Integral::dKinetic(system);
-    if (!system.dints.dV.size()) const_cast<System&>(system).dints.dV = Integral::dNuclear(system);
-
     // extract the useful stuff from the calculated integrals and define all the contraction axes
     Tensor<3> dS1 = system.dints.dS.slice<Index<3>, Index<3>>({0, 0, 0}, {system.dints.dS.dimension(0), system.dints.dS.dimension(1), 3});
     Tensor<3> dT1 = system.dints.dT.slice<Index<3>, Index<3>>({0, 0, 0}, {system.dints.dT.dimension(0), system.dints.dT.dimension(1), 3});
@@ -86,5 +80,5 @@ Matrix Gradient::get(const System& system, const HF::ResultsRestricted& rhfres, 
     }
 
     // add the nuclear contribution and return
-    return G + Integral::dRepulsion(system);
+    return G;
 }

@@ -1,7 +1,6 @@
 #pragma once
 
-#include "ci.h"
-#include "mp.h"
+#include "hf.h"
 
 class Gradient {
 public:

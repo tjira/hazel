@@ -1,15 +1,14 @@
 #pragma once
 
-#include "gradient.h"
-#include "hessian.h"
+#include "parser.h"
+#include "system.h"
 
 class QD {
 public:
     struct Options {
-        std::string potfile;
-        int iters, nstates;
-        double dt, thresh;
-        bool imaginary;
+        static QD::Options Load(const Parser& parser);
+        std::string potfile; int iters, nstates;
+        double dt, thresh; bool imaginary;
     };
     struct Results {
         std::vector<std::vector<CVector>> states;
@@ -25,3 +24,7 @@ public:
 private:
     Options opt;
 };
+
+inline QD::Options QD::Options::Load(const Parser& parser) {
+    return {parser.get<std::string>("-f"), parser.get<int>("-i"), parser.get<int>("-n"), parser.get<double>("-s"), parser.get<double>("-t"), parser.get<bool>("--no-real")};
+}

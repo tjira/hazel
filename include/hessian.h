@@ -1,7 +1,6 @@
 #pragma once
 
-#include "ci.h"
-#include "mp.h"
+#include "system.h"
 
 class Hessian {
 public:
