@@ -7,6 +7,7 @@
 #include <unsupported/Eigen/FFT>
 
 #include <fstream>
+#include <iomanip>
 
 typedef Eigen::Matrix<std::complex<double>, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor> CMatrix;
 typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor> Matrix;
