@@ -47,7 +47,7 @@ std::function<std::tuple<double, Matrix>(System&)> Lambda::EGCI(const HF::Option
         HF::ResultsRestricted rhfres = HF(rhfopt).rscf(system, D, false);
 
         // calculate the MP2 gradient and energy
-        Matrix G = Gradient({gopt.at(1)}).get(system, Lambda::ECI(rhfopt, excits, rhfres.D), false);
+        Matrix G = Gradient(gopt.at(1)).get(system, Lambda::ECI(rhfopt, excits, rhfres.D), false);
         Matrix Hms = Transform::OneelecSpin(system.ints.T + system.ints.V, rhfres.C);
         Tensor<4> Jms = Transform::CoulombSpin(system.ints.J, rhfres.C);
         double Ecorr = CI(rhfres).rci(system, excits, Hms, Jms, false).Ecorr;
@@ -67,11 +67,11 @@ std::function<std::tuple<double, Matrix>(System&)> Lambda::EGHF(const HF::Option
         HF::ResultsRestricted rhfres = HF(rhfopt).rscf(system, D, false);
 
         // calculate the numerical or analytical gradient
-        if (gopt.at(0)) return std::tuple{rhfres.E, Gradient({gopt.at(1)}).get(system, Lambda::EHF(rhfopt, rhfres.D), false)};
+        if (gopt.at(0)) return std::tuple{rhfres.E, Gradient(gopt.at(1)).get(system, Lambda::EHF(rhfopt, rhfres.D), false)};
         else {
             system.dints.dT = Integral::dKinetic(system), system.dints.dV = Integral::dNuclear(system);
             system.dints.dS = Integral::dOverlap(system), system.dints.dJ = Integral::dCoulomb(system);
-            return std::tuple{rhfres.E, Gradient({gopt.at(1)}).get(system, rhfres, false)};
+            return std::tuple{rhfres.E, Matrix(Gradient().get(system, rhfres, false) + Integral::dRepulsion(system))};
         }
     };
 }
@@ -86,7 +86,7 @@ std::function<std::tuple<double, Matrix>(System&)> Lambda::EGHF(const HF::Option
         HF::ResultsUnrestricted uhfres = HF(uhfopt).uscf(system, D, false);
 
         // calculate the numerical or analytical gradient
-        if (gopt.at(0)) return std::tuple{uhfres.E, Gradient({gopt.at(1)}).get(system, Lambda::EHF(uhfopt, 0.5 * (uhfres.Da + uhfres.Db)), false)};
+        if (gopt.at(0)) return std::tuple{uhfres.E, Gradient(gopt.at(1)).get(system, Lambda::EHF(uhfopt, 0.5 * (uhfres.Da + uhfres.Db)), false)};
         else throw std::runtime_error("ANALYTICAL GRADIENT FOR UHF NOT IMPLEMENTED");
     };
 }
@@ -101,7 +101,7 @@ std::function<std::tuple<double, Matrix>(System&)> Lambda::EGMP2(const HF::Optio
         HF::ResultsRestricted rhfres = HF(rhfopt).rscf(system, D, false);
 
         // calculate the MP2 gradient and energy
-        Matrix G = Gradient({gopt.at(1)}).get(system, Lambda::EMP2(rhfopt, rhfres.D), false);
+        Matrix G = Gradient(gopt.at(1)).get(system, Lambda::EMP2(rhfopt, rhfres.D), false);
         Tensor<4> Jmo = Transform::Coulomb(system.ints.J, rhfres.C);
         double Ecorr = MP(rhfres).rmp2(system, Jmo, false);
 

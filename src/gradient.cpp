@@ -21,13 +21,13 @@ Matrix Gradient::get(const System& system, const std::function<double(System)>& 
             Matrix dirPlus(system.atoms.size(), 3); System sysPlus = system;
 
             // fill the direction matrices
-            dirMinus(i, j) -= opt.step * A2BOHR; dirPlus(i, j) += opt.step * A2BOHR;
+            dirMinus(i, j) -= step * A2BOHR; dirPlus(i, j) += step * A2BOHR;
 
             // move the systems
             sysMinus.move(dirMinus), sysPlus.move(dirPlus);
                 
             // calculate and assign the derivative
-            G(i, j) = BOHR2A * (efunc(sysPlus) - efunc(sysMinus)) / opt.step / 2;
+            G(i, j) = BOHR2A * (efunc(sysPlus) - efunc(sysMinus)) / step / 2;
 
             // print the iteration info
             if (print) std::printf("(%2d, %2d) %18.14f %s\n", i + 1, j + 1, G(i, j), Timer::Format(Timer::Elapsed(start)).c_str());
@@ -79,6 +79,6 @@ Matrix Gradient::get(const System& system, const HF::ResultsRestricted& rhfres, 
         G.row(i) += toVector(dHcore.contract(toTensor(rhfres.D), Axes<2>{third, fourth}));
     }
 
-    // add the nuclear contribution and return
+    // return the gradient
     return G;
 }

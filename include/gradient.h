@@ -4,17 +4,13 @@
 
 class Gradient {
 public:
-    struct Options {
-        double step;
-    };
-public:
-    // constructor
-    Gradient(const Options& opt) : opt(opt) {}
+    // constructors
+    Gradient() {}; Gradient(double step) : step(step) {}
 
     // methods
     Matrix get(const System& system, const std::function<double(System)>& efunc, bool print = true) const;
     Matrix get(const System& system, const HF::ResultsRestricted& rhfres, bool print = true) const;
 
 private:
-    Options opt;
+    double step;
 };

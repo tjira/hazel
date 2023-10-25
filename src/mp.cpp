@@ -9,7 +9,7 @@ double MP::rmp2(const System& system, const Tensor<4>& Jmo, bool) const {
         for (int j = 0; j < nocc; j++) {
             for (int a = nocc; a < Jmo.dimension(0); a++) {
                 for (int b = nocc; b < Jmo.dimension(1); b++) {
-                    Ecorr += Jmo(i, a, j, b) * (2 * Jmo(i, a, j, b) - Jmo(i, b, j, a)) / (rhfres.eps(i) + rhfres.eps(j) - rhfres.eps(a) - rhfres.eps(b));
+                    Ecorr += Jmo(i, a, j, b) * (2 * Jmo(i, a, j, b) - Jmo(i, b, j, a)) / (rhfres->eps(i) + rhfres->eps(j) - rhfres->eps(a) - rhfres->eps(b));
                 }
             }
         }

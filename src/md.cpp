@@ -1,6 +1,6 @@
 #include "md.h"
 
-MD::Results MD::run(System system, const std::function<std::tuple<double, Matrix>(System&)>& egfunc, bool print) const {
+void MD::run(System system, const std::function<std::tuple<double, Matrix>(System&)>& egfunc, bool print) const {
     // calculate the initial energy and gradient and print the header with the initial state info
     auto[E, G] = egfunc(system); if (print) std::printf(" ITER         E [Eh]         |GRAD|      TIME\n");
     if (print) std::printf("%6d %20.14f %.2e %s\n", 0, E, G.norm(), "00:00:00.000");
@@ -14,27 +14,24 @@ MD::Results MD::run(System system, const std::function<std::tuple<double, Matrix
     }
 
     // write the initial geometry
-    system.save(opt.output);
+    system.save(output);
 
     // move the system while gradient is big
-    for (int i = 0; i < opt.iters; i++) {
+    for (int i = 0; i < iters; i++) {
         // start the timer and store the previous v and a
         auto start = Timer::Now();
         Matrix vp = v, ap = a;
 
         // calculate the velocity and accceleration
-        a = -G.array() / m.array(); v = vp + (ap + a) * opt.step / 2;
+        a = -G.array() / m.array(); v = vp + (ap + a) * step / 2;
 
         // move the system and calculate the next energy with gradient
-        system.move(opt.step * (v + 0.5 * a * opt.step)), std::tie(E, G) = egfunc(system);
+        system.move(step * (v + 0.5 * a * step)), std::tie(E, G) = egfunc(system);
 
         // write the current geometry
-        system.save(opt.output, std::ios::app);
+        system.save(output, std::ios::app);
 
         // print the iteration info
         if (print) std::printf("%6d %20.14f %.2e %s\n", i + 1, E, G.norm(), Timer::Format(Timer::Elapsed(start)).c_str());
     }
-
-    // return the results
-    return {};
 }

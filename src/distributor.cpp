@@ -122,14 +122,14 @@ void Distributor::rcif(const HF::ResultsRestricted& rhfres) {
     if (parser.at("rhf").used("cid")) excits = {2};
 
     // perform the Hessian calculation
-    if (rciparser().get<std::vector<double>>("-f").at(0)) H = Hessian({rciparser().get<std::vector<double>>("-f").at(1)}).get(system, Lambda::ECI(rhfopt, excits, rhfres.D));
+    if (rciparser().get<std::vector<double>>("-f").at(0)) H = Hessian(rciparser().get<std::vector<double>>("-f").at(1)).get(system, Lambda::ECI(rhfopt, excits, rhfres.D));
     else throw std::runtime_error("ANALYTICAL HESSIAN FOR RCI NOT IMPLEMENTED");
 
     // print the Hessian and it's norm
     Printer::Mat("\nNUCLEAR HESSIAN", H); std::printf("\nHESSIAN NORM: %.2e\n", H.norm());
 
     // calculate the frequencies
-    Vector freq = Hessian({rciparser().get<std::vector<double>>("-f").at(1)}).frequency(system, H);
+    Vector freq = Hessian(rciparser().get<std::vector<double>>("-f").at(1)).frequency(system, H);
 
     // print the frequencies
     std::cout << std::endl; Printer::Title("RESTRICTED CI FREQUENCY ANALYSIS");
@@ -161,7 +161,7 @@ void Distributor::rcig(const HF::ResultsRestricted& rhfres) {
     if (parser.at("rhf").used("cid")) excits = {2};
 
     // perform the CI gradient calculation
-    if (rciparser().get<std::vector<double>>("-g").at(0)) G = Gradient({rciparser().get<std::vector<double>>("-g").at(1)}).get(system, Lambda::ECI(rhfopt, excits, rhfres.D));
+    if (rciparser().get<std::vector<double>>("-g").at(0)) G = Gradient(rciparser().get<std::vector<double>>("-g").at(1)).get(system, Lambda::ECI(rhfopt, excits, rhfres.D));
     else throw std::runtime_error("ANALYTICAL GRADIENT FOR RCI NOT IMPLEMENTED");
 
     // print the gradient and it's norm
@@ -192,7 +192,7 @@ void Distributor::rcio() {
     if (parser.at("rhf").used("cid")) excits = {2};
 
     // perform the optimization
-    system = Optimizer({rciparser().get<double>("-o")}).optimize(system, Lambda::EGCI(rhfopt, excits, rciparser().get<std::vector<double>>("-g"), Matrix::Zero(system.shells.nbf(), system.shells.nbf())));
+    system = Optimizer(rciparser().get<double>("-o")).optimize(system, Lambda::EGCI(rhfopt, excits, rciparser().get<std::vector<double>>("-g"), Matrix::Zero(system.shells.nbf(), system.shells.nbf())));
 
     // print the optimized coordinates and distances
     Printer::Mat("\nOPTIMIZED SYSTEM COORDINATES", system.coords);
@@ -244,14 +244,14 @@ void Distributor::rhff(const HF::ResultsRestricted& rhfres) {
     auto rhfopt = HF::OptionsRestricted::Load(parser.at("rhf"), parser.get<bool>("--no-coulomb"));
 
     // perform the Hessian calculation
-    if (parser.at("rhf").get<std::vector<double>>("-f").at(0)) H = Hessian({parser.at("rhf").get<std::vector<double>>("-f").at(1)}).get(system, Lambda::EHF(rhfopt, rhfres.D));
+    if (parser.at("rhf").get<std::vector<double>>("-f").at(0)) H = Hessian(parser.at("rhf").get<std::vector<double>>("-f").at(1)).get(system, Lambda::EHF(rhfopt, rhfres.D));
     else throw std::runtime_error("ANALYTICAL HESSIAN FOR RHF NOT IMPLEMENTED");
 
     // print the Hessian and it's norm
     Printer::Mat("\nNUCLEAR HESSIAN", H); std::printf("\nHESSIAN NORM: %.2e\n", H.norm());
 
     // calculate the frequencies
-    Vector freq = Hessian({parser.at("rhf").get<std::vector<double>>("-f").at(1)}).frequency(system, H);
+    Vector freq = Hessian(parser.at("rhf").get<std::vector<double>>("-f").at(1)).frequency(system, H);
 
     // print the frequencies
     std::cout << std::endl; Printer::Title("RESTRICTED HARTREE-FOCK FREQUENCY ANALYSIS");
@@ -267,8 +267,8 @@ void Distributor::rhfg(const HF::ResultsRestricted& rhfres) {
     auto rhfopt = HF::OptionsRestricted::Load(parser.at("rhf"), parser.get<bool>("--no-coulomb"));
 
     // calculate the numerical or analytical gradient
-    if (parser.at("rhf").get<std::vector<double>>("-g").at(0)) G = Gradient({parser.at("rhf").get<std::vector<double>>("-g").at(1)}).get(system, Lambda::EHF(rhfopt, rhfres.D));
-    else G = Gradient({parser.at("rhf").get<std::vector<double>>("-g").at(1)}).get(system, rhfres) + Integral::dRepulsion(system);
+    if (parser.at("rhf").get<std::vector<double>>("-g").at(0)) G = Gradient(parser.at("rhf").get<std::vector<double>>("-g").at(1)).get(system, Lambda::EHF(rhfopt, rhfres.D));
+    else G = Gradient().get(system, rhfres) + Integral::dRepulsion(system);
 
     // print the gradient and it's norm
     Printer::Mat("\nNUCLEAR GRADIENT", G); std::printf("\nGRADIENT NORM: %.2e\n", G.norm());
@@ -282,7 +282,7 @@ void Distributor::rhfo() {
     auto rhfopt = HF::OptionsRestricted::Load(parser.at("rhf"), parser.get<bool>("--no-coulomb"));
 
     // perform the optimization
-    system = Optimizer({parser.at("rhf").get<double>("-o")}).optimize(system, Lambda::EGHF(rhfopt, parser.at("rhf").get<std::vector<double>>("-g"), Matrix::Zero(system.shells.nbf(), system.shells.nbf())));
+    system = Optimizer(parser.at("rhf").get<double>("-o")).optimize(system, Lambda::EGHF(rhfopt, parser.at("rhf").get<std::vector<double>>("-g"), Matrix::Zero(system.shells.nbf(), system.shells.nbf())));
 
     // print the optimized coordinates and distances
     Printer::Mat("\nOPTIMIZED SYSTEM COORDINATES", system.coords);
@@ -337,7 +337,7 @@ void Distributor::uhff(const HF::ResultsUnrestricted& uhfres) {
     Printer::Mat("\nNUCLEAR HESSIAN", H); std::printf("\nHESSIAN NORM: %.2e\n", H.norm());
 
     // calculate the frequencies
-    Vector freq = Hessian({parser.at("uhf").get<std::vector<double>>("-f").at(1)}).frequency(system, H);
+    Vector freq = Hessian(parser.at("uhf").get<std::vector<double>>("-f").at(1)).frequency(system, H);
 
     // print the frequencies
     std::cout << std::endl; Printer::Title("UNRESTRICTED HARTREE-FOCK FREQUENCY ANALYSIS");
@@ -353,7 +353,7 @@ void Distributor::uhfg(const HF::ResultsUnrestricted& uhfres) {
     auto uhfopt = HF::OptionsUnrestricted::Load(parser.at("uhf"), parser.get<bool>("--no-coulomb"));
 
     // calculate the numerical or analytical gradient
-    if (parser.at("uhf").get<std::vector<double>>("-g").at(0)) G = Gradient({parser.at("uhf").get<std::vector<double>>("-g").at(1)}).get(system, Lambda::EHF(uhfopt, 0.5 * (uhfres.Da + uhfres.Db)));
+    if (parser.at("uhf").get<std::vector<double>>("-g").at(0)) G = Gradient(parser.at("uhf").get<std::vector<double>>("-g").at(1)).get(system, Lambda::EHF(uhfopt, 0.5 * (uhfres.Da + uhfres.Db)));
     else throw std::runtime_error("ANALYTICAL GRADIENT FOR UHF NOT IMPLEMENTED");
 
     // print the gradient and it's norm
@@ -368,7 +368,7 @@ void Distributor::uhfo() {
     auto uhfopt = HF::OptionsUnrestricted::Load(parser.at("uhf"), parser.get<bool>("--no-coulomb"));
 
     // perform the optimization
-    system = Optimizer({parser.at("uhf").get<double>("-o")}).optimize(system, Lambda::EGHF(uhfopt, parser.at("uhf").get<std::vector<double>>("-g"), Matrix::Zero(system.shells.nbf(), system.shells.nbf())));
+    system = Optimizer(parser.at("uhf").get<double>("-o")).optimize(system, Lambda::EGHF(uhfopt, parser.at("uhf").get<std::vector<double>>("-g"), Matrix::Zero(system.shells.nbf(), system.shells.nbf())));
 
     // print the optimized coordinates and distances
     Printer::Mat("\nOPTIMIZED SYSTEM COORDINATES", system.coords);
@@ -405,14 +405,14 @@ void Distributor::rmp2f(const HF::ResultsRestricted& rhfres) {
     auto rhfopt = HF::OptionsRestricted::Load(parser.at("rhf"), parser.get<bool>("--no-coulomb"));
 
     // perform the Hessian calculation
-    if (parser.at("rhf").at("mp2").get<std::vector<double>>("-f").at(0)) H = Hessian({parser.at("rhf").at("mp2").get<std::vector<double>>("-f").at(1)}).get(system, Lambda::EMP2(rhfopt, rhfres.D));
+    if (parser.at("rhf").at("mp2").get<std::vector<double>>("-f").at(0)) H = Hessian(parser.at("rhf").at("mp2").get<std::vector<double>>("-f").at(1)).get(system, Lambda::EMP2(rhfopt, rhfres.D));
     else throw std::runtime_error("ANALYTICAL HESSIAN FOR RMP2 NOT IMPLEMENTED");
 
     // print the Hessian and it's norm
     Printer::Mat("\nNUCLEAR HESSIAN", H); std::printf("\nHESSIAN NORM: %.2e\n", H.norm());
 
     // calculate the frequencies
-    Vector freq = Hessian({parser.at("rhf").at("mp2").get<std::vector<double>>("-f").at(1)}).frequency(system, H);
+    Vector freq = Hessian(parser.at("rhf").at("mp2").get<std::vector<double>>("-f").at(1)).frequency(system, H);
 
     // print the frequencies
     std::cout << std::endl; Printer::Title("RESTRICTED MP2 FREQUENCY ANALYSIS");
@@ -428,7 +428,7 @@ void Distributor::rmp2g(const HF::ResultsRestricted& rhfres) {
     auto rhfopt = HF::OptionsRestricted::Load(parser.at("rhf"), parser.get<bool>("--no-coulomb"));
 
     // perform the MP2 gradient calculation
-    if (parser.at("rhf").at("mp2").get<std::vector<double>>("-g").at(0)) G = Gradient({parser.at("rhf").at("mp2").get<std::vector<double>>("-g").at(1)}).get(system, Lambda::EMP2(rhfopt, rhfres.D));
+    if (parser.at("rhf").at("mp2").get<std::vector<double>>("-g").at(0)) G = Gradient(parser.at("rhf").at("mp2").get<std::vector<double>>("-g").at(1)).get(system, Lambda::EMP2(rhfopt, rhfres.D));
     else throw std::runtime_error("ANALYTICAL GRADIENT FOR RMP2 NOT IMPLEMENTED");
 
     // print the gradient and it's norm
@@ -441,7 +441,7 @@ void Distributor::rmp2o() {
     std::cout << std::endl; Printer::Title("RESTRICTED MP2 OPTIMIZATION");
 
     // perform the optimization
-    system = Optimizer({parser.at("rhf").at("mp2").get<double>("-o")}).optimize(system, Lambda::EGMP2(rhfopt, parser.at("rhf").at("mp2").get<std::vector<double>>("-g"), Matrix::Zero(system.shells.nbf(), system.shells.nbf())));
+    system = Optimizer(parser.at("rhf").at("mp2").get<double>("-o")).optimize(system, Lambda::EGMP2(rhfopt, parser.at("rhf").at("mp2").get<std::vector<double>>("-g"), Matrix::Zero(system.shells.nbf(), system.shells.nbf())));
 
     // print the optimized coordinates and distances
     Printer::Mat("\nOPTIMIZED SYSTEM COORDINATES", system.coords);
@@ -534,7 +534,7 @@ void Distributor::dynamics() {
     }
 
     // perform the dynamics
-    MD({parser.at("md").get<int>("-i"), parser.at("md").get<double>("-s"), parser.at("md").get<std::string>("-o")}).run(system, egfunc);
+    MD(parser.at("md").get<int>("-i"), parser.at("md").get<double>("-s"), parser.at("md").get<std::string>("-o")).run(system, egfunc);
 }
 
 void Distributor::qdyn() {

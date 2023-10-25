@@ -5,11 +5,11 @@
 class MP {
 public:
     // constructor
-    MP(const HF::ResultsRestricted& rhfres) : rhfres(rhfres) {}
+    MP(const HF::ResultsRestricted& rhfres) : rhfres(std::make_shared<HF::ResultsRestricted>(rhfres)) {}
 
     // methods
     double rmp2(const System& system, const Tensor<4>& Jmo, bool print = true) const;
 
 private:
-    HF::ResultsRestricted rhfres;
+    std::shared_ptr<HF::ResultsRestricted> rhfres;
 };

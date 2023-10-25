@@ -34,7 +34,7 @@ Matrix Hessian::get(const System& system, const std::function<double(System)>& e
             Matrix dir1(system.atoms.size(), 3), dir2(system.atoms.size(), 3);
 
             // fill the direction matrices
-            dir1(i / 3, i % 3) = opt.step * A2BOHR; dir2(j / 3, j % 3) = opt.step * A2BOHR;
+            dir1(i / 3, i % 3) = step * A2BOHR; dir2(j / 3, j % 3) = step * A2BOHR;
 
             // move the systems
             sysMinusMinus.move(-dir1 - dir2), sysMinusPlus.move(-dir1 + dir2);
@@ -45,7 +45,7 @@ Matrix Hessian::get(const System& system, const std::function<double(System)>& e
             double energyPlusMinus = efunc(sysPlusMinus), energyPlusPlus = efunc(sysPlusPlus);
 
             // calculate and assign the derivative
-            H(i, j) = BOHR2A * BOHR2A * (energyPlusPlus - energyMinusPlus - energyPlusMinus + energyMinusMinus) / opt.step / opt.step / 4;
+            H(i, j) = BOHR2A * BOHR2A * (energyPlusPlus - energyMinusPlus - energyPlusMinus + energyMinusMinus) / step / step / 4;
 
             // print the iteration info
             if (print) std::printf("(%2d, %2d) %18.14f %s\n", i + 1, j + 1, H(i, j), Timer::Format(Timer::Elapsed(start)).c_str());

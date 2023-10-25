@@ -6,7 +6,7 @@ System Optimizer::optimize(System system, const std::function<std::tuple<double,
     if (print) std::printf("%4d %20.14f %.2e %s\n", 0, E, G.norm(), "00:00:00.000");
 
     // move the system while gradient is big
-    for (int i = 1; G.norm() > opt.thresh; i++) {
+    for (int i = 1; G.norm() > thresh; i++) {
         // start the timer
         Timer::Timepoint start = Timer::Now();
 

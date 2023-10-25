@@ -5,20 +5,12 @@
 
 class MD {
 public:
-    struct Options {
-        int iters; double step;
-        std::string output;
-    };
-    struct Results {
-
-    };
-public:
     // constructor
-    MD(const Options& opt) : opt(opt) {}
+    MD(int iters, double step, const std::string& output) : iters(iters), step(step), output(output) {}
 
     // methods
-    Results run(System system, const std::function<std::tuple<double, Matrix>(System&)>& egfunc, bool print = true) const;
+    void run(System system, const std::function<std::tuple<double, Matrix>(System&)>& egfunc, bool print = true) const;
 
 private:
-    Options opt;
+    int iters; double step; std::string output;
 };

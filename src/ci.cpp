@@ -66,8 +66,8 @@ CI::ResultsRestricted CI::rsolve(const std::vector<Determinant>& dets, const Mat
 
     // find the eigenvalues and eigenvectors of the CI Hamiltonian and extract energies
     Eigen::SelfAdjointEigenSolver<Matrix> solver(H); Matrix C = solver.eigenvectors();
-    Vector eps = solver.eigenvalues().array() + rhfres.Enuc;
-    double Ecorr = eps(0) - rhfres.E;
+    Vector eps = solver.eigenvalues().array() + rhfres->Enuc;
+    double Ecorr = eps(0) - rhfres->E;
 
     // print the eigenproblem time
     if (print) std::cout << Timer::Format(Timer::Elapsed(start)) << std::endl;

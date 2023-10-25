@@ -21,7 +21,7 @@ if [[ $# -eq 4 ]]; then
 fi
 
 cleanup() {
-    rm -f -- *.0 *.tmp orca.densities orca.engrad orca.gbw orca.hess orca.inp orca_property.txt
+    rm -f -- *.0 *.tmp orca.densities orca.engrad orca.gbw orca.hess orca.inp orca_property.txt orca_*
 }
 
 inputOrca() {

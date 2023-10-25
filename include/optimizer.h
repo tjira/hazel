@@ -1,20 +1,15 @@
 #pragma once
 
-#include "gradient.h"
-#include "hessian.h"
+#include "lambda.h"
 
 class Optimizer {
 public:
-    struct Options {
-        double thresh;
-    };
-public:
     // constructor
-    Optimizer(const Options& opt) : opt(opt) {}
+    Optimizer(double thresh) : thresh(thresh) {}
 
     // methods
     System optimize(System system, const std::function<std::tuple<double, Matrix>(System&)>& egfunc, bool print = true) const;
 
 private:
-    Options opt;
+    double thresh;
 };
