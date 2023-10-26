@@ -5,7 +5,9 @@ project(Hazel)
 
 # set policies
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
-cmake_policy(SET CMP0135 NEW)
+if(${CMAKE_VERSION} VERSION_GREATER "3.24.0")
+    cmake_policy(SET CMP0135 NEW)
+endif()
 
 # set cmake variables
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
