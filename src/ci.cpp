@@ -53,8 +53,13 @@ CI::ResultsRestricted CI::rsolve(const std::vector<Determinant>& dets, const Mat
     // start the timer
     Timer::Timepoint start = Timer::Now();
 
-    // fill the CI hamiltonian
+    // create the CI Hamiltonian
     Matrix H(dets.size(), dets.size());
+
+    // fill the CI Hamiltonian
+    #if defined(_OPENMP)
+    #pragma omp parallel for num_threads(nthread)
+    #endif
     for (int i = 0; i < H.rows(); i++) {
         for (int j = 0; j < i + 1; j++) {
             H(i, j) = dets.at(i).hamilton(dets.at(j), Hms, Jms); H(j, i) = H(i, j);
