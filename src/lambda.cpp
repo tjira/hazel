@@ -2,37 +2,57 @@
 
 std::function<double(System)> Lambda::ECI(const HF::OptionsRestricted& rhfopt, const std::vector<int>& excits, Matrix D) {
     return [rhfopt, excits, D](System system) {
+        // calculate the necessary integrals
         system.ints.T = Integral::Kinetic(system), system.ints.V = Integral::Nuclear(system);
         system.ints.S = Integral::Overlap(system), system.ints.J = Integral::Coulomb(system);
+
+        // perform SCF
         HF::ResultsRestricted rhfres = HF(rhfopt).rscf(system, D, false);
+
+        // transform matrces to MS basis
         Matrix Hms = Transform::OneelecSpin(system.ints.T + system.ints.V, rhfres.C);
         Tensor<4> Jms = Transform::CoulombSpin(system.ints.J, rhfres.C);
+
+        // calculate the CI energy and return
         return rhfres.E + CI(rhfres).rci(system, excits, Hms, Jms, false).Ecorr;
     };
 }
 
 std::function<double(System)> Lambda::EHF(const HF::OptionsRestricted& rhfopt, Matrix D) {
     return [rhfopt, D](System system) {
+        // calculate the necessary integrals
         system.ints.T = Integral::Kinetic(system), system.ints.V = Integral::Nuclear(system);
         system.ints.S = Integral::Overlap(system), system.ints.J = Integral::Coulomb(system);
+
+        // perform the SCF and return the energy
         return HF(rhfopt).rscf(system, D, false).E;
     };
 }
 
 std::function<double(System)> Lambda::EHF(const HF::OptionsUnrestricted& uhfopt, Matrix D) {
     return [uhfopt, D](System system) {
+        // calculate the necessary integrals
         system.ints.T = Integral::Kinetic(system), system.ints.V = Integral::Nuclear(system);
         system.ints.S = Integral::Overlap(system), system.ints.J = Integral::Coulomb(system);
+
+        // perform the SCF and return the energy
         return HF(uhfopt).uscf(system, D, false).E;
     };
 }
 
 std::function<double(System)> Lambda::EMP2(const HF::OptionsRestricted& rhfopt, Matrix D) {
     return [rhfopt, D](System system) {
+        // calculate the necessary integrals
         system.ints.T = Integral::Kinetic(system), system.ints.V = Integral::Nuclear(system);
         system.ints.S = Integral::Overlap(system), system.ints.J = Integral::Coulomb(system);
+
+        // perform the SCF
         HF::ResultsRestricted rhfres = HF(rhfopt).rscf(system, D, false);
+
+        // transform the J to MO basis
         Tensor<4> Jmo = Transform::Coulomb(system.ints.J, rhfres.C);
+
+        // perform the MP calculation and return the energy
         return rhfres.E + MP(rhfres).rmp2(system, Jmo, false);
     };
 }
@@ -43,13 +63,17 @@ std::function<std::tuple<double, Matrix>(System&)> Lambda::EGCI(const HF::Option
         system.ints.T = Integral::Kinetic(system), system.ints.V = Integral::Nuclear(system);
         system.ints.S = Integral::Overlap(system), system.ints.J = Integral::Coulomb(system);
 
-        // recalculate Hartree-Fock
+        // perform the SCF
         HF::ResultsRestricted rhfres = HF(rhfopt).rscf(system, D, false);
 
-        // calculate the MP2 gradient and energy
+        // calculate the CI gradient
         Matrix G = Gradient(gopt.at(1)).get(system, Lambda::ECI(rhfopt, excits, rhfres.D), false);
+
+        // transform the Hamiltonian and Coulomb tensor to MS basis
         Matrix Hms = Transform::OneelecSpin(system.ints.T + system.ints.V, rhfres.C);
         Tensor<4> Jms = Transform::CoulombSpin(system.ints.J, rhfres.C);
+
+        // perform the CI calculation and get thecorrelation energy
         double Ecorr = CI(rhfres).rci(system, excits, Hms, Jms, false).Ecorr;
 
         // return the tuple containing energy and gradient
@@ -69,8 +93,11 @@ std::function<std::tuple<double, Matrix>(System&)> Lambda::EGHF(const HF::Option
         // calculate the numerical or analytical gradient
         if (gopt.at(0)) return std::tuple{rhfres.E, Gradient(gopt.at(1)).get(system, Lambda::EHF(rhfopt, rhfres.D), false)};
         else {
+            // calculate the integral derivatives
             system.dints.dT = Integral::dKinetic(system), system.dints.dV = Integral::dNuclear(system);
             system.dints.dS = Integral::dOverlap(system), system.dints.dJ = Integral::dCoulomb(system);
+
+            // return the energy and analytical gradient
             return std::tuple{rhfres.E, Matrix(Gradient().get(system, rhfres, false) + Integral::dRepulsion(system))};
         }
     };

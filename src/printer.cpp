@@ -11,7 +11,7 @@ void Printer::Initial(const Parser& program, System& system) {
     std::printf("\nLIBRARIES: EIGEN %d.%d.%d, LIBINT %d.%d.%d\n\n", EIGEN_WORLD_VERSION, EIGEN_MAJOR_VERSION, EIGEN_MINOR_VERSION, LIBINT_MAJOR_VERSION, LIBINT_MINOR_VERSION, LIBINT_MICRO_VERSION);
     #if defined(_OPENMP)
     Title(std::string("OPENMP ") + std::to_string(_OPENMP));
-    std::printf("\nAVAILABLE CORES: %d\nUSED THREADS: %d\n\n", std::thread::hardware_concurrency(), nthread);
+    std::printf("\nAVAILABLE CORES: %d\nUSED THREADS: %d\n\n", std::thread::hardware_concurrency(), program.get<int>("-n"));
     #endif
 
     // print the system block
