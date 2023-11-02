@@ -37,10 +37,16 @@ elseif (CMAKE_BUILD_TYPE STREQUAL Release)
     set(CXXFLAGS ${CMAKE_CXX_FLAGS_RELEASE})
 endif()
 
+# declare libraries
+FetchContent_Declare(argparse SYSTEM GIT_REPOSITORY https://github.com/p-ranav/argparse.git GIT_TAG ac4c578f6020d5164f66ccb26b4727dea657a12b)
+FetchContent_Declare(libint URL https://github.com/evaleev/libint/releases/download/v2.7.2/libint-2.7.2-mpqc4.tgz)
+FetchContent_Declare(eigen GIT_REPOSITORY https://gitlab.com/libeigen/eigen.git GIT_TAG 3.4)
+
+# fetch the libraries
+FetchContent_MakeAvailable(argparse)
+
 # download dependencies if needed
 if (${STANDALONE})
-    FetchContent_Declare(libint URL https://github.com/evaleev/libint/releases/download/v2.7.2/libint-2.7.2-mpqc4.tgz)
-    FetchContent_Declare(eigen GIT_REPOSITORY https://gitlab.com/libeigen/eigen.git GIT_TAG 3.4)
     FetchContent_MakeAvailable(eigen libint)
     if (WIN32)
         file(READ ${libint_SOURCE_DIR}/include/libint2/boys.h CONTENT)
@@ -53,7 +59,7 @@ else()
 endif()
 
 # include directories
-include_directories(${CMAKE_BINARY_DIR}/include include lib)
+include_directories(include ${argparse_SOURCE_DIR}/include/argparse)
 
 # find OpenMP if enabled
 if (${GOMP})
