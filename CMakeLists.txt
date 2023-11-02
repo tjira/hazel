@@ -13,7 +13,7 @@ endif()
 # set cmake variables
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
 set(CMAKE_WARN_DEPRECATED OFF CACHE BOOL "" FORCE)
-set(CMAKE_WARN_DEPRECATED OFF)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # set compiler flags
 set(CMAKE_CXX_FLAGS_DEBUG "-g -pg -Og -fprofile-arcs -ftest-coverage -Wall -Wextra")
