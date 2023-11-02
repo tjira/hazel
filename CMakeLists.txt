@@ -5,14 +5,15 @@ project(Hazel)
 
 # set policies
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
+set(CMAKE_POLICY_DEFAULT_CMP0148 OLD)
 if(${CMAKE_VERSION} VERSION_GREATER "3.24.0")
     cmake_policy(SET CMP0135 NEW)
 endif()
 
 # set cmake variables
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-set(BUILD_TESTING OFF)
+set(CMAKE_WARN_DEPRECATED OFF CACHE BOOL "" FORCE)
+set(CMAKE_WARN_DEPRECATED OFF)
 
 # set compiler flags
 set(CMAKE_CXX_FLAGS_DEBUG "-g -pg -Og -fprofile-arcs -ftest-coverage -Wall -Wextra")
@@ -26,7 +27,7 @@ unset(AVX CACHE)
 
 # static link on windows
 if (WIN32)
-    string(APPEND CMAKE_CXX_FLAGS_RELEASE " -static")
+    string(APPEND CMAKE_CXX_FLAGS_RELEASE " -mwindows -static")
     string(APPEND CMAKE_CXX_FLAGS_DEBUG " -static")
 endif()
 
@@ -104,6 +105,9 @@ endif()
 if (OPENMP_FOUND AND CMAKE_BUILD_TYPE STREQUAL Release)
     target_link_libraries(hazel OpenMP::OpenMP_CXX)
 endif()
+
+# include tools
+include(tool/hview/CMakeLists.txt)
 
 # enable testing
 enable_testing()

@@ -34,12 +34,14 @@ jobs:
           cmake --build build --parallel 2
 
       - name: Rename Executable
-        run: mv bin/hazel bin/hazel_linux_x86-64
+        run: mv bin/hazel bin/hazel_linux_x86-64 && mv bin/hview bin/hview_linux_x86-64
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v3
         with:
-          path: bin/hazel_linux_x86-64
+          path: |
+            bin/hazel_linux_x86-64
+            bin/hview_linux_x86-64
 
   build_linux_x86-64_openmp:
     runs-on: ubuntu-latest
@@ -63,12 +65,14 @@ jobs:
           cmake --build build --parallel 2
 
       - name: Rename Executable
-        run: mv bin/hazel bin/hazel_linux_x86-64_openmp
+        run: mv bin/hazel bin/hazel_linux_x86-64_openmp && mv bin/hview bin/hview_linux_x86-64_openmp
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v3
         with:
-          path: bin/hazel_linux_x86-64_openmp
+          path: |
+            bin/hazel_linux_x86-64_openmp
+            bin/hview_linux_x86-64_openmp
 
   build_windows_x86-64:
     runs-on: windows-latest
@@ -83,12 +87,14 @@ jobs:
         run: cmake --build build --parallel 2
 
       - name: Rename Executable
-        run: mv bin/hazel.exe bin/hazel_windows_x86-64.exe
+        run: mv bin/hazel.exe bin/hazel_windows_x86-64.exe && mv bin/hview.exe bin/hview_windows_x86-64.exe
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v3
         with:
-          path: bin/hazel_windows_x86-64.exe
+          path: |
+            bin/hazel_windows_x86-64.exe
+            bin/hview_windows_x86-64.exe
 
   release:
     runs-on: ubuntu-latest
@@ -104,19 +110,23 @@ jobs:
         run: rm basis/basis.sh example/generate.inp
 
       - name: Copy x86-64 Binaries to the Root Folder
-        run: cp artifact/hazel_linux_x86-64 hazel && cp artifact/hazel_windows_x86-64.exe hazel.exe
+        run: |
+          cp artifact/hazel_linux_x86-64 hazel && cp artifact/hazel_windows_x86-64.exe hazel.exe
+          cp artifact/hview_linux_x86-64 hview && cp artifact/hview_windows_x86-64.exe hview.exe
 
       - name: Create x86-64 Packages
         run: |
-          zip -r hazel_windows_x86-64.zip hazel.exe basis example LICENSE.md
-          tar -czf hazel_linux_x86-64.tar.gz hazel basis example LICENSE.md
+          zip -r hazel_windows_x86-64.zip hazel.exe hview.exe basis example LICENSE.md
+          tar -czf hazel_linux_x86-64.tar.gz hazel hview.exe basis example LICENSE.md
 
       - name: Copy x86-64_openmp Binaries to the Root Folder
-        run: cp artifact/hazel_linux_x86-64_openmp hazel
-
-      - name: Create x86-64_avx_openmp Packages
         run: |
-          tar -czf hazel_linux_x86-64_openmp.tar.gz hazel basis example LICENSE.md
+          cp artifact/hazel_linux_x86-64_openmp hazel
+          cp artifact/hview_linux_x86-64_openmp hview
+
+      - name: Create x86-64_openmp Packages
+        run: |
+          tar -czf hazel_linux_x86-64_openmp.tar.gz hazel hview basis example LICENSE.md
 
       - name: Release linux_x86-64 Version of Hazel
         uses: svenstaro/upload-release-action@v2
