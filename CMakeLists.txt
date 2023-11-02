@@ -59,8 +59,8 @@ else()
     find_package(Eigen3 REQUIRED)
 endif()
 
-# include directories
-include_directories(include ${argparse_SOURCE_DIR}/include/argparse)
+# include directories (the second include is there because of boost/preprocessor.hpp)
+include_directories(include ${CMAKE_BINARY_DIR}/include ${argparse_SOURCE_DIR}/include/argparse)
 
 # find OpenMP if enabled
 if (${GOMP})
