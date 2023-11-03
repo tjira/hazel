@@ -77,7 +77,7 @@ After the compilation the bin folder will be created along with the executable. 
 The proper way is only available on Linux. The software requires the [libint](https://github.com/evaleev/libint) library. Before the library compilation process, make sure you have [eigen](https://gitlab.com/libeigen/eigen) and [boost](https://github.com/boostorg/boost) installed. On debian-based distributions, you can do it with the following command.
 
 ```bash
-sudo apt install libboost-all-dev libeigen3-dev
+sudo apt install libboost-all-dev libeigen3-dev libxcursor-dev libxi-dev libxinerama-dev libxrandr-dev
 ```
 
 To compile the library execute `./script/libint.sh` from the project root directory. This command creates the *libint* folder with the compiled library. Now, we export the necessary environment variables.
