@@ -74,7 +74,7 @@ After the compilation the bin folder will be created along with the executable. 
 
 ### The Proper Way
 
-The proper way is only available on Linux. The software requires the [libint](https://github.com/evaleev/libint) library. Before the library compilation process, make sure you have [eigen](https://gitlab.com/libeigen/eigen) and [boost](https://github.com/boostorg/boost) installed. On debian-based distributions, you can do it with the following command.
+The proper way is only available on Linux. The software requires the [libint](https://github.com/evaleev/libint) library. Before the library compilation process, make sure you have [eigen](https://gitlab.com/libeigen/eigen), [boost](https://github.com/boostorg/boost) an some basic X libraries installed. On debian-based distributions, you can do it with the following command.
 
 ```bash
 sudo apt install libboost-all-dev libeigen3-dev libxcursor-dev libxi-dev libxinerama-dev libxrandr-dev
@@ -129,6 +129,7 @@ In his section you find all the printing options implemented in Hazel. This also
     * `s` - Overlap integral in AO basis.
     * `t` - Kinetic integral in AO basis.
     * `v` - Nuclear integral in AO basis.
+    * `pop` - Population analysis.
 * `uhf`
     * `dist` - Optimized distance matrix (only for optimization).
     * `ca` - Matrix of coefficients for alpha electrons electrons in MO basis.

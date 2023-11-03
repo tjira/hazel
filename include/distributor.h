@@ -8,6 +8,7 @@
 #include "printer.h"
 #include "qd.h"
 #include "utility.h"
+#include "wavetool.h"
 
 class Distributor {
 public:

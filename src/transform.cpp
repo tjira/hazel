@@ -78,20 +78,6 @@ Tensor<4> Transform::Coulomb(const Tensor<4>& J, const Matrix& C) {
     return Jmo;
 }
 
-Tensor<4> Kron(Matrix A, Tensor<4> B) {
-    Tensor<4> C(B.dimension(0), B.dimension(1), A.rows() * B.dimension(2), A.cols() * B.dimension(3)); C.setZero();
-    for (int i = 0; i < C.dimension(0); i++) {
-        for (int j = 0; j < C.dimension(1); j++) {
-            for (int k = 0; k < C.dimension(2); k++) {
-                for (int l = 0; l < C.dimension(3); l++) {
-                    C(i, j, k, l) = A(k / B.dimension(2), l / B.dimension(3)) * B(i, j, k % B.dimension(2), l % B.dimension(3));
-                }
-            }
-        }
-    }
-    return C;
-}
-
 Tensor<4> Transform::CoulombSpin(const Tensor<4>& J, const Matrix& C) {
     // create the spin indices
     Vector ind(2 * C.rows()); std::iota(ind.begin(), ind.end(), 0); ind = ind.unaryExpr([](auto s) {return double(int(s) % 2);});

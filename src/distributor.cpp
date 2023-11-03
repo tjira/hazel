@@ -218,6 +218,11 @@ void Distributor::rhfrun() {
     if (Utility::VectorContains<std::string>(parser.at("rhf").get<std::vector<std::string>>("-e"), "c")) Eigen::Write("C.mat", rhfres.C);
     if (Utility::VectorContains<std::string>(parser.at("rhf").get<std::vector<std::string>>("-e"), "d")) Eigen::Write("D.mat", rhfres.D);
 
+    // print population analysis
+    if (Utility::VectorContains<std::string>(parser.at("rhf").get<std::vector<std::string>>("-p"), "pop")) {
+        std::cout << "\nMULLIKEN CHARGES\n" << Matrix(Wavetool::Mulliken(system, rhfres.D)) << std::endl;
+    }
+
     // print the resulting energy
     std::cout << "\nTOTAL NUCLEAR REPULSION ENERGY: " << Integral::Repulsion(system) << std::endl;
     std::cout << "FINAL HARTREE-FOCK ENERGY: " << rhfres.E << std::endl;

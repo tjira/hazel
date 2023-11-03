@@ -90,6 +90,7 @@ add_executable(hazel
     src/timer.cpp
     src/transform.cpp
     src/utility.cpp
+    src/wavetool.cpp
 )
 target_compile_definitions(hazel PRIVATE CXXFLAGS="${CXXFLAGS}" DATADIR="${PROJECT_SOURCE_DIR}")
 target_link_libraries(hazel Eigen3::Eigen)
