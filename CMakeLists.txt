@@ -108,6 +108,7 @@ if (OPENMP_FOUND AND CMAKE_BUILD_TYPE STREQUAL Release)
 endif()
 
 # include tools
+include(tool/hplot/CMakeLists.txt)
 include(tool/hview/CMakeLists.txt)
 
 # enable testing

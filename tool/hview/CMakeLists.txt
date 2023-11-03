@@ -33,14 +33,14 @@ include_directories(tool/hview/include ${argparse_SOURCE_DIR}/include ${imgui_SO
 
 # add hview executable
 add_executable(hview
-    tool/hview/src/hview.cpp
     tool/hview/src/buffer.cpp
     tool/hview/src/geometry.cpp
     tool/hview/src/gui.cpp
+    tool/hview/src/main.cpp
     tool/hview/src/mesh.cpp
-    tool/hview/src/trajectory.cpp
-    tool/hview/src/shader.cpp
     tool/hview/src/ptable.cpp
+    tool/hview/src/shader.cpp
+    tool/hview/src/trajectory.cpp
 
     # imgui backends
     ${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
