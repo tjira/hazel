@@ -20,6 +20,8 @@ bin/
 *.clean
 *.lock
 *.dat
+*.eps
+*.gpl
 *.log
 *.mat
 *.out
