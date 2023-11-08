@@ -107,9 +107,19 @@ if (OPENMP_FOUND AND CMAKE_BUILD_TYPE STREQUAL Release)
     target_link_libraries(hazel OpenMP::OpenMP_CXX)
 endif()
 
+# set default tools flags
+set(HPLOT ON CACHE BOOL "")
+set(HVIEW ON CACHE BOOL "")
+
 # include tools
-include(tool/hplot/CMakeLists.txt)
-include(tool/hview/CMakeLists.txt)
+if (${HPLOT})
+    include(tool/hplot/CMakeLists.txt)
+endif()
+unset(HPLOT CACHE)
+if (${HVIEW})
+    include(tool/hview/CMakeLists.txt)
+endif()
+unset(HVIEW CACHE)
 
 # enable testing
 enable_testing()
