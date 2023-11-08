@@ -27,7 +27,7 @@ unset(AVX CACHE)
 
 # static link on windows
 if (WIN32)
-    string(APPEND CMAKE_CXX_FLAGS_RELEASE " -mwindows -static")
+    string(APPEND CMAKE_CXX_FLAGS_RELEASE " -static")
     string(APPEND CMAKE_CXX_FLAGS_DEBUG " -static")
 endif()
 
