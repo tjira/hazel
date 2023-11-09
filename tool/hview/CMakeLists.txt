@@ -59,5 +59,10 @@ add_executable(hview
     ${implot_SOURCE_DIR}/implot_items.cpp
 )
 
+# add a specific windows release flag
+if (WIN32 AND CMAKE_BUILD_TYPE STREQUAL Release)
+    target_compile_options(hview PRIVATE "-mwindows")
+endif()
+
 # link hview executable
 target_link_libraries(hview glad glfw glm::glm ImGuiFileDialog)
