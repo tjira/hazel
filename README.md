@@ -110,7 +110,7 @@ This section show some basic calculation examples. You can view all the options 
 This example calculates only the molecular integrals. To view or export them add the options from the following section to the `-p` (print) or `-e` (export) flag.
 
 ```bash
-hazel -f molecule.xyz -b STO-3G ints
+hazel -f molecule.xyz -b sto-3g ints
 ```
 
 ### Restricted Hartree-Fock Method
@@ -118,7 +118,7 @@ hazel -f molecule.xyz -b STO-3G ints
 Basic HF calculation with no extra options. You can view all the options by adding the `-h` flag.
 
 ```bash
-hazel -f molecule.xyz -b STO-3G rhf
+hazel -f molecule.xyz -b sto-3g rhf
 ```
 
 ### Post Hartree-Fock Methods
@@ -126,7 +126,7 @@ hazel -f molecule.xyz -b STO-3G rhf
 To execute some implemented post HF method add the corresponding keyword after the `rhf` keyword. To view available post HF methods add the `-h` flag after the `rhf` keyword. The example below shows the MP2 calculation.
 
 ```bash
-hazel -f molecule.xyz -b STO-3G rhf mp2
+hazel -f molecule.xyz -b sto-3g rhf mp2
 ```
 
 ### Quantum Gradients and Frequencies
@@ -134,37 +134,37 @@ hazel -f molecule.xyz -b STO-3G rhf mp2
 Currently, the HF method is the only one with implemented analytical gradient. To calculate it execute the following command.
 
 ```bash
-hazel -f molecule.xyz -b STO-3G rhf -g 0 1e-5
+hazel -f molecule.xyz -b sto-3g rhf -g 0 1e-5
 ```
 
 The 0 disables numerical gradient and 1e-5 is the step size for numerical gradient. The step is not ussed for analytical gradient, but you have to specify it if you plan to add another options after the `-g` flag. You can calculate numerical gradients with the post HF methods as follows.
 
 ```bash
-hazel -f molecule.xyz -b STO-3G rhf fci -g 1 1e-5
+hazel -f molecule.xyz -b sto-3g rhf fci -g 1 1e-5
 ```
 
 The 1 enables numerical gradient and 1e-5 is the step size. The frequencies have to be calculated numerically. Below is an example to calculate it for the MP2 method.
 
 ```bash
-hazel -f molecule.xyz -b STO-3G rhf mp2 -f 1 1e-5
+hazel -f molecule.xyz -b sto-3g rhf mp2 -f 1 1e-5
 ```
 
 ### Molecular Optimization
 
-To optimize a molecule with charge 1 and multiplicity 2 with unrestricted HF method you can do the following. 
+To optimize a molecule using RHF method you can do the following. 
 
 ```bash
-hazel -c 1 -s 2 uhf -g 1 1e-5 -o 1e-8
+hazel -f molecule.xyz -b sto-3g rhf -g 1 1e-5 -o 1e-8
 ```
 
-where the `-c` flag specifies the charge and `-s` specifies the multiplicity. We have also specified options for the gradient calculation. The 1e-8 is the gradient threshold for optimization.
+We also specified options for the gradient calculation. The 1e-8 is the gradient threshold for optimization.
 
 ### Molecular Dynamics
 
 To perform simple MP2 molecular dynamics with default settings for the gradient execute the following.
 
 ```bash
-hazel md rhf mp2
+hazel -f molecule.xyz -b sto-3g md rhf mp2
 ```
 
 During the calculation the file trajectory.xyz will be created.
