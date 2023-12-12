@@ -25,7 +25,7 @@ jobs:
         run: ./script/libint.sh
 
       - name: Configure Hazel
-        run: cmake -B build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DAVX=ON -DGOMP=OFF
+        run: cmake -B build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGOMP=OFF
 
       - name: Build Hazel
         run: |
@@ -56,7 +56,7 @@ jobs:
         run: ./script/libint.sh
 
       - name: Configure Hazel
-        run: cmake -B build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DAVX=ON -DGOMP=ON
+        run: cmake -B build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGOMP=ON
 
       - name: Build Hazel
         run: |
@@ -84,7 +84,7 @@ jobs:
         run: pip install jinja2
 
       - name: Configure Hazel
-        run: cmake -B build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DAVX=ON -DGOMP=OFF -DSTANDALONE=ON -G "Unix Makefiles"
+        run: cmake -B build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGOMP=OFF -DSTANDALONE=ON -G "Unix Makefiles"
 
       - name: Build Hazel
         run: cmake --build build --parallel 2
@@ -110,7 +110,7 @@ jobs:
         uses: actions/download-artifact@v3
 
       - name: Remove Redundant Scripts
-        run: rm basis/basis.sh example/generate.inp
+        run: rm basis/basis.sh example/generate.sh
 
       - name: Copy x86-64 Binaries to the Root Folder
         run: |
