@@ -2,11 +2,11 @@
 
 # test-energy: water 0 1 MINI RHF
 add_test(NAME water_0-1_mini_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "mini" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 rhf -i 1000 -t 1e-8)
-set_tests_properties(water_0-1_mini_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.46444890")
+set_tests_properties(water_0-1_mini_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.46449227")
 
 # test-energy: water 0 1 MINI RMP2
 add_test(NAME water_0-1_mini_rmp2_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "mini" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 rhf -i 1000 -t 1e-8 mp2)
-set_tests_properties(water_0-1_mini_rmp2_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL MP2 ENERGY: -75.49939843")
+set_tests_properties(water_0-1_mini_rmp2_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL MP2 ENERGY: -75.49944113")
 
 # test-gradient: water 0 1 MINI RHF
 add_test(NAME water_0-1_mini_rhf_gradient COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "mini" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 rhf -i 1000 -t 1e-8 -g 0 1e-5)
@@ -14,23 +14,23 @@ set_tests_properties(water_0-1_mini_rhf_gradient PROPERTIES DEPENDS build PASS_R
 
 # test-energy: water 1 2 MINI UHF
 add_test(NAME water_1-2_mini_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "mini" -c 1 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 2 uhf -i 1000 -t 1e-8)
-set_tests_properties(water_1-2_mini_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.05094153")
+set_tests_properties(water_1-2_mini_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.05104959")
 
 # test-energy: water -1 2 MINI UHF
 add_test(NAME water_-1-2_mini_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "mini" -c -1 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 2 uhf -i 1000 -t 1e-8)
-set_tests_properties(water_-1-2_mini_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.12970767")
+set_tests_properties(water_-1-2_mini_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.12985091")
 
 # test-energy: water 2 1 MINI UHF
 add_test(NAME water_2-1_mini_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "mini" -c 2 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 uhf -i 1000 -t 1e-8)
-set_tests_properties(water_2-1_mini_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -73.97473097")
+set_tests_properties(water_2-1_mini_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -73.97492639")
 
 # test-energy: water 0 1 MIDI RHF
 add_test(NAME water_0-1_midi_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "midi" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 rhf -i 1000 -t 1e-8)
-set_tests_properties(water_0-1_midi_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.55204757")
+set_tests_properties(water_0-1_midi_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.55206314")
 
 # test-energy: water 0 1 MIDI RMP2
 add_test(NAME water_0-1_midi_rmp2_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "midi" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 rhf -i 1000 -t 1e-8 mp2)
-set_tests_properties(water_0-1_midi_rmp2_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL MP2 ENERGY: -75.67847718")
+set_tests_properties(water_0-1_midi_rmp2_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL MP2 ENERGY: -75.67849541")
 
 # test-gradient: water 0 1 MIDI RHF
 add_test(NAME water_0-1_midi_rhf_gradient COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "midi" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 rhf -i 1000 -t 1e-8 -g 0 1e-5)
@@ -38,143 +38,143 @@ set_tests_properties(water_0-1_midi_rhf_gradient PROPERTIES DEPENDS build PASS_R
 
 # test-energy: water 1 2 MIDI UHF
 add_test(NAME water_1-2_midi_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "midi" -c 1 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 2 uhf -i 1000 -t 1e-8)
-set_tests_properties(water_1-2_midi_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.16467325")
+set_tests_properties(water_1-2_midi_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.16473292")
 
 # test-energy: water -1 2 MIDI UHF
 add_test(NAME water_-1-2_midi_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "midi" -c -1 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 2 uhf -i 1000 -t 1e-8)
-set_tests_properties(water_-1-2_midi_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.35780757")
+set_tests_properties(water_-1-2_midi_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.35783998")
 
 # test-energy: water 2 1 MIDI UHF
 add_test(NAME water_2-1_midi_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "midi" -c 2 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 uhf -i 1000 -t 1e-8)
-set_tests_properties(water_2-1_midi_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -73.98201206")
+set_tests_properties(water_2-1_midi_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -73.98230998")
 
 # test-energy: water 0 1 STO-2G RHF
 add_test(NAME water_0-1_sto-2g_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "sto-2g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 rhf -i 1000 -t 1e-8)
-set_tests_properties(water_0-1_sto-2g_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -72.74384824")
+set_tests_properties(water_0-1_sto-2g_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -72.74384491")
 
 # test-energy: water 0 1 STO-2G RMP2
 add_test(NAME water_0-1_sto-2g_rmp2_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "sto-2g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 rhf -i 1000 -t 1e-8 mp2)
-set_tests_properties(water_0-1_sto-2g_rmp2_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL MP2 ENERGY: -72.78196514")
+set_tests_properties(water_0-1_sto-2g_rmp2_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL MP2 ENERGY: -72.78196295")
 
 # test-gradient: water 0 1 STO-2G RHF
 add_test(NAME water_0-1_sto-2g_rhf_gradient COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "sto-2g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 rhf -i 1000 -t 1e-8 -g 0 1e-5)
-set_tests_properties(water_0-1_sto-2g_rhf_gradient PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "GRADIENT NORM: 2.27e-02")
+set_tests_properties(water_0-1_sto-2g_rhf_gradient PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "GRADIENT NORM: 2.26e-02")
 
 # test-energy: water 1 2 STO-2G UHF
 add_test(NAME water_1-2_sto-2g_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "sto-2g" -c 1 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 2 uhf -i 1000 -t 1e-8)
-set_tests_properties(water_1-2_sto-2g_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -72.47596757")
+set_tests_properties(water_1-2_sto-2g_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -72.47602203")
 
 # test-energy: water -1 2 STO-2G UHF
 add_test(NAME water_-1-2_sto-2g_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "sto-2g" -c -1 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 2 uhf -i 1000 -t 1e-8)
-set_tests_properties(water_-1-2_sto-2g_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -72.14198339")
+set_tests_properties(water_-1-2_sto-2g_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -72.14218024")
 
 # test-energy: water 2 1 STO-2G UHF
 add_test(NAME water_2-1_sto-2g_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "sto-2g" -c 2 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 uhf -i 1000 -t 1e-8)
-set_tests_properties(water_2-1_sto-2g_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -71.48238991")
+set_tests_properties(water_2-1_sto-2g_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -71.48252894")
 
 # test-energy: water 0 1 STO-3G RHF
 add_test(NAME water_0-1_sto-3g_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "sto-3g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 rhf -i 1000 -t 1e-8)
-set_tests_properties(water_0-1_sto-3g_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -74.96590106")
+set_tests_properties(water_0-1_sto-3g_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -74.96590121")
 
 # test-energy: water 0 1 STO-3G RMP2
 add_test(NAME water_0-1_sto-3g_rmp2_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "sto-3g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 rhf -i 1000 -t 1e-8 mp2)
-set_tests_properties(water_0-1_sto-3g_rmp2_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL MP2 ENERGY: -75.00485385")
+set_tests_properties(water_0-1_sto-3g_rmp2_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL MP2 ENERGY: -75.00485494")
 
 # test-gradient: water 0 1 STO-3G RHF
 add_test(NAME water_0-1_sto-3g_rhf_gradient COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "sto-3g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 rhf -i 1000 -t 1e-8 -g 0 1e-5)
-set_tests_properties(water_0-1_sto-3g_rhf_gradient PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "GRADIENT NORM: 3.11e-04")
+set_tests_properties(water_0-1_sto-3g_rhf_gradient PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "GRADIENT NORM: 3.59e-06")
 
 # test-energy: water 1 2 STO-3G UHF
 add_test(NAME water_1-2_sto-3g_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "sto-3g" -c 1 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 2 uhf -i 1000 -t 1e-8)
-set_tests_properties(water_1-2_sto-3g_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -74.66222388")
+set_tests_properties(water_1-2_sto-3g_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -74.66228146")
 
 # test-energy: water -1 2 STO-3G UHF
 add_test(NAME water_-1-2_sto-3g_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "sto-3g" -c -1 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 2 uhf -i 1000 -t 1e-8)
-set_tests_properties(water_-1-2_sto-3g_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -74.30163897")
+set_tests_properties(water_-1-2_sto-3g_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -74.30165233")
 
 # test-energy: water 2 1 STO-3G UHF
 add_test(NAME water_2-1_sto-3g_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "sto-3g" -c 2 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 uhf -i 1000 -t 1e-8)
-set_tests_properties(water_2-1_sto-3g_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -73.63282683")
+set_tests_properties(water_2-1_sto-3g_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -73.63296871")
 
 # test-energy: water 0 1 STO-4G RHF
 add_test(NAME water_0-1_sto-4g_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "sto-4g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 rhf -i 1000 -t 1e-8)
-set_tests_properties(water_0-1_sto-4g_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.49925928")
+set_tests_properties(water_0-1_sto-4g_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.49925786")
 
 # test-energy: water 0 1 STO-4G RMP2
 add_test(NAME water_0-1_sto-4g_rmp2_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "sto-4g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 rhf -i 1000 -t 1e-8 mp2)
-set_tests_properties(water_0-1_sto-4g_rmp2_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL MP2 ENERGY: -75.53849716")
+set_tests_properties(water_0-1_sto-4g_rmp2_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL MP2 ENERGY: -75.53849667")
 
 # test-gradient: water 0 1 STO-4G RHF
 add_test(NAME water_0-1_sto-4g_rhf_gradient COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "sto-4g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 rhf -i 1000 -t 1e-8 -g 0 1e-5)
-set_tests_properties(water_0-1_sto-4g_rhf_gradient PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "GRADIENT NORM: 4.56e-03")
+set_tests_properties(water_0-1_sto-4g_rhf_gradient PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "GRADIENT NORM: 4.73e-03")
 
 # test-energy: water 1 2 STO-4G UHF
 add_test(NAME water_1-2_sto-4g_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "sto-4g" -c 1 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 2 uhf -i 1000 -t 1e-8)
-set_tests_properties(water_1-2_sto-4g_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.19137932")
+set_tests_properties(water_1-2_sto-4g_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.19143619")
 
 # test-energy: water -1 2 STO-4G UHF
 add_test(NAME water_-1-2_sto-4g_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "sto-4g" -c -1 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 2 uhf -i 1000 -t 1e-8)
-set_tests_properties(water_-1-2_sto-4g_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -74.84400568")
+set_tests_properties(water_-1-2_sto-4g_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -74.84401523")
 
 # test-energy: water 2 1 STO-4G UHF
 add_test(NAME water_2-1_sto-4g_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "sto-4g" -c 2 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 uhf -i 1000 -t 1e-8)
-set_tests_properties(water_2-1_sto-4g_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -74.15788713")
+set_tests_properties(water_2-1_sto-4g_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -74.15802904")
 
 # test-energy: water 0 1 STO-5G RHF
 add_test(NAME water_0-1_sto-5g_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "sto-5g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 rhf -i 1000 -t 1e-8)
-set_tests_properties(water_0-1_sto-5g_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.63894208")
+set_tests_properties(water_0-1_sto-5g_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.63894007")
 
 # test-energy: water 0 1 STO-5G RMP2
 add_test(NAME water_0-1_sto-5g_rmp2_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "sto-5g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 rhf -i 1000 -t 1e-8 mp2)
-set_tests_properties(water_0-1_sto-5g_rmp2_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL MP2 ENERGY: -75.67822366")
+set_tests_properties(water_0-1_sto-5g_rmp2_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL MP2 ENERGY: -75.67822261")
 
 # test-gradient: water 0 1 STO-5G RHF
 add_test(NAME water_0-1_sto-5g_rhf_gradient COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "sto-5g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 rhf -i 1000 -t 1e-8 -g 0 1e-5)
-set_tests_properties(water_0-1_sto-5g_rhf_gradient PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "GRADIENT NORM: 7.04e-03")
+set_tests_properties(water_0-1_sto-5g_rhf_gradient PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "GRADIENT NORM: 7.20e-03")
 
 # test-energy: water 1 2 STO-5G UHF
 add_test(NAME water_1-2_sto-5g_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "sto-5g" -c 1 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 2 uhf -i 1000 -t 1e-8)
-set_tests_properties(water_1-2_sto-5g_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.32985988")
+set_tests_properties(water_1-2_sto-5g_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.32991627")
 
 # test-energy: water -1 2 STO-5G UHF
 add_test(NAME water_-1-2_sto-5g_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "sto-5g" -c -1 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 2 uhf -i 1000 -t 1e-8)
-set_tests_properties(water_-1-2_sto-5g_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.08462494")
+set_tests_properties(water_-1-2_sto-5g_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.08480840")
 
 # test-energy: water 2 1 STO-5G UHF
 add_test(NAME water_2-1_sto-5g_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "sto-5g" -c 2 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 uhf -i 1000 -t 1e-8)
-set_tests_properties(water_2-1_sto-5g_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -74.29516555")
+set_tests_properties(water_2-1_sto-5g_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -74.29530718")
 
 # test-energy: water 0 1 STO-6G RHF
 add_test(NAME water_0-1_sto-6g_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "sto-6g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 rhf -i 1000 -t 1e-8)
-set_tests_properties(water_0-1_sto-6g_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.68118164")
+set_tests_properties(water_0-1_sto-6g_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.68117984")
 
 # test-energy: water 0 1 STO-6G RMP2
 add_test(NAME water_0-1_sto-6g_rmp2_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "sto-6g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 rhf -i 1000 -t 1e-8 mp2)
-set_tests_properties(water_0-1_sto-6g_rmp2_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL MP2 ENERGY: -75.72047336")
+set_tests_properties(water_0-1_sto-6g_rmp2_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL MP2 ENERGY: -75.72047253")
 
 # test-gradient: water 0 1 STO-6G RHF
 add_test(NAME water_0-1_sto-6g_rhf_gradient COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "sto-6g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 rhf -i 1000 -t 1e-8 -g 0 1e-5)
-set_tests_properties(water_0-1_sto-6g_rhf_gradient PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "GRADIENT NORM: 6.29e-03")
+set_tests_properties(water_0-1_sto-6g_rhf_gradient PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "GRADIENT NORM: 6.45e-03")
 
 # test-energy: water 1 2 STO-6G UHF
 add_test(NAME water_1-2_sto-6g_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "sto-6g" -c 1 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 2 uhf -i 1000 -t 1e-8)
-set_tests_properties(water_1-2_sto-6g_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.37185748")
+set_tests_properties(water_1-2_sto-6g_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.37191401")
 
 # test-energy: water -1 2 STO-6G UHF
 add_test(NAME water_-1-2_sto-6g_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "sto-6g" -c -1 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 2 uhf -i 1000 -t 1e-8)
-set_tests_properties(water_-1-2_sto-6g_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.12729419")
+set_tests_properties(water_-1-2_sto-6g_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.12747742")
 
 # test-energy: water 2 1 STO-6G UHF
 add_test(NAME water_2-1_sto-6g_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "sto-6g" -c 2 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 uhf -i 1000 -t 1e-8)
-set_tests_properties(water_2-1_sto-6g_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -74.33693948")
+set_tests_properties(water_2-1_sto-6g_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -74.33708116")
 
 # test-energy: water 0 1 3-21G RHF
 add_test(NAME water_0-1_3-21g_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "3-21g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 rhf -i 1000 -t 1e-8)
-set_tests_properties(water_0-1_3-21g_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.58367190")
+set_tests_properties(water_0-1_3-21g_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.58368698")
 
 # test-energy: water 0 1 3-21G RMP2
 add_test(NAME water_0-1_3-21g_rmp2_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "3-21g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 rhf -i 1000 -t 1e-8 mp2)
-set_tests_properties(water_0-1_3-21g_rmp2_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL MP2 ENERGY: -75.70880541")
+set_tests_properties(water_0-1_3-21g_rmp2_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL MP2 ENERGY: -75.70882320")
 
 # test-gradient: water 0 1 3-21G RHF
 add_test(NAME water_0-1_3-21g_rhf_gradient COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "3-21g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 rhf -i 1000 -t 1e-8 -g 0 1e-5)
@@ -182,23 +182,23 @@ set_tests_properties(water_0-1_3-21g_rhf_gradient PROPERTIES DEPENDS build PASS_
 
 # test-energy: water 1 2 3-21G UHF
 add_test(NAME water_1-2_3-21g_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "3-21g" -c 1 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 2 uhf -i 1000 -t 1e-8)
-set_tests_properties(water_1-2_3-21g_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.19922162")
+set_tests_properties(water_1-2_3-21g_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.19927942")
 
 # test-energy: water -1 2 3-21G UHF
 add_test(NAME water_-1-2_3-21g_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "3-21g" -c -1 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 2 uhf -i 1000 -t 1e-8)
-set_tests_properties(water_-1-2_3-21g_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.34397050")
+set_tests_properties(water_-1-2_3-21g_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.34401430")
 
 # test-energy: water 2 1 3-21G UHF
 add_test(NAME water_2-1_3-21g_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "3-21g" -c 2 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 uhf -i 1000 -t 1e-8)
-set_tests_properties(water_2-1_3-21g_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -74.01516788")
+set_tests_properties(water_2-1_3-21g_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -74.01546119")
 
 # test-energy: water 0 1 4-31G RHF
 add_test(NAME water_0-1_4-31g_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "4-31g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 rhf -i 1000 -t 1e-8)
-set_tests_properties(water_0-1_4-31g_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.90331138")
+set_tests_properties(water_0-1_4-31g_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.90332760")
 
 # test-energy: water 0 1 4-31G RMP2
 add_test(NAME water_0-1_4-31g_rmp2_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "4-31g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 rhf -i 1000 -t 1e-8 mp2)
-set_tests_properties(water_0-1_4-31g_rmp2_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL MP2 ENERGY: -76.03602848")
+set_tests_properties(water_0-1_4-31g_rmp2_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL MP2 ENERGY: -76.03604979")
 
 # test-gradient: water 0 1 4-31G RHF
 add_test(NAME water_0-1_4-31g_rhf_gradient COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "4-31g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 rhf -i 1000 -t 1e-8 -g 0 1e-5)
@@ -206,23 +206,23 @@ set_tests_properties(water_0-1_4-31g_rhf_gradient PROPERTIES DEPENDS build PASS_
 
 # test-energy: water 1 2 4-31G UHF
 add_test(NAME water_1-2_4-31g_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "4-31g" -c 1 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 2 uhf -i 1000 -t 1e-8)
-set_tests_properties(water_1-2_4-31g_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.50364813")
+set_tests_properties(water_1-2_4-31g_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.50370193")
 
 # test-energy: water -1 2 4-31G UHF
 add_test(NAME water_-1-2_4-31g_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "4-31g" -c -1 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 2 uhf -i 1000 -t 1e-8)
-set_tests_properties(water_-1-2_4-31g_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.71455526")
+set_tests_properties(water_-1-2_4-31g_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.71458647")
 
 # test-energy: water 2 1 4-31G UHF
 add_test(NAME water_2-1_4-31g_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "4-31g" -c 2 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 uhf -i 1000 -t 1e-8)
-set_tests_properties(water_2-1_4-31g_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -74.32155714")
+set_tests_properties(water_2-1_4-31g_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -74.32184569")
 
 # test-energy: water 0 1 6-21G RHF
 add_test(NAME water_0-1_6-21g_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-21g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 rhf -i 1000 -t 1e-8)
-set_tests_properties(water_0-1_6-21g_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.88634754")
+set_tests_properties(water_0-1_6-21g_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.88636231")
 
 # test-energy: water 0 1 6-21G RMP2
 add_test(NAME water_0-1_6-21g_rmp2_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-21g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 rhf -i 1000 -t 1e-8 mp2)
-set_tests_properties(water_0-1_6-21g_rmp2_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL MP2 ENERGY: -76.01123537")
+set_tests_properties(water_0-1_6-21g_rmp2_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL MP2 ENERGY: -76.01125292")
 
 # test-gradient: water 0 1 6-21G RHF
 add_test(NAME water_0-1_6-21g_rhf_gradient COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-21g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 rhf -i 1000 -t 1e-8 -g 0 1e-5)
@@ -230,23 +230,23 @@ set_tests_properties(water_0-1_6-21g_rhf_gradient PROPERTIES DEPENDS build PASS_
 
 # test-energy: water 1 2 6-21G UHF
 add_test(NAME water_1-2_6-21g_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-21g" -c 1 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 2 uhf -i 1000 -t 1e-8)
-set_tests_properties(water_1-2_6-21g_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.50378822")
+set_tests_properties(water_1-2_6-21g_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.50384554")
 
 # test-energy: water -1 2 6-21G UHF
 add_test(NAME water_-1-2_6-21g_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-21g" -c -1 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 2 uhf -i 1000 -t 1e-8)
-set_tests_properties(water_-1-2_6-21g_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.64691766")
+set_tests_properties(water_-1-2_6-21g_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.64696191")
 
 # test-energy: water 2 1 6-21G UHF
 add_test(NAME water_2-1_6-21g_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-21g" -c 2 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 uhf -i 1000 -t 1e-8)
-set_tests_properties(water_2-1_6-21g_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -74.32025587")
+set_tests_properties(water_2-1_6-21g_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -74.32055098")
 
 # test-energy: water 0 1 6-31G RHF
 add_test(NAME water_0-1_6-31g_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 rhf -i 1000 -t 1e-8)
-set_tests_properties(water_0-1_6-31g_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.97973091")
+set_tests_properties(water_0-1_6-31g_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.97974730")
 
 # test-energy: water 0 1 6-31G RMP2
 add_test(NAME water_0-1_6-31g_rmp2_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 rhf -i 1000 -t 1e-8 mp2)
-set_tests_properties(water_0-1_6-31g_rmp2_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL MP2 ENERGY: -76.11186520")
+set_tests_properties(water_0-1_6-31g_rmp2_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL MP2 ENERGY: -76.11188710")
 
 # test-gradient: water 0 1 6-31G RHF
 add_test(NAME water_0-1_6-31g_rhf_gradient COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 rhf -i 1000 -t 1e-8 -g 0 1e-5)
@@ -254,23 +254,23 @@ set_tests_properties(water_0-1_6-31g_rhf_gradient PROPERTIES DEPENDS build PASS_
 
 # test-energy: water 1 2 6-31G UHF
 add_test(NAME water_1-2_6-31g_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31g" -c 1 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 2 uhf -i 1000 -t 1e-8)
-set_tests_properties(water_1-2_6-31g_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.57897498")
+set_tests_properties(water_1-2_6-31g_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.57902812")
 
 # test-energy: water -1 2 6-31G UHF
 add_test(NAME water_-1-2_6-31g_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31g" -c -1 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 2 uhf -i 1000 -t 1e-8)
-set_tests_properties(water_-1-2_6-31g_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.79548447")
+set_tests_properties(water_-1-2_6-31g_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.79551492")
 
 # test-energy: water 2 1 6-31G UHF
 add_test(NAME water_2-1_6-31g_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31g" -c 2 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 uhf -i 1000 -t 1e-8)
-set_tests_properties(water_2-1_6-31g_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -74.39782841")
+set_tests_properties(water_2-1_6-31g_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -74.39811656")
 
 # test-energy: water 0 1 6-31+G RHF
 add_test(NAME water_0-1_6-31pg_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31+g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 rhf -i 1000 -t 1e-8)
-set_tests_properties(water_0-1_6-31pg_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.98678744")
+set_tests_properties(water_0-1_6-31pg_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.98680631")
 
 # test-energy: water 0 1 6-31+G RMP2
 add_test(NAME water_0-1_6-31pg_rmp2_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31+g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 rhf -i 1000 -t 1e-8 mp2)
-set_tests_properties(water_0-1_6-31pg_rmp2_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL MP2 ENERGY: -76.12537209")
+set_tests_properties(water_0-1_6-31pg_rmp2_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL MP2 ENERGY: -76.12539844")
 
 # test-gradient: water 0 1 6-31+G RHF
 add_test(NAME water_0-1_6-31pg_rhf_gradient COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31+g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 rhf -i 1000 -t 1e-8 -g 0 1e-5)
@@ -278,47 +278,47 @@ set_tests_properties(water_0-1_6-31pg_rhf_gradient PROPERTIES DEPENDS build PASS
 
 # test-energy: water 1 2 6-31+G UHF
 add_test(NAME water_1-2_6-31pg_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31+g" -c 1 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 2 uhf -i 1000 -t 1e-8)
-set_tests_properties(water_1-2_6-31pg_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.57947879")
+set_tests_properties(water_1-2_6-31pg_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.57953130")
 
 # test-energy: water -1 2 6-31+G UHF
 add_test(NAME water_-1-2_6-31pg_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31+g" -c -1 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 2 uhf -i 1000 -t 1e-8)
-set_tests_properties(water_-1-2_6-31pg_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.85563394")
+set_tests_properties(water_-1-2_6-31pg_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.85563164")
 
 # test-energy: water 2 1 6-31+G UHF
 add_test(NAME water_2-1_6-31pg_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31+g" -c 2 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 uhf -i 1000 -t 1e-8)
-set_tests_properties(water_2-1_6-31pg_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -74.39928044")
+set_tests_properties(water_2-1_6-31pg_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -74.39956677")
 
 # test-energy: water 0 1 6-31++G RHF
 add_test(NAME water_0-1_6-31ppg_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31++g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 rhf -i 1000 -t 1e-8)
-set_tests_properties(water_0-1_6-31ppg_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.98707984")
+set_tests_properties(water_0-1_6-31ppg_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.98709883")
 
 # test-energy: water 0 1 6-31++G RMP2
 add_test(NAME water_0-1_6-31ppg_rmp2_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31++g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 rhf -i 1000 -t 1e-8 mp2)
-set_tests_properties(water_0-1_6-31ppg_rmp2_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL MP2 ENERGY: -76.12573222")
+set_tests_properties(water_0-1_6-31ppg_rmp2_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL MP2 ENERGY: -76.12575848")
 
 # test-gradient: water 0 1 6-31++G RHF
 add_test(NAME water_0-1_6-31ppg_rhf_gradient COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31++g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 rhf -i 1000 -t 1e-8 -g 0 1e-5)
-set_tests_properties(water_0-1_6-31ppg_rhf_gradient PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "GRADIENT NORM: 8.39e-02")
+set_tests_properties(water_0-1_6-31ppg_rhf_gradient PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "GRADIENT NORM: 8.40e-02")
 
 # test-energy: water 1 2 6-31++G UHF
 add_test(NAME water_1-2_6-31ppg_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31++g" -c 1 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 2 uhf -i 1000 -t 1e-8)
-set_tests_properties(water_1-2_6-31ppg_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.57996509")
+set_tests_properties(water_1-2_6-31ppg_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.58001811")
 
 # test-energy: water -1 2 6-31++G UHF
 add_test(NAME water_-1-2_6-31ppg_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31++g" -c -1 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 2 uhf -i 1000 -t 1e-8)
-set_tests_properties(water_-1-2_6-31ppg_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.95033315")
+set_tests_properties(water_-1-2_6-31ppg_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.95034658")
 
 # test-energy: water 2 1 6-31++G UHF
 add_test(NAME water_2-1_6-31ppg_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31++g" -c 2 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 uhf -i 1000 -t 1e-8)
-set_tests_properties(water_2-1_6-31ppg_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -74.40000870")
+set_tests_properties(water_2-1_6-31ppg_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -74.40029580")
 
 # test-energy: water 0 1 6-31+G* RHF
 add_test(NAME water_0-1_6-31pgs_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31+g*" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 rhf -i 1000 -t 1e-8)
-set_tests_properties(water_0-1_6-31pgs_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -76.01240637")
+set_tests_properties(water_0-1_6-31pgs_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -76.01240610")
 
 # test-energy: water 0 1 6-31+G* RMP2
 add_test(NAME water_0-1_6-31pgs_rmp2_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31+g*" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 rhf -i 1000 -t 1e-8 mp2)
-set_tests_properties(water_0-1_6-31pgs_rmp2_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL MP2 ENERGY: -76.20741433")
+set_tests_properties(water_0-1_6-31pgs_rmp2_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL MP2 ENERGY: -76.20742205")
 
 # test-gradient: water 0 1 6-31+G* RHF
 add_test(NAME water_0-1_6-31pgs_rhf_gradient COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31+g*" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 rhf -i 1000 -t 1e-8 -g 0 1e-5)
@@ -326,47 +326,47 @@ set_tests_properties(water_0-1_6-31pgs_rhf_gradient PROPERTIES DEPENDS build PAS
 
 # test-energy: water 1 2 6-31+G* UHF
 add_test(NAME water_1-2_6-31pgs_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31+g*" -c 1 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 2 uhf -i 1000 -t 1e-8)
-set_tests_properties(water_1-2_6-31pgs_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.61084293")
+set_tests_properties(water_1-2_6-31pgs_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.61087401")
 
 # test-energy: water -1 2 6-31+G* UHF
 add_test(NAME water_-1-2_6-31pgs_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31+g*" -c -1 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 2 uhf -i 1000 -t 1e-8)
-set_tests_properties(water_-1-2_6-31pgs_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.87336981")
+set_tests_properties(water_-1-2_6-31pgs_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.87334902")
 
 # test-energy: water 2 1 6-31+G* UHF
 add_test(NAME water_2-1_6-31pgs_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31+g*" -c 2 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 uhf -i 1000 -t 1e-8)
-set_tests_properties(water_2-1_6-31pgs_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -74.41155574")
+set_tests_properties(water_2-1_6-31pgs_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -74.41183803")
 
 # test-energy: water 0 1 6-31++G* RHF
 add_test(NAME water_0-1_6-31ppgs_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31++g*" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 rhf -i 1000 -t 1e-8)
-set_tests_properties(water_0-1_6-31ppgs_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -76.01270333")
+set_tests_properties(water_0-1_6-31ppgs_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -76.01270322")
 
 # test-energy: water 0 1 6-31++G* RMP2
 add_test(NAME water_0-1_6-31ppgs_rmp2_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31++g*" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 rhf -i 1000 -t 1e-8 mp2)
-set_tests_properties(water_0-1_6-31ppgs_rmp2_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL MP2 ENERGY: -76.20784181")
+set_tests_properties(water_0-1_6-31ppgs_rmp2_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL MP2 ENERGY: -76.20784955")
 
 # test-gradient: water 0 1 6-31++G* RHF
 add_test(NAME water_0-1_6-31ppgs_rhf_gradient COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31++g*" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 rhf -i 1000 -t 1e-8 -g 0 1e-5)
-set_tests_properties(water_0-1_6-31ppgs_rhf_gradient PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "GRADIENT NORM: 8.35e-02")
+set_tests_properties(water_0-1_6-31ppgs_rhf_gradient PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "GRADIENT NORM: 8.36e-02")
 
 # test-energy: water 1 2 6-31++G* UHF
 add_test(NAME water_1-2_6-31ppgs_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31++g*" -c 1 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 2 uhf -i 1000 -t 1e-8)
-set_tests_properties(water_1-2_6-31ppgs_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.61137216")
+set_tests_properties(water_1-2_6-31ppgs_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.61140365")
 
 # test-energy: water -1 2 6-31++G* UHF
 add_test(NAME water_-1-2_6-31ppgs_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31++g*" -c -1 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 2 uhf -i 1000 -t 1e-8)
-set_tests_properties(water_-1-2_6-31ppgs_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.94089222")
+set_tests_properties(water_-1-2_6-31ppgs_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.94089778")
 
 # test-energy: water 2 1 6-31++G* UHF
 add_test(NAME water_2-1_6-31ppgs_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31++g*" -c 2 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 uhf -i 1000 -t 1e-8)
-set_tests_properties(water_2-1_6-31ppgs_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -74.41232950")
+set_tests_properties(water_2-1_6-31ppgs_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -74.41261249")
 
 # test-energy: water 0 1 6-31+G** RHF
 add_test(NAME water_0-1_6-31pgss_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31+g**" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 rhf -i 1000 -t 1e-8)
-set_tests_properties(water_0-1_6-31pgss_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -76.02580033")
+set_tests_properties(water_0-1_6-31pgss_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -76.02579698")
 
 # test-energy: water 0 1 6-31+G** RMP2
 add_test(NAME water_0-1_6-31pgss_rmp2_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31+g**" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 rhf -i 1000 -t 1e-8 mp2)
-set_tests_properties(water_0-1_6-31pgss_rmp2_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL MP2 ENERGY: -76.23094147")
+set_tests_properties(water_0-1_6-31pgss_rmp2_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL MP2 ENERGY: -76.23094325")
 
 # test-gradient: water 0 1 6-31+G** RHF
 add_test(NAME water_0-1_6-31pgss_rhf_gradient COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31+g**" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 rhf -i 1000 -t 1e-8 -g 0 1e-5)
@@ -374,23 +374,23 @@ set_tests_properties(water_0-1_6-31pgss_rhf_gradient PROPERTIES DEPENDS build PA
 
 # test-energy: water 1 2 6-31+G** UHF
 add_test(NAME water_1-2_6-31pgss_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31+g**" -c 1 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 2 uhf -i 1000 -t 1e-8)
-set_tests_properties(water_1-2_6-31pgss_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.62434789")
+set_tests_properties(water_1-2_6-31pgss_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.62437667")
 
 # test-energy: water -1 2 6-31+G** UHF
 add_test(NAME water_-1-2_6-31pgss_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31+g**" -c -1 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 2 uhf -i 1000 -t 1e-8)
-set_tests_properties(water_-1-2_6-31pgss_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.88662199")
+set_tests_properties(water_-1-2_6-31pgss_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.88659765")
 
 # test-energy: water 2 1 6-31+G** UHF
 add_test(NAME water_2-1_6-31pgss_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31+g**" -c 2 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 uhf -i 1000 -t 1e-8)
-set_tests_properties(water_2-1_6-31pgss_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -74.42863636")
+set_tests_properties(water_2-1_6-31pgss_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -74.42891666")
 
 # test-energy: water 0 1 6-31++G** RHF
 add_test(NAME water_0-1_6-31ppgss_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31++g**" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 rhf -i 1000 -t 1e-8)
-set_tests_properties(water_0-1_6-31ppgss_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -76.02595812")
+set_tests_properties(water_0-1_6-31ppgss_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -76.02595479")
 
 # test-energy: water 0 1 6-31++G** RMP2
 add_test(NAME water_0-1_6-31ppgss_rmp2_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31++g**" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 rhf -i 1000 -t 1e-8 mp2)
-set_tests_properties(water_0-1_6-31ppgss_rmp2_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL MP2 ENERGY: -76.23123478")
+set_tests_properties(water_0-1_6-31ppgss_rmp2_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL MP2 ENERGY: -76.23123645")
 
 # test-gradient: water 0 1 6-31++G** RHF
 add_test(NAME water_0-1_6-31ppgss_rhf_gradient COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31++g**" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 rhf -i 1000 -t 1e-8 -g 0 1e-5)
@@ -398,71 +398,71 @@ set_tests_properties(water_0-1_6-31ppgss_rhf_gradient PROPERTIES DEPENDS build P
 
 # test-energy: water 1 2 6-31++G** UHF
 add_test(NAME water_1-2_6-31ppgss_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31++g**" -c 1 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 2 uhf -i 1000 -t 1e-8)
-set_tests_properties(water_1-2_6-31ppgss_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.62465906")
+set_tests_properties(water_1-2_6-31ppgss_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.62468805")
 
 # test-energy: water -1 2 6-31++G** UHF
 add_test(NAME water_-1-2_6-31ppgss_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31++g**" -c -1 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 2 uhf -i 1000 -t 1e-8)
-set_tests_properties(water_-1-2_6-31ppgss_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.95433626")
+set_tests_properties(water_-1-2_6-31ppgss_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.95433890")
 
 # test-energy: water 2 1 6-31++G** UHF
 add_test(NAME water_2-1_6-31ppgss_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-31++g**" -c 2 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 uhf -i 1000 -t 1e-8)
-set_tests_properties(water_2-1_6-31ppgss_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -74.42907071")
+set_tests_properties(water_2-1_6-31ppgss_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -74.42935135")
 
 # test-energy: water 0 1 6-311G RHF
 add_test(NAME water_0-1_6-311g_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-311g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 rhf -i 1000 -t 1e-8)
-set_tests_properties(water_0-1_6-311g_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -76.00464501")
+set_tests_properties(water_0-1_6-311g_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -76.00465981")
 
 # test-energy: water 0 1 6-311G RMP2
 add_test(NAME water_0-1_6-311g_rmp2_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-311g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 rhf -i 1000 -t 1e-8 mp2)
-set_tests_properties(water_0-1_6-311g_rmp2_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL MP2 ENERGY: -76.16400948")
+set_tests_properties(water_0-1_6-311g_rmp2_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL MP2 ENERGY: -76.16402968")
 
 # test-gradient: water 0 1 6-311G RHF
 add_test(NAME water_0-1_6-311g_rhf_gradient COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-311g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 rhf -i 1000 -t 1e-8 -g 0 1e-5)
-set_tests_properties(water_0-1_6-311g_rhf_gradient PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "GRADIENT NORM: 8.87e-02")
+set_tests_properties(water_0-1_6-311g_rhf_gradient PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "GRADIENT NORM: 8.88e-02")
 
 # test-energy: water 1 2 6-311G UHF
 add_test(NAME water_1-2_6-311g_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-311g" -c 1 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 2 uhf -i 1000 -t 1e-8)
-set_tests_properties(water_1-2_6-311g_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.60339534")
+set_tests_properties(water_1-2_6-311g_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.60344636")
 
 # test-energy: water -1 2 6-311G UHF
 add_test(NAME water_-1-2_6-311g_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-311g" -c -1 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 2 uhf -i 1000 -t 1e-8)
-set_tests_properties(water_-1-2_6-311g_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.87512375")
+set_tests_properties(water_-1-2_6-311g_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.87513663")
 
 # test-energy: water 2 1 6-311G UHF
 add_test(NAME water_2-1_6-311g_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-311g" -c 2 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 uhf -i 1000 -t 1e-8)
-set_tests_properties(water_2-1_6-311g_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -74.42367641")
+set_tests_properties(water_2-1_6-311g_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -74.42396046")
 
 # test-energy: water 0 1 6-311+G RHF
 add_test(NAME water_0-1_6-311pg_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-311+g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 rhf -i 1000 -t 1e-8)
-set_tests_properties(water_0-1_6-311pg_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -76.01002635")
+set_tests_properties(water_0-1_6-311pg_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -76.01004307")
 
 # test-energy: water 0 1 6-311+G RMP2
 add_test(NAME water_0-1_6-311pg_rmp2_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-311+g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 rhf -i 1000 -t 1e-8 mp2)
-set_tests_properties(water_0-1_6-311pg_rmp2_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL MP2 ENERGY: -76.17434251")
+set_tests_properties(water_0-1_6-311pg_rmp2_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL MP2 ENERGY: -76.17436628")
 
 # test-gradient: water 0 1 6-311+G RHF
 add_test(NAME water_0-1_6-311pg_rhf_gradient COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-311+g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 rhf -i 1000 -t 1e-8 -g 0 1e-5)
-set_tests_properties(water_0-1_6-311pg_rhf_gradient PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "GRADIENT NORM: 8.86e-02")
+set_tests_properties(water_0-1_6-311pg_rhf_gradient PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "GRADIENT NORM: 8.87e-02")
 
 # test-energy: water 1 2 6-311+G UHF
 add_test(NAME water_1-2_6-311pg_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-311+g" -c 1 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 2 uhf -i 1000 -t 1e-8)
-set_tests_properties(water_1-2_6-311pg_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.60392195")
+set_tests_properties(water_1-2_6-311pg_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.60397282")
 
 # test-energy: water -1 2 6-311+G UHF
 add_test(NAME water_-1-2_6-311pg_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-311+g" -c -1 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 2 uhf -i 1000 -t 1e-8)
-set_tests_properties(water_-1-2_6-311pg_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.88977105")
+set_tests_properties(water_-1-2_6-311pg_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.88978960")
 
 # test-energy: water 2 1 6-311+G UHF
 add_test(NAME water_2-1_6-311pg_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-311+g" -c 2 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 uhf -i 1000 -t 1e-8)
-set_tests_properties(water_2-1_6-311pg_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -74.42513386")
+set_tests_properties(water_2-1_6-311pg_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -74.42541786")
 
 # test-energy: water 0 1 6-311++G RHF
 add_test(NAME water_0-1_6-311ppg_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-311++g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 rhf -i 1000 -t 1e-8)
-set_tests_properties(water_0-1_6-311ppg_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -76.01027641")
+set_tests_properties(water_0-1_6-311ppg_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -76.01029317")
 
 # test-energy: water 0 1 6-311++G RMP2
 add_test(NAME water_0-1_6-311ppg_rmp2_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-311++g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 rhf -i 1000 -t 1e-8 mp2)
-set_tests_properties(water_0-1_6-311ppg_rmp2_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL MP2 ENERGY: -76.17467187")
+set_tests_properties(water_0-1_6-311ppg_rmp2_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL MP2 ENERGY: -76.17469569")
 
 # test-gradient: water 0 1 6-311++G RHF
 add_test(NAME water_0-1_6-311ppg_rhf_gradient COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-311++g" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 rhf -i 1000 -t 1e-8 -g 0 1e-5)
@@ -470,23 +470,23 @@ set_tests_properties(water_0-1_6-311ppg_rhf_gradient PROPERTIES DEPENDS build PA
 
 # test-energy: water 1 2 6-311++G UHF
 add_test(NAME water_1-2_6-311ppg_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-311++g" -c 1 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 2 uhf -i 1000 -t 1e-8)
-set_tests_properties(water_1-2_6-311ppg_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.60448858")
+set_tests_properties(water_1-2_6-311ppg_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.60453953")
 
 # test-energy: water -1 2 6-311++G UHF
 add_test(NAME water_-1-2_6-311ppg_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-311++g" -c -1 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 2 uhf -i 1000 -t 1e-8)
-set_tests_properties(water_-1-2_6-311ppg_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.97277238")
+set_tests_properties(water_-1-2_6-311ppg_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.97278401")
 
 # test-energy: water 2 1 6-311++G UHF
 add_test(NAME water_2-1_6-311ppg_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-311++g" -c 2 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 uhf -i 1000 -t 1e-8)
-set_tests_properties(water_2-1_6-311ppg_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -74.42596524")
+set_tests_properties(water_2-1_6-311ppg_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -74.42624950")
 
 # test-energy: water 0 1 6-311+G* RHF
 add_test(NAME water_0-1_6-311pgs_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-311+g*" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 rhf -i 1000 -t 1e-8)
-set_tests_properties(water_0-1_6-311pgs_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -76.03182159")
+set_tests_properties(water_0-1_6-311pgs_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -76.03182250")
 
 # test-energy: water 0 1 6-311+G* RMP2
 add_test(NAME water_0-1_6-311pgs_rmp2_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-311+g*" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 rhf -i 1000 -t 1e-8 mp2)
-set_tests_properties(water_0-1_6-311pgs_rmp2_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL MP2 ENERGY: -76.26082499")
+set_tests_properties(water_0-1_6-311pgs_rmp2_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL MP2 ENERGY: -76.26083285")
 
 # test-gradient: water 0 1 6-311+G* RHF
 add_test(NAME water_0-1_6-311pgs_rhf_gradient COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-311+g*" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 rhf -i 1000 -t 1e-8 -g 0 1e-5)
@@ -494,132 +494,132 @@ set_tests_properties(water_0-1_6-311pgs_rhf_gradient PROPERTIES DEPENDS build PA
 
 # test-energy: water 1 2 6-311+G* UHF
 add_test(NAME water_1-2_6-311pgs_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-311+g*" -c 1 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 2 uhf -i 1000 -t 1e-8)
-set_tests_properties(water_1-2_6-311pgs_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.63183816")
+set_tests_properties(water_1-2_6-311pgs_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.63186967")
 
 # test-energy: water -1 2 6-311+G* UHF
 add_test(NAME water_-1-2_6-311pgs_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-311+g*" -c -1 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 2 uhf -i 1000 -t 1e-8)
-set_tests_properties(water_-1-2_6-311pgs_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.83119117")
+set_tests_properties(water_-1-2_6-311pgs_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.83121424")
 
 # test-energy: water 2 1 6-311+G* UHF
 add_test(NAME water_2-1_6-311pgs_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-311+g*" -c 2 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 uhf -i 1000 -t 1e-8)
-set_tests_properties(water_2-1_6-311pgs_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -74.43632169")
+set_tests_properties(water_2-1_6-311pgs_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -74.43660218")
 
 # test-energy: water 0 1 6-311++G* RHF
 add_test(NAME water_0-1_6-311ppgs_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-311++g*" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 rhf -i 1000 -t 1e-8)
-set_tests_properties(water_0-1_6-311ppgs_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -76.03201799")
+set_tests_properties(water_0-1_6-311ppgs_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -76.03201893")
 
 # test-energy: water 0 1 6-311++G* RMP2
 add_test(NAME water_0-1_6-311ppgs_rmp2_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-311++g*" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 rhf -i 1000 -t 1e-8 mp2)
-set_tests_properties(water_0-1_6-311ppgs_rmp2_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL MP2 ENERGY: -76.26112040")
+set_tests_properties(water_0-1_6-311ppgs_rmp2_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL MP2 ENERGY: -76.26112830")
 
 # test-gradient: water 0 1 6-311++G* RHF
 add_test(NAME water_0-1_6-311ppgs_rhf_gradient COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-311++g*" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 rhf -i 1000 -t 1e-8 -g 0 1e-5)
-set_tests_properties(water_0-1_6-311ppgs_rhf_gradient PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "GRADIENT NORM: 9.98e-02")
+set_tests_properties(water_0-1_6-311ppgs_rhf_gradient PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "GRADIENT NORM: 9.99e-02")
 
 # test-energy: water 1 2 6-311++G* UHF
 add_test(NAME water_1-2_6-311ppgs_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-311++g*" -c 1 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 2 uhf -i 1000 -t 1e-8)
-set_tests_properties(water_1-2_6-311ppgs_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.63231666")
+set_tests_properties(water_1-2_6-311ppgs_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.63234823")
 
 # test-energy: water -1 2 6-311++G* UHF
 add_test(NAME water_-1-2_6-311ppgs_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-311++g*" -c -1 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 2 uhf -i 1000 -t 1e-8)
-set_tests_properties(water_-1-2_6-311ppgs_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.96042982")
+set_tests_properties(water_-1-2_6-311ppgs_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.96043569")
 
 # test-energy: water 2 1 6-311++G* UHF
 add_test(NAME water_2-1_6-311ppgs_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-311++g*" -c 2 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 uhf -i 1000 -t 1e-8)
-set_tests_properties(water_2-1_6-311ppgs_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -74.43707787")
+set_tests_properties(water_2-1_6-311ppgs_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -74.43735855")
 
 # test-energy: water 0 1 6-311+G** RHF
 add_test(NAME water_0-1_6-311pgss_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-311+g**" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 rhf -i 1000 -t 1e-8)
-set_tests_properties(water_0-1_6-311pgss_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -76.04816368")
+set_tests_properties(water_0-1_6-311pgss_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -76.04815693")
 
 # test-energy: water 0 1 6-311+G** RMP2
 add_test(NAME water_0-1_6-311pgss_rmp2_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-311+g**" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 rhf -i 1000 -t 1e-8 mp2)
-set_tests_properties(water_0-1_6-311pgss_rmp2_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL MP2 ENERGY: -76.29194340")
+set_tests_properties(water_0-1_6-311pgss_rmp2_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL MP2 ENERGY: -76.29193795")
 
 # test-gradient: water 0 1 6-311+G** RHF
 add_test(NAME water_0-1_6-311pgss_rhf_gradient COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-311+g**" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 rhf -i 1000 -t 1e-8 -g 0 1e-5)
-set_tests_properties(water_0-1_6-311pgss_rhf_gradient PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "GRADIENT NORM: 9.59e-02")
+set_tests_properties(water_0-1_6-311pgss_rhf_gradient PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "GRADIENT NORM: 9.60e-02")
 
 # test-energy: water 1 2 6-311+G** UHF
 add_test(NAME water_1-2_6-311pgss_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-311+g**" -c 1 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 2 uhf -i 1000 -t 1e-8)
-set_tests_properties(water_1-2_6-311pgss_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.64709681")
+set_tests_properties(water_1-2_6-311pgss_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.64712237")
 
 # test-energy: water -1 2 6-311+G** UHF
 add_test(NAME water_-1-2_6-311pgss_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-311+g**" -c -1 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 2 uhf -i 1000 -t 1e-8)
-set_tests_properties(water_-1-2_6-311pgss_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.84552976")
+set_tests_properties(water_-1-2_6-311pgss_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.84554659")
 
 # test-energy: water 2 1 6-311+G** UHF
 add_test(NAME water_2-1_6-311pgss_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-311+g**" -c 2 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 uhf -i 1000 -t 1e-8)
-set_tests_properties(water_2-1_6-311pgss_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -74.45080773")
+set_tests_properties(water_2-1_6-311pgss_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -74.45108756")
 
 # test-energy: water 0 1 6-311++G** RHF
 add_test(NAME water_0-1_6-311ppgss_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-311++g**" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 rhf -i 1000 -t 1e-8)
-set_tests_properties(water_0-1_6-311ppgss_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -76.04828214")
+set_tests_properties(water_0-1_6-311ppgss_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -76.04827538")
 
 # test-energy: water 0 1 6-311++G** RMP2
 add_test(NAME water_0-1_6-311ppgss_rmp2_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-311++g**" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 rhf -i 1000 -t 1e-8 mp2)
-set_tests_properties(water_0-1_6-311ppgss_rmp2_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL MP2 ENERGY: -76.29216975")
+set_tests_properties(water_0-1_6-311ppgss_rmp2_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL MP2 ENERGY: -76.29216427")
 
 # test-gradient: water 0 1 6-311++G** RHF
 add_test(NAME water_0-1_6-311ppgss_rhf_gradient COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-311++g**" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 rhf -i 1000 -t 1e-8 -g 0 1e-5)
-set_tests_properties(water_0-1_6-311ppgss_rhf_gradient PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "GRADIENT NORM: 9.60e-02")
+set_tests_properties(water_0-1_6-311ppgss_rhf_gradient PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "GRADIENT NORM: 9.61e-02")
 
 # test-energy: water 1 2 6-311++G** UHF
 add_test(NAME water_1-2_6-311ppgss_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-311++g**" -c 1 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 2 uhf -i 1000 -t 1e-8)
-set_tests_properties(water_1-2_6-311ppgss_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.64742734")
+set_tests_properties(water_1-2_6-311ppgss_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.64745286")
 
 # test-energy: water -1 2 6-311++G** UHF
 add_test(NAME water_-1-2_6-311ppgss_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-311++g**" -c -1 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 2 uhf -i 1000 -t 1e-8)
-set_tests_properties(water_-1-2_6-311ppgss_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.97642922")
+set_tests_properties(water_-1-2_6-311ppgss_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.97642811")
 
 # test-energy: water 2 1 6-311++G** UHF
 add_test(NAME water_2-1_6-311ppgss_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "6-311++g**" -c 2 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 uhf -i 1000 -t 1e-8)
-set_tests_properties(water_2-1_6-311ppgss_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -74.45136153")
+set_tests_properties(water_2-1_6-311ppgss_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -74.45164137")
 
 # test-energy: water 0 1 CC-PVDZ RHF
 add_test(NAME water_0-1_cc-pvdz_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "cc-pvdz" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 rhf -i 1000 -t 1e-8)
-set_tests_properties(water_0-1_cc-pvdz_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -76.02313132")
+set_tests_properties(water_0-1_cc-pvdz_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -76.02312305")
 
 # test-energy: water 0 1 CC-PVDZ RMP2
 add_test(NAME water_0-1_cc-pvdz_rmp2_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "cc-pvdz" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 rhf -i 1000 -t 1e-8 mp2)
-set_tests_properties(water_0-1_cc-pvdz_rmp2_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL MP2 ENERGY: -76.22986173")
+set_tests_properties(water_0-1_cc-pvdz_rmp2_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL MP2 ENERGY: -76.22985471")
 
 # test-gradient: water 0 1 CC-PVDZ RHF
 add_test(NAME water_0-1_cc-pvdz_rhf_gradient COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "cc-pvdz" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 rhf -i 1000 -t 1e-8 -g 0 1e-5)
-set_tests_properties(water_0-1_cc-pvdz_rhf_gradient PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "GRADIENT NORM: 8.48e-02")
+set_tests_properties(water_0-1_cc-pvdz_rhf_gradient PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "GRADIENT NORM: 8.49e-02")
 
 # test-energy: water 1 2 CC-PVDZ UHF
 add_test(NAME water_1-2_cc-pvdz_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "cc-pvdz" -c 1 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 2 uhf -i 1000 -t 1e-8)
-set_tests_properties(water_1-2_cc-pvdz_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.63180080")
+set_tests_properties(water_1-2_cc-pvdz_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.63182597")
 
 # test-energy: water -1 2 CC-PVDZ UHF
 add_test(NAME water_-1-2_cc-pvdz_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "cc-pvdz" -c -1 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 2 uhf -i 1000 -t 1e-8)
-set_tests_properties(water_-1-2_cc-pvdz_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.85263131")
+set_tests_properties(water_-1-2_cc-pvdz_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.85263322")
 
 # test-energy: water 2 1 CC-PVDZ UHF
 add_test(NAME water_2-1_cc-pvdz_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "cc-pvdz" -c 2 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 uhf -i 1000 -t 1e-8)
-set_tests_properties(water_2-1_cc-pvdz_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -74.43237168")
+set_tests_properties(water_2-1_cc-pvdz_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -74.43265405")
 
 # test-energy: water 0 1 CC-PVTZ RHF
 add_test(NAME water_0-1_cc-pvtz_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "cc-pvtz" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 rhf -i 1000 -t 1e-8)
-set_tests_properties(water_0-1_cc-pvtz_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -76.05261885")
+set_tests_properties(water_0-1_cc-pvtz_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -76.05261153")
 
 # test-energy: water 0 1 CC-PVTZ RMP2
 add_test(NAME water_0-1_cc-pvtz_rmp2_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "cc-pvtz" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 rhf -i 1000 -t 1e-8 mp2)
-set_tests_properties(water_0-1_cc-pvtz_rmp2_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL MP2 ENERGY: -76.33034818")
+set_tests_properties(water_0-1_cc-pvtz_rmp2_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL MP2 ENERGY: -76.33034247")
 
 # test-gradient: water 0 1 CC-PVTZ RHF
 add_test(NAME water_0-1_cc-pvtz_rhf_gradient COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "cc-pvtz" -c 0 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 rhf -i 1000 -t 1e-8 -g 0 1e-5)
-set_tests_properties(water_0-1_cc-pvtz_rhf_gradient PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "GRADIENT NORM: 9.57e-02")
+set_tests_properties(water_0-1_cc-pvtz_rhf_gradient PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "GRADIENT NORM: 9.58e-02")
 
 # test-energy: water 1 2 CC-PVTZ UHF
 add_test(NAME water_1-2_cc-pvtz_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "cc-pvtz" -c 1 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 2 uhf -i 1000 -t 1e-8)
-set_tests_properties(water_1-2_cc-pvtz_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.65540917")
+set_tests_properties(water_1-2_cc-pvtz_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.65543561")
 
 # test-energy: water -1 2 CC-PVTZ UHF
 add_test(NAME water_-1-2_cc-pvtz_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "cc-pvtz" -c -1 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 2 uhf -i 1000 -t 1e-8)
-set_tests_properties(water_-1-2_cc-pvtz_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.92102528")
+set_tests_properties(water_-1-2_cc-pvtz_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -75.92102029")
 
 # test-energy: water 2 1 CC-PVTZ UHF
 add_test(NAME water_2-1_cc-pvtz_rhf_energy COMMAND ${PROJECT_SOURCE_DIR}/bin/hazel -b "cc-pvtz" -c 2 -f ${PROJECT_SOURCE_DIR}/example/molecule/water.xyz -n 2 -s 1 uhf -i 1000 -t 1e-8)
-set_tests_properties(water_2-1_cc-pvtz_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -74.45956488")
+set_tests_properties(water_2-1_cc-pvtz_rhf_energy PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "FINAL HARTREE-FOCK ENERGY: -74.45984336")
