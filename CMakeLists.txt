@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.18)
 set(CMAKE_CXX_STANDARD 20)
 include(FetchContent)
 project(Hazel)
@@ -33,9 +33,9 @@ elseif (CMAKE_BUILD_TYPE STREQUAL Release)
 endif()
 
 # declare libraries
+FetchContent_Declare(libint URL https://github.com/evaleev/libint/releases/download/v2.8.0/libint-2.8.0-mpqc4.tgz SOURCE_SUBDIR libint-2.8.0)
 FetchContent_Declare(argparse SYSTEM GIT_REPOSITORY https://github.com/p-ranav/argparse.git GIT_TAG ac4c578f6020d5164f66ccb26b4727dea657a12b)
 FetchContent_Declare(eigen GIT_REPOSITORY https://gitlab.com/libeigen/eigen.git GIT_TAG 6f9ad7da6122fdb4197c0b43dfec09ec3525305e)
-FetchContent_Declare(libint URL https://github.com/evaleev/libint/releases/download/v2.8.0/libint-2.8.0-mpqc4.tgz)
 
 # fetch the libraries
 FetchContent_MakeAvailable(argparse)
