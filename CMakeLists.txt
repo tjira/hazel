@@ -35,7 +35,7 @@ endif()
 # declare libraries
 FetchContent_Declare(argparse SYSTEM GIT_REPOSITORY https://github.com/p-ranav/argparse.git GIT_TAG ac4c578f6020d5164f66ccb26b4727dea657a12b)
 FetchContent_Declare(eigen GIT_REPOSITORY https://gitlab.com/libeigen/eigen.git GIT_TAG 6f9ad7da6122fdb4197c0b43dfec09ec3525305e)
-FetchContent_Declare(libint URL https://github.com/evaleev/libint/releases/download/v2.7.2/libint-2.7.2-mpqc4.tgz)
+FetchContent_Declare(libint URL https://github.com/evaleev/libint/releases/download/v2.8.0/libint-2.8.0-mpqc4.tgz)
 
 # fetch the libraries
 FetchContent_MakeAvailable(argparse)
@@ -43,12 +43,6 @@ FetchContent_MakeAvailable(argparse)
 # download dependencies if needed
 if (${STANDALONE})
     FetchContent_MakeAvailable(eigen libint)
-    if (WIN32)
-        file(READ ${libint_SOURCE_DIR}/include/libint2/boys.h CONTENT)
-        string(REPLACE "free(c);" "// free(c);" CONTENT "${CONTENT}")
-        string(REPLACE "32ul)" "32ull)" CONTENT "${CONTENT}")
-        file(WRITE ${libint_SOURCE_DIR}/include/libint2/boys.h "${CONTENT}")
-    endif()
 else()
     find_package(Eigen3 REQUIRED)
 endif()
