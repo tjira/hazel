@@ -29,14 +29,18 @@ void Distributor::run() {
     if (parser.used("ints") || parser.used("rhf") || parser.used("uhf")) integrals();
 
     // optimize the molecule
-    if (parser.at("rhf").has("-o")) rhfo();
-    if (parser.at("rhf").at("mp2").has("-o")) rmp2o();
-    if (parser.at("rhf").at("ci").has("-o")) rcio();
-    if (parser.at("rhf").at("cis").has("-o")) rcio();
-    if (parser.at("rhf").at("cid").has("-o")) rcio();
-    if (parser.at("rhf").at("cisd").has("-o")) rcio();
-    if (parser.at("rhf").at("fci").has("-o")) rcio();
-    if (parser.at("uhf").has("-o")) uhfo();
+    if (parser.used("opt")) {
+        if (parser.at("opt").used("rhf")) {
+            if (parser.at("opt").at("rhf").used("mp2")) rmp2o();
+            else if (parser.at("opt").at("rhf").used("ci")) rcio();
+            else if (parser.at("opt").at("rhf").used("cis")) rcio();
+            else if (parser.at("opt").at("rhf").used("cid")) rcio();
+            else if (parser.at("opt").at("rhf").used("cisd")) rcio();
+            else if (parser.at("opt").at("rhf").used("fci")) rcio();
+            else rhfo();
+        } else if (parser.at("opt").used("uhf")) uhfo();
+        else throw std::runtime_error("NO METHOD FOR OPTIMIZATION SPECIFIED.");
+    }
 
     // distribute the calculations
     if (parser.used("scan")) scan();
@@ -109,14 +113,14 @@ void Distributor::rcif(const HF::ResultsRestricted& rhfres) {
     };
 
     // print the header for frequency calculation and define the gradient matrix
-    if (rciparser().get<std::vector<double>>("-g").at(0)) {std::cout << std::endl; Printer::Title("NUMERICAL FREQUENCIES FOR RESTRICTED CI");}
-    else {std::cout << std::endl; Printer::Title("ANALYTICAL FREQUENCIES FOR RESTRICTED CI");} Matrix H;
+    if (rciparser().get<std::vector<double>>("-g").at(0)) {std::cout << std::endl; Printer::Title("NUMERICAL FREQUENCIES FOR RESTRICTED CI (" + Utility::ToUpper(rciparser().getName()) + ")");}
+    else {std::cout << std::endl; Printer::Title("ANALYTICAL FREQUENCIES FOR RESTRICTED CI (" + Utility::ToUpper(rciparser().getName()) + ")");} Matrix H;
 
     // extract the HF options
     auto rhfopt = HF::OptionsRestricted::Load(parser.at("rhf"), parser.get<bool>("--no-coulomb")); std::vector <int> excits;
 
     // choose the correct method
-    if (parser.at("rhf").used("ci")) excits = parser.get<std::vector<int>>("excitations");
+    if (parser.at("rhf").used("ci")) excits = rciparser().get<std::vector<int>>("excitations");
     if (parser.at("rhf").used("cisd")) excits = {1, 2};
     if (parser.at("rhf").used("cis")) excits = {1};
     if (parser.at("rhf").used("cid")) excits = {2};
@@ -132,7 +136,7 @@ void Distributor::rcif(const HF::ResultsRestricted& rhfres) {
     Vector freq = Hessian(rciparser().get<std::vector<double>>("-f").at(1)).frequency(system, H);
 
     // print the frequencies
-    std::cout << std::endl; Printer::Title("RESTRICTED CI FREQUENCY ANALYSIS");
+    std::cout << std::endl; Printer::Title("RESTRICTED CI FREQUENCY ANALYSIS (" + Utility::ToUpper(rciparser().getName()) + ")");
     Printer::Mat("\nVIBRATIONAL FREQUENCIES", freq);
 }
 
@@ -148,14 +152,14 @@ void Distributor::rcig(const HF::ResultsRestricted& rhfres) {
     };
 
     // print the header for gradient calculation and define the gradient matrix
-    if (rciparser().get<std::vector<double>>("-g").at(0)) {std::cout << std::endl; Printer::Title("NUMERICAL GRADIENT FOR RESTRICTED CI");}
-    else {std::cout << std::endl; Printer::Title("ANALYTICAL GRADIENT FOR RESTRICTED CI");} Matrix G; 
+    if (rciparser().get<std::vector<double>>("-g").at(0)) {std::cout << std::endl; Printer::Title("NUMERICAL GRADIENT FOR RESTRICTED CI (" + Utility::ToUpper(rciparser().getName()) + ")");}
+    else {std::cout << std::endl; Printer::Title("ANALYTICAL GRADIENT FOR RESTRICTED CI (" + Utility::ToUpper(rciparser().getName()) + ")");} Matrix G; 
 
     // extract the RHF and RCI options
     auto rhfopt = HF::OptionsRestricted::Load(parser.at("rhf"), parser.get<bool>("--no-coulomb")); std::vector <int> excits;
 
     // choose the correct method
-    if (parser.at("rhf").used("ci")) excits = parser.get<std::vector<int>>("excitations");
+    if (parser.at("rhf").used("ci")) excits = rciparser().get<std::vector<int>>("excitations");
     if (parser.at("rhf").used("cisd")) excits = {1, 2};
     if (parser.at("rhf").used("cis")) excits = {1};
     if (parser.at("rhf").used("cid")) excits = {2};
@@ -169,30 +173,30 @@ void Distributor::rcig(const HF::ResultsRestricted& rhfres) {
 }
 
 void Distributor::rcio() {
-    // print the RHF optimization header
-    std::cout << std::endl; Printer::Title("RESTRICTED CI OPTIMIZATION");
-
     // extract the RHF options
-    auto rhfopt = HF::OptionsRestricted::Load(parser.at("rhf"), parser.get<bool>("--no-coulomb")); std::vector <int> excits;
+    auto rhfopt = HF::OptionsRestricted::Load(parser.at("opt").at("rhf"), parser.get<bool>("--no-coulomb")); std::vector <int> excits;
 
     // function to return the correct parser
     auto rciparser = [&]() -> Parser& {
-        if (parser.at("rhf").used("ci")) return parser.at("rhf").at("ci");
-        else if (parser.at("rhf").used("cid")) return parser.at("rhf").at("cid");
-        else if (parser.at("rhf").used("cis")) return parser.at("rhf").at("cis");
-        else if (parser.at("rhf").used("cisd")) return parser.at("rhf").at("cisd");
-        else if (parser.at("rhf").used("fci")) return parser.at("rhf").at("fci");
+        if (parser.at("opt").at("rhf").used("ci")) return parser.at("opt").at("rhf").at("ci");
+        else if (parser.at("opt").at("rhf").used("cid")) return parser.at("opt").at("rhf").at("cid");
+        else if (parser.at("opt").at("rhf").used("cis")) return parser.at("opt").at("rhf").at("cis");
+        else if (parser.at("opt").at("rhf").used("cisd")) return parser.at("opt").at("rhf").at("cisd");
+        else if (parser.at("opt").at("rhf").used("fci")) return parser.at("opt").at("rhf").at("fci");
         else throw std::runtime_error("INVALID CI METHOD");
     };
 
+    // print the RHF optimization header
+    std::cout << std::endl; Printer::Title("RESTRICTED CI OPTIMIZATION (" + Utility::ToUpper(rciparser().getName()) + ")");
+
     // choose the correct method
-    if (parser.at("rhf").used("ci")) excits = parser.get<std::vector<int>>("excitations");
-    if (parser.at("rhf").used("cisd")) excits = {1, 2};
-    if (parser.at("rhf").used("cis")) excits = {1};
-    if (parser.at("rhf").used("cid")) excits = {2};
+    if (parser.at("opt").at("rhf").used("ci")) excits = rciparser().get<std::vector<int>>("excitations");
+    if (parser.at("opt").at("rhf").used("cisd")) excits = {1, 2};
+    if (parser.at("opt").at("rhf").used("cis")) excits = {1};
+    if (parser.at("opt").at("rhf").used("cid")) excits = {2};
 
     // perform the optimization
-    system = Optimizer(rciparser().get<double>("-o")).optimize(system, Lambda::EGCI(rhfopt, excits, rciparser().get<std::vector<double>>("-g"), Matrix::Zero(system.shells.nbf(), system.shells.nbf())));
+    system = Optimizer(parser.at("opt").get<double>("-t")).optimize(system, Lambda::EGCI(rhfopt, excits, rciparser().get<std::vector<double>>("-g"), Matrix::Zero(system.shells.nbf(), system.shells.nbf())));
 
     // print the optimized coordinates and distances
     Printer::Mat("\nOPTIMIZED SYSTEM COORDINATES", system.coords);
@@ -284,14 +288,14 @@ void Distributor::rhfo() {
     std::cout << std::endl; Printer::Title("RESTRICTED HARTREE-FOCK OPTIMIZATION");
 
     // extract the HF options
-    auto rhfopt = HF::OptionsRestricted::Load(parser.at("rhf"), parser.get<bool>("--no-coulomb"));
+    auto rhfopt = HF::OptionsRestricted::Load(parser.at("opt").at("rhf"), parser.get<bool>("--no-coulomb"));
 
     // perform the optimization
-    system = Optimizer(parser.at("rhf").get<double>("-o")).optimize(system, Lambda::EGHF(rhfopt, parser.at("rhf").get<std::vector<double>>("-g"), Matrix::Zero(system.shells.nbf(), system.shells.nbf())));
+    system = Optimizer(parser.at("opt").get<double>("-t")).optimize(system, Lambda::EGHF(rhfopt, parser.at("opt").at("rhf").get<std::vector<double>>("-g"), Matrix::Zero(system.shells.nbf(), system.shells.nbf())));
 
     // print the optimized coordinates and distances
     Printer::Mat("\nOPTIMIZED SYSTEM COORDINATES", system.coords);
-    if (Utility::VectorContains<std::string>(parser.at("rhf").get<std::vector<std::string>>("-p"), "dist")) Printer::Mat("\nOPTIMIZED DISTANCE MATRIX", system.dists);
+    if (Utility::VectorContains<std::string>(parser.at("opt").at("rhf").get<std::vector<std::string>>("-p"), "dist")) Printer::Mat("\nOPTIMIZED DISTANCE MATRIX", system.dists);
 }
 
 void Distributor::uhfrun() {
@@ -370,14 +374,14 @@ void Distributor::uhfo() {
     std::cout << std::endl; Printer::Title("UNRESTRICTED HARTREE-FOCK OPTIMIZATION");
 
     // extract the HF options
-    auto uhfopt = HF::OptionsUnrestricted::Load(parser.at("uhf"), parser.get<bool>("--no-coulomb"));
+    auto uhfopt = HF::OptionsUnrestricted::Load(parser.at("opt").at("uhf"), parser.get<bool>("--no-coulomb"));
 
     // perform the optimization
-    system = Optimizer(parser.at("uhf").get<double>("-o")).optimize(system, Lambda::EGHF(uhfopt, parser.at("uhf").get<std::vector<double>>("-g"), Matrix::Zero(system.shells.nbf(), system.shells.nbf())));
+    system = Optimizer(parser.at("opt").get<double>("-t")).optimize(system, Lambda::EGHF(uhfopt, parser.at("opt").at("uhf").get<std::vector<double>>("-g"), Matrix::Zero(system.shells.nbf(), system.shells.nbf())));
 
     // print the optimized coordinates and distances
     Printer::Mat("\nOPTIMIZED SYSTEM COORDINATES", system.coords);
-    if (Utility::VectorContains<std::string>(parser.at("uhf").get<std::vector<std::string>>("-p"), "dist")) Printer::Mat("\nOPTIMIZED DISTANCE MATRIX", system.dists);
+    if (Utility::VectorContains<std::string>(parser.at("opt").at("uhf").get<std::vector<std::string>>("-p"), "dist")) Printer::Mat("\nOPTIMIZED DISTANCE MATRIX", system.dists);
 }
 
 void Distributor::rmp2run(const HF::ResultsRestricted& rhfres) {
@@ -442,15 +446,15 @@ void Distributor::rmp2g(const HF::ResultsRestricted& rhfres) {
 
 void Distributor::rmp2o() {
     // extract the HF options and print the MP2 optimization method header
-    auto rhfopt = HF::OptionsRestricted::Load(parser.at("rhf"), parser.get<bool>("--no-coulomb"));
+    auto rhfopt = HF::OptionsRestricted::Load(parser.at("opt").at("rhf"), parser.get<bool>("--no-coulomb"));
     std::cout << std::endl; Printer::Title("RESTRICTED MP2 OPTIMIZATION");
 
     // perform the optimization
-    system = Optimizer(parser.at("rhf").at("mp2").get<double>("-o")).optimize(system, Lambda::EGMP2(rhfopt, parser.at("rhf").at("mp2").get<std::vector<double>>("-g"), Matrix::Zero(system.shells.nbf(), system.shells.nbf())));
+    system = Optimizer(parser.at("opt").get<double>("-t")).optimize(system, Lambda::EGMP2(rhfopt, parser.at("opt").at("rhf").at("mp2").get<std::vector<double>>("-g"), Matrix::Zero(system.shells.nbf(), system.shells.nbf())));
 
     // print the optimized coordinates and distances
     Printer::Mat("\nOPTIMIZED SYSTEM COORDINATES", system.coords);
-    if (Utility::VectorContains<std::string>(parser.at("rhf").at("mp2").get<std::vector<std::string>>("-p"), "dist")) Printer::Mat("\nOPTIMIZED DISTANCE MATRIX", system.dists);
+    if (Utility::VectorContains<std::string>(parser.at("opt").at("rhf").at("mp2").get<std::vector<std::string>>("-p"), "dist")) Printer::Mat("\nOPTIMIZED DISTANCE MATRIX", system.dists);
 }
 
 void Distributor::scan() {
@@ -596,7 +600,7 @@ void Distributor::integrals() {
     std::cout << "\n";
 
     // if derivatives of the integrals are needed
-    if (parser.used("ints") || ((parser.at("rhf").has("-g") || parser.at("rhf").has("-o")) && !parser.at("rhf").get<std::vector<double>>("-g").at(0))) {
+    if (parser.used("ints") || (parser.at("rhf").has("-g") && !parser.at("rhf").get<std::vector<double>>("-g").at(0))) {
         // calculate the derivative of overlap integral
         std::cout << "\nFIRST DERIVATIVE OF OVERLAP INTEGRAL: " << std::flush; TIME(system.dints.dS = Integral::dOverlap(system))
         std::cout << " " << Eigen::MemTensor(system.dints.dS);

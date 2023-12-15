@@ -154,7 +154,7 @@ hazel -f molecule.xyz -b sto-3g rhf mp2 -f 1 1e-5
 To optimize a molecule using RHF method you can do the following. 
 
 ```bash
-hazel -f molecule.xyz -b sto-3g rhf -g 1 1e-5 -o 1e-8
+hazel -f molecule.xyz -b sto-3g opt -t 1e-8 rhf -g 1 1e-5
 ```
 
 We also specified options for the gradient calculation. The 1e-8 is the gradient threshold for optimization.

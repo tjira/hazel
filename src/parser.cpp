@@ -2,9 +2,10 @@
 
 Parser::Parser(int argc, char** argv) : program("hazel", "0.1", argparse::default_arguments::none) {
     // add main parsers
-    parsers.reserve(6);
+    parsers.reserve(7);
     parsers.insert({"ints", std::make_shared<Parser>(Parser("ints"))}); program.add_subparser(at("ints").program);
     parsers.insert({"md", std::make_shared<Parser>(Parser("md"))}); program.add_subparser(at("md").program);
+    parsers.insert({"opt", std::make_shared<Parser>(Parser("opt"))}); program.add_subparser(at("opt").program);
     parsers.insert({"qd", std::make_shared<Parser>(Parser("qd"))}); program.add_subparser(at("qd").program);
     parsers.insert({"rhf", std::make_shared<Parser>(Parser("rhf"))}); program.add_subparser(at("rhf").program);
     parsers.insert({"scan", std::make_shared<Parser>(Parser("scan"))}); program.add_subparser(at("scan").program);
@@ -18,6 +19,20 @@ Parser::Parser(int argc, char** argv) : program("hazel", "0.1", argparse::defaul
     at("rhf").parsers.insert({"cid", std::make_shared<Parser>(Parser("cid"))}); at("rhf").program.add_subparser(at("rhf").at("cid").program);
     at("rhf").parsers.insert({"fci", std::make_shared<Parser>(Parser("fci"))}); at("rhf").program.add_subparser(at("rhf").at("fci").program);
     at("rhf").parsers.insert({"ci", std::make_shared<Parser>(Parser("ci"))}); at("rhf").program.add_subparser(at("rhf").at("ci").program);
+
+    // add parsers for OPT
+    at("opt").parsers.reserve(2);
+    at("opt").parsers.insert({"rhf", std::make_shared<Parser>(Parser("rhf"))}); at("opt").program.add_subparser(at("opt").at("rhf").program);
+    at("opt").parsers.insert({"uhf", std::make_shared<Parser>(Parser("uhf"))}); at("opt").program.add_subparser(at("opt").at("uhf").program);
+
+    // add OPT post RHF parsers
+    at("opt").at("rhf").parsers.reserve(6);
+    at("opt").at("rhf").parsers.insert({"cisd", std::make_shared<Parser>(Parser("cisd"))}); at("opt").at("rhf").program.add_subparser(at("opt").at("rhf").at("cisd").program);
+    at("opt").at("rhf").parsers.insert({"mp2", std::make_shared<Parser>(Parser("mp2"))}); at("opt").at("rhf").program.add_subparser(at("opt").at("rhf").at("mp2").program);
+    at("opt").at("rhf").parsers.insert({"cis", std::make_shared<Parser>(Parser("cis"))}); at("opt").at("rhf").program.add_subparser(at("opt").at("rhf").at("cis").program);
+    at("opt").at("rhf").parsers.insert({"cid", std::make_shared<Parser>(Parser("cid"))}); at("opt").at("rhf").program.add_subparser(at("opt").at("rhf").at("cid").program);
+    at("opt").at("rhf").parsers.insert({"fci", std::make_shared<Parser>(Parser("fci"))}); at("opt").at("rhf").program.add_subparser(at("opt").at("rhf").at("fci").program);
+    at("opt").at("rhf").parsers.insert({"ci", std::make_shared<Parser>(Parser("ci"))}); at("opt").at("rhf").program.add_subparser(at("opt").at("rhf").at("ci").program);
 
     // add parsers for MD
     at("md").parsers.reserve(2);
@@ -33,7 +48,7 @@ Parser::Parser(int argc, char** argv) : program("hazel", "0.1", argparse::defaul
     at("md").at("rhf").parsers.insert({"fci", std::make_shared<Parser>(Parser("fci"))}); at("md").at("rhf").program.add_subparser(at("md").at("rhf").at("fci").program);
     at("md").at("rhf").parsers.insert({"ci", std::make_shared<Parser>(Parser("ci"))}); at("md").at("rhf").program.add_subparser(at("md").at("rhf").at("ci").program);
 
-    // add parsers for scan
+    // add parsers for SCAN
     at("scan").parsers.reserve(2);
     at("scan").parsers.insert({"rhf", std::make_shared<Parser>(Parser("rhf"))}); at("scan").program.add_subparser(at("scan").at("rhf").program);
     at("scan").parsers.insert({"uhf", std::make_shared<Parser>(Parser("uhf"))}); at("scan").program.add_subparser(at("scan").at("uhf").program);
@@ -72,7 +87,6 @@ Parser::Parser(int argc, char** argv) : program("hazel", "0.1", argparse::defaul
     program.at<argparse::ArgumentParser>("rhf").add_argument("-i", "--iters").help("-- Maximum number of iterations in SCF loop.").default_value(100).scan<'i', int>();
     program.at<argparse::ArgumentParser>("rhf").add_argument("-p", "--print").help("-- Output printing options.").default_value<std::vector<std::string>>({}).append();
     program.at<argparse::ArgumentParser>("rhf").add_argument("-e", "--export").help("-- Export options.").default_value<std::vector<std::string>>({}).append();
-    program.at<argparse::ArgumentParser>("rhf").add_argument("-o", "--optimize").help("-- Optimization with gradient threshold.").default_value(1e-8).scan<'g', double>();
     program.at<argparse::ArgumentParser>("rhf").add_argument("-t", "--thresh").help("-- Threshold for conververgence in SCF loop.").default_value(1e-12).scan<'g', double>();
 
     // add arguments to the UHF argument parser
@@ -83,14 +97,12 @@ Parser::Parser(int argc, char** argv) : program("hazel", "0.1", argparse::defaul
     program.at<argparse::ArgumentParser>("uhf").add_argument("-i", "--iters").help("-- Maximum number of iterations in SCF loop.").default_value(100).scan<'i', int>();
     program.at<argparse::ArgumentParser>("uhf").add_argument("-p", "--print").help("-- Output printing options.").default_value<std::vector<std::string>>({}).append();
     program.at<argparse::ArgumentParser>("uhf").add_argument("-e", "--export").help("-- Export options.").default_value<std::vector<std::string>>({}).append();
-    program.at<argparse::ArgumentParser>("uhf").add_argument("-o", "--optimize").help("-- Optimization with gradient threshold.").default_value(1e-8).scan<'g', double>();
     program.at<argparse::ArgumentParser>("uhf").add_argument("-t", "--thresh").help("-- Threshold for conververgence in SCF loop.").default_value(1e-12).scan<'g', double>();
 
     // add arguments to the MP2 argument parser
     program.at<argparse::ArgumentParser>("rhf").at<argparse::ArgumentParser>("mp2").add_argument("-f", "--frequency").help("-- Analytical (0) or numerical (1) frequency calculation with step size.").default_value(std::vector<double>{1, 1e-4}).nargs(2).scan<'g', double>();
     program.at<argparse::ArgumentParser>("rhf").at<argparse::ArgumentParser>("mp2").add_argument("-g", "--gradient").help("-- Analytical (0) or numerical (1) gradient calculation with step size.").default_value(std::vector<double>{1, 1e-5}).nargs(2).scan<'g', double>();
     program.at<argparse::ArgumentParser>("rhf").at<argparse::ArgumentParser>("mp2").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
-    program.at<argparse::ArgumentParser>("rhf").at<argparse::ArgumentParser>("mp2").add_argument("-o", "--optimize").help("-- Optimize the provided system.").default_value(1e-4).scan<'g', double>();
     program.at<argparse::ArgumentParser>("rhf").at<argparse::ArgumentParser>("mp2").add_argument("-p", "--print").help("-- Output printing options.").default_value<std::vector<std::string>>({}).append();
     program.at<argparse::ArgumentParser>("rhf").at<argparse::ArgumentParser>("mp2").add_argument("-e", "--export").help("-- Export options.").default_value<std::vector<std::string>>({}).append();
 
@@ -101,7 +113,6 @@ Parser::Parser(int argc, char** argv) : program("hazel", "0.1", argparse::defaul
     program.at<argparse::ArgumentParser>("rhf").at<argparse::ArgumentParser>("ci").add_argument("-p", "--print").help("-- Printing options.").default_value<std::vector<std::string>>({}).append();
     program.at<argparse::ArgumentParser>("rhf").at<argparse::ArgumentParser>("ci").add_argument("-e", "--export").help("-- Export options.").default_value<std::vector<std::string>>({}).append();
     program.at<argparse::ArgumentParser>("rhf").at<argparse::ArgumentParser>("ci").add_argument("-g", "--gradient").help("-- Analytical (0) or numerical (1) gradient calculation with step size.").default_value(std::vector<double>{1, 1e-5}).nargs(2).scan<'g', double>();
-    program.at<argparse::ArgumentParser>("rhf").at<argparse::ArgumentParser>("ci").add_argument("-o", "--optimize").help("-- Optimize the provided system.").default_value(1e-4).scan<'g', double>();
 
     // add arguments to the CIS argument parser
     program.at<argparse::ArgumentParser>("rhf").at<argparse::ArgumentParser>("cis").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
@@ -109,7 +120,6 @@ Parser::Parser(int argc, char** argv) : program("hazel", "0.1", argparse::defaul
     program.at<argparse::ArgumentParser>("rhf").at<argparse::ArgumentParser>("cis").add_argument("-e", "--export").help("-- Export options.").default_value<std::vector<std::string>>({}).append();
     program.at<argparse::ArgumentParser>("rhf").at<argparse::ArgumentParser>("cis").add_argument("-p", "--print").help("-- Printing options.").default_value<std::vector<std::string>>({}).append();
     program.at<argparse::ArgumentParser>("rhf").at<argparse::ArgumentParser>("cis").add_argument("-g", "--gradient").help("-- Analytical (0) or numerical (1) gradient calculation with step size.").default_value(std::vector<double>{1, 1e-5}).nargs(2).scan<'g', double>();
-    program.at<argparse::ArgumentParser>("rhf").at<argparse::ArgumentParser>("cis").add_argument("-o", "--optimize").help("-- Optimize the provided system.").default_value(1e-4).scan<'g', double>();
 
     // add arguments to the CID argument parser
     program.at<argparse::ArgumentParser>("rhf").at<argparse::ArgumentParser>("cid").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
@@ -117,7 +127,6 @@ Parser::Parser(int argc, char** argv) : program("hazel", "0.1", argparse::defaul
     program.at<argparse::ArgumentParser>("rhf").at<argparse::ArgumentParser>("cid").add_argument("-p", "--print").help("-- Printing options.").default_value<std::vector<std::string>>({}).append();
     program.at<argparse::ArgumentParser>("rhf").at<argparse::ArgumentParser>("cid").add_argument("-e", "--export").help("-- Export options.").default_value<std::vector<std::string>>({}).append();
     program.at<argparse::ArgumentParser>("rhf").at<argparse::ArgumentParser>("cid").add_argument("-g", "--gradient").help("-- Analytical (0) or numerical (1) gradient calculation with step size.").default_value(std::vector<double>{1, 1e-5}).nargs(2).scan<'g', double>();
-    program.at<argparse::ArgumentParser>("rhf").at<argparse::ArgumentParser>("cid").add_argument("-o", "--optimize").help("-- Optimize the provided system.").default_value(1e-4).scan<'g', double>();
 
     // add arguments to the CISD argument parser
     program.at<argparse::ArgumentParser>("rhf").at<argparse::ArgumentParser>("cisd").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
@@ -125,7 +134,6 @@ Parser::Parser(int argc, char** argv) : program("hazel", "0.1", argparse::defaul
     program.at<argparse::ArgumentParser>("rhf").at<argparse::ArgumentParser>("cisd").add_argument("-e", "--export").help("-- Export options.").default_value<std::vector<std::string>>({}).append();
     program.at<argparse::ArgumentParser>("rhf").at<argparse::ArgumentParser>("cisd").add_argument("-p", "--print").help("-- Printing options.").default_value<std::vector<std::string>>({}).append();
     program.at<argparse::ArgumentParser>("rhf").at<argparse::ArgumentParser>("cisd").add_argument("-g", "--gradient").help("-- Analytical (0) or numerical (1) gradient calculation with step size.").default_value(std::vector<double>{1, 1e-5}).nargs(2).scan<'g', double>();
-    program.at<argparse::ArgumentParser>("rhf").at<argparse::ArgumentParser>("cisd").add_argument("-o", "--optimize").help("-- Optimize the provided system.").default_value(1e-4).scan<'g', double>();
 
     // add arguments to the FCI argument parser
     program.at<argparse::ArgumentParser>("rhf").at<argparse::ArgumentParser>("fci").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
@@ -133,7 +141,57 @@ Parser::Parser(int argc, char** argv) : program("hazel", "0.1", argparse::defaul
     program.at<argparse::ArgumentParser>("rhf").at<argparse::ArgumentParser>("fci").add_argument("-p", "--print").help("-- Printing options.").default_value<std::vector<std::string>>({}).append();
     program.at<argparse::ArgumentParser>("rhf").at<argparse::ArgumentParser>("fci").add_argument("-e", "--export").help("-- Export options.").default_value<std::vector<std::string>>({}).append();
     program.at<argparse::ArgumentParser>("rhf").at<argparse::ArgumentParser>("fci").add_argument("-g", "--gradient").help("-- Analytical (0) or numerical (1) gradient calculation with step size.").default_value(std::vector<double>{1, 1e-5}).nargs(2).scan<'g', double>();
-    program.at<argparse::ArgumentParser>("rhf").at<argparse::ArgumentParser>("fci").add_argument("-o", "--optimize").help("-- Optimize the provided system.").default_value(1e-4).scan<'g', double>();
+
+    // add arguments to OPT argument parser
+    program.at<argparse::ArgumentParser>("opt").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
+    program.at<argparse::ArgumentParser>("opt").add_argument("-t", "--threshold").help("-- Gradient threshold.").default_value(1e-8).scan<'g', double>();
+
+    // add arguments to the OPT RHF argument parser
+    program.at<argparse::ArgumentParser>("opt").at<argparse::ArgumentParser>("rhf").add_argument("-d", "--diis").help("-- Start iteration and history length for DIIS algorithm.").default_value(std::vector<int>{3, 5}).nargs(2).scan<'i', int>();
+    program.at<argparse::ArgumentParser>("opt").at<argparse::ArgumentParser>("rhf").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
+    program.at<argparse::ArgumentParser>("opt").at<argparse::ArgumentParser>("rhf").add_argument("-i", "--iters").help("-- Maximum number of iterations in SCF loop.").default_value(100).scan<'i', int>();
+    program.at<argparse::ArgumentParser>("opt").at<argparse::ArgumentParser>("rhf").add_argument("-t", "--thresh").help("-- Threshold for conververgence in SCF loop.").default_value(1e-12).scan<'g', double>();
+    program.at<argparse::ArgumentParser>("opt").at<argparse::ArgumentParser>("rhf").add_argument("-g", "--gradient").help("-- Analytical (0) or numerical (1) gradient calculation with step size.").default_value(std::vector<double>{0, 1e-5}).nargs(2).scan<'g', double>();
+    program.at<argparse::ArgumentParser>("opt").at<argparse::ArgumentParser>("rhf").add_argument("-p", "--print").help("-- Printing options.").default_value<std::vector<std::string>>({}).append();
+
+    // add arguments to the OPT UHF argument parser
+    program.at<argparse::ArgumentParser>("opt").at<argparse::ArgumentParser>("uhf").add_argument("-d", "--diis").help("-- Start iteration and history length for DIIS algorithm.").default_value(std::vector<int>{3, 5}).nargs(2).scan<'i', int>();
+    program.at<argparse::ArgumentParser>("opt").at<argparse::ArgumentParser>("uhf").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
+    program.at<argparse::ArgumentParser>("opt").at<argparse::ArgumentParser>("uhf").add_argument("-i", "--iters").help("-- Maximum number of iterations in SCF loop.").default_value(100).scan<'i', int>();
+    program.at<argparse::ArgumentParser>("opt").at<argparse::ArgumentParser>("uhf").add_argument("-t", "--thresh").help("-- Threshold for conververgence in SCF loop.").default_value(1e-12).scan<'g', double>();
+    program.at<argparse::ArgumentParser>("opt").at<argparse::ArgumentParser>("uhf").add_argument("-g", "--gradient").help("-- Analytical (0) or numerical (1) gradient calculation with step size.").default_value(std::vector<double>{0, 1e-5}).nargs(2).scan<'g', double>();
+    program.at<argparse::ArgumentParser>("opt").at<argparse::ArgumentParser>("uhf").add_argument("-p", "--print").help("-- Printing options.").default_value<std::vector<std::string>>({}).append();
+
+    // add arguments to the OPT MP2 argument parser
+    program.at<argparse::ArgumentParser>("opt").at<argparse::ArgumentParser>("rhf").at<argparse::ArgumentParser>("mp2").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
+    program.at<argparse::ArgumentParser>("opt").at<argparse::ArgumentParser>("rhf").at<argparse::ArgumentParser>("mp2").add_argument("-g", "--gradient").help("-- Analytical (0) or numerical (1) gradient calculation with step size.").default_value(std::vector<double>{0, 1e-5}).nargs(2).scan<'g', double>();
+    program.at<argparse::ArgumentParser>("opt").at<argparse::ArgumentParser>("rhf").at<argparse::ArgumentParser>("mp2").add_argument("-p", "--print").help("-- Printing options.").default_value<std::vector<std::string>>({}).append();
+
+    // add arguments to the OPT CI argument parser
+    program.at<argparse::ArgumentParser>("opt").at<argparse::ArgumentParser>("rhf").at<argparse::ArgumentParser>("ci").add_argument("excitations").help("-- Help message.").nargs(argparse::nargs_pattern::at_least_one).scan<'i', int>();
+    program.at<argparse::ArgumentParser>("opt").at<argparse::ArgumentParser>("rhf").at<argparse::ArgumentParser>("ci").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
+    program.at<argparse::ArgumentParser>("opt").at<argparse::ArgumentParser>("rhf").at<argparse::ArgumentParser>("ci").add_argument("-g", "--gradient").help("-- Analytical (0) or numerical (1) gradient calculation with step size.").default_value(std::vector<double>{0, 1e-5}).nargs(2).scan<'g', double>();
+    program.at<argparse::ArgumentParser>("opt").at<argparse::ArgumentParser>("rhf").at<argparse::ArgumentParser>("ci").add_argument("-p", "--print").help("-- Printing options.").default_value<std::vector<std::string>>({}).append();
+
+    // add arguments to the OPT CIS argument parser
+    program.at<argparse::ArgumentParser>("opt").at<argparse::ArgumentParser>("rhf").at<argparse::ArgumentParser>("cis").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
+    program.at<argparse::ArgumentParser>("opt").at<argparse::ArgumentParser>("rhf").at<argparse::ArgumentParser>("cis").add_argument("-g", "--gradient").help("-- Analytical (0) or numerical (1) gradient calculation with step size.").default_value(std::vector<double>{0, 1e-5}).nargs(2).scan<'g', double>();
+    program.at<argparse::ArgumentParser>("opt").at<argparse::ArgumentParser>("rhf").at<argparse::ArgumentParser>("cis").add_argument("-p", "--print").help("-- Printing options.").default_value<std::vector<std::string>>({}).append();
+
+    // add arguments to the OPT CID argument parser
+    program.at<argparse::ArgumentParser>("opt").at<argparse::ArgumentParser>("rhf").at<argparse::ArgumentParser>("cid").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
+    program.at<argparse::ArgumentParser>("opt").at<argparse::ArgumentParser>("rhf").at<argparse::ArgumentParser>("cid").add_argument("-g", "--gradient").help("-- Analytical (0) or numerical (1) gradient calculation with step size.").default_value(std::vector<double>{0, 1e-5}).nargs(2).scan<'g', double>();
+    program.at<argparse::ArgumentParser>("opt").at<argparse::ArgumentParser>("rhf").at<argparse::ArgumentParser>("cid").add_argument("-p", "--print").help("-- Printing options.").default_value<std::vector<std::string>>({}).append();
+
+    // add arguments to the OPT CISD argument parser
+    program.at<argparse::ArgumentParser>("opt").at<argparse::ArgumentParser>("rhf").at<argparse::ArgumentParser>("cisd").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
+    program.at<argparse::ArgumentParser>("opt").at<argparse::ArgumentParser>("rhf").at<argparse::ArgumentParser>("cisd").add_argument("-g", "--gradient").help("-- Analytical (0) or numerical (1) gradient calculation with step size.").default_value(std::vector<double>{0, 1e-5}).nargs(2).scan<'g', double>();
+    program.at<argparse::ArgumentParser>("opt").at<argparse::ArgumentParser>("rhf").at<argparse::ArgumentParser>("cisd").add_argument("-p", "--print").help("-- Printing options.").default_value<std::vector<std::string>>({}).append();
+
+    // add arguments to the OPT FCI argument parser
+    program.at<argparse::ArgumentParser>("opt").at<argparse::ArgumentParser>("rhf").at<argparse::ArgumentParser>("fci").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
+    program.at<argparse::ArgumentParser>("opt").at<argparse::ArgumentParser>("rhf").at<argparse::ArgumentParser>("fci").add_argument("-g", "--gradient").help("-- Analytical (0) or numerical (1) gradient calculation with step size.").default_value(std::vector<double>{0, 1e-5}).nargs(2).scan<'g', double>();
+    program.at<argparse::ArgumentParser>("opt").at<argparse::ArgumentParser>("rhf").at<argparse::ArgumentParser>("fci").add_argument("-p", "--print").help("-- Printing options.").default_value<std::vector<std::string>>({}).append();
 
     // add arguments to the MD argument parser
     program.at<argparse::ArgumentParser>("md").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
@@ -180,39 +238,39 @@ Parser::Parser(int argc, char** argv) : program("hazel", "0.1", argparse::defaul
     program.at<argparse::ArgumentParser>("md").at<argparse::ArgumentParser>("rhf").at<argparse::ArgumentParser>("fci").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
     program.at<argparse::ArgumentParser>("md").at<argparse::ArgumentParser>("rhf").at<argparse::ArgumentParser>("fci").add_argument("-g", "--gradient").help("-- Analytical (0) or numerical (1) gradient calculation with step size.").default_value(std::vector<double>{0, 1e-5}).nargs(2).scan<'g', double>();
 
-    // add arguments to the scan argument parser
+    // add arguments to the SCAN argument parser
     program.at<argparse::ArgumentParser>("scan").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
     program.at<argparse::ArgumentParser>("scan").add_argument("-o", "--output").help("-- Output of the PES energies.").default_value("pes.dat");
 
-    // add arguments to the scan RHF argument parser
+    // add arguments to the SCAN RHF argument parser
     program.at<argparse::ArgumentParser>("scan").at<argparse::ArgumentParser>("rhf").add_argument("-d", "--diis").help("-- Start iteration and history length for DIIS algorithm.").default_value(std::vector<int>{3, 5}).nargs(2).scan<'i', int>();
     program.at<argparse::ArgumentParser>("scan").at<argparse::ArgumentParser>("rhf").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
     program.at<argparse::ArgumentParser>("scan").at<argparse::ArgumentParser>("rhf").add_argument("-i", "--iters").help("-- Maximum number of iterations in SCF loop.").default_value(100).scan<'i', int>();
     program.at<argparse::ArgumentParser>("scan").at<argparse::ArgumentParser>("rhf").add_argument("-t", "--thresh").help("-- Threshold for conververgence in SCF loop.").default_value(1e-12).scan<'g', double>();
 
-    // add arguments to the scan UHF argument parser
+    // add arguments to the SCAN UHF argument parser
     program.at<argparse::ArgumentParser>("scan").at<argparse::ArgumentParser>("uhf").add_argument("-d", "--diis").help("-- Start iteration and history length for DIIS algorithm.").default_value(std::vector<int>{3, 5}).nargs(2).scan<'i', int>();
     program.at<argparse::ArgumentParser>("scan").at<argparse::ArgumentParser>("uhf").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
     program.at<argparse::ArgumentParser>("scan").at<argparse::ArgumentParser>("uhf").add_argument("-i", "--iters").help("-- Maximum number of iterations in SCF loop.").default_value(100).scan<'i', int>();
     program.at<argparse::ArgumentParser>("scan").at<argparse::ArgumentParser>("uhf").add_argument("-t", "--thresh").help("-- Threshold for conververgence in SCF loop.").default_value(1e-12).scan<'g', double>();
 
-    // add arguments to the scan MP2 argument parser
+    // add arguments to the SCAN MP2 argument parser
     program.at<argparse::ArgumentParser>("scan").at<argparse::ArgumentParser>("rhf").at<argparse::ArgumentParser>("mp2").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
 
-    // add arguments to the scan CI argument parser
+    // add arguments to the SCAN CI argument parser
     program.at<argparse::ArgumentParser>("scan").at<argparse::ArgumentParser>("rhf").at<argparse::ArgumentParser>("ci").add_argument("excitations").help("-- Help message.").nargs(argparse::nargs_pattern::at_least_one).scan<'i', int>();
     program.at<argparse::ArgumentParser>("scan").at<argparse::ArgumentParser>("rhf").at<argparse::ArgumentParser>("ci").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
 
-    // add arguments to the scan CIS argument parser
+    // add arguments to the SCAN CIS argument parser
     program.at<argparse::ArgumentParser>("scan").at<argparse::ArgumentParser>("rhf").at<argparse::ArgumentParser>("cis").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
 
-    // add arguments to the scan CID argument parser
+    // add arguments to the SCAN CID argument parser
     program.at<argparse::ArgumentParser>("scan").at<argparse::ArgumentParser>("rhf").at<argparse::ArgumentParser>("cid").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
 
-    // add arguments to the scan CISD argument parser
+    // add arguments to the SCAN CISD argument parser
     program.at<argparse::ArgumentParser>("scan").at<argparse::ArgumentParser>("rhf").at<argparse::ArgumentParser>("cisd").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
 
-    // add arguments to the scan FCI argument parser
+    // add arguments to the SCAN FCI argument parser
     program.at<argparse::ArgumentParser>("scan").at<argparse::ArgumentParser>("rhf").at<argparse::ArgumentParser>("fci").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
 
     // add arguments to the QD argument parser
