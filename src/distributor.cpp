@@ -514,8 +514,11 @@ void Distributor::scan() {
 }
 
 void Distributor::dynamics() {
-    // print the dynamics header
+    // print the MD title
     std::cout << std::endl; Printer::Title("MOLECULAR DYNAMICS");
+
+    // print MD header
+    std::printf("\n-- ITERS: %d, TIMESTEP: %.2f\n", parser.at("md").get<int>("-i"), parser.at("md").get<double>("-s"));
 
     // define the anonymous function for gradient
     std::function<std::tuple<double, Matrix>(System&)> egfunc;

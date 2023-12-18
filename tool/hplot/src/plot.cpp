@@ -5,10 +5,10 @@ void Plot::plot(const std::vector<std::vector<double>>& data) const {
     std::ofstream fstream(name + ".gpl");
 
     // write name and format to the file
-    fstream << "set term eps; set output \"" << name << ".eps\"" << std::endl;
+    fstream << "set term " << term << " size " << size.at(0) << ", " << size.at(1) << "; set output \"" << name << "." << term << "\"" << std::endl;
 
     // write plot method
-    fstream << "plot \"-\" with lines" << std::endl;
+    fstream << "plot \"-\" with lines lw " << width << " lc \"blue\" notitle" << std::endl;
 
     // write the data
     for (const std::vector<double>& row : data) {

@@ -10,5 +10,7 @@ public:
     void plot(const std::vector<std::vector<double>>& data) const;
 
 private:
-    std::string name;
+    std::vector<int> size = {1024, 768};
+    std::string name, term = "png";
+    int width = 2;
 };

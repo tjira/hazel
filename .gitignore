@@ -25,6 +25,7 @@ bin/
 *.log
 *.mat
 *.out
+*.png
 *.so
 
 # cores
