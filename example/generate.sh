@@ -1,6 +1,6 @@
 #!/bin/bash
 
-mkdir -p molecule trajectory
+mkdir -p molecule scan trajectory
 
 BASIS="STO-3G"
 METHOD="RHF"
@@ -34,7 +34,7 @@ EOM
 mkdir -p temp && cat > temp/HCl.xyz << EOM
 2
 HCl
-H 0.0000 0.0000 0.0000
+H  0.0000 0.0000 0.0000
 Cl 1.0000 0.0000 0.0000
 EOM
 
@@ -465,6 +465,18 @@ O -0.0669 -0.0232 -0.0267
 H  0.6848 -0.6120  0.5191
 H  0.3783  0.9803 -0.0938
 EOM
+
+cd temp && for MOL in *.xyz; do
+    if [[ $(cat "$MOL" | wc -l) == 4 ]]; then
+        echo "SCAN: $MOL" && cp "$MOL" "../scan" && cd "../scan" && for R in $(seq 0.2 0.01 3.5); do
+            while read -r LINE; do {
+                echo "$LINE" | awk -v R="$R" 'NF==4 && $2==0 {printf("%2s % 2.10f % 2.10f % 2.10f\n", $1, $2, $3, $4)}';
+                echo "$LINE" | awk -v R="$R" 'NF==4 && $2==1 {printf("%2s % 2.10f % 2.10f % 2.10f\n", $1, R, $3, $4)}';
+                echo "$LINE" | awk -v R="$R" 'NF==1 {printf("%s\n", $1)}';} >> "$MOL.tmp"
+            done < "$MOL"
+        done && mv "$MOL.tmp" "$MOL" && cd "../temp"
+    fi
+done && cd ..
 
 cd temp && for MOL in *.xyz; do
     echo -e "! $METHOD $BASIS OPT\n*xyzfile 0 1 $MOL" > "${MOL%.*}.inp" && orca "${MOL%.*}.inp" | tee "${MOL%.*}.out"
