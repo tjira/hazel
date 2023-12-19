@@ -29,7 +29,7 @@
 </p>
 
 <p align="center">
-Hazel is a collection of various electronic structure methods. It works similarly to the other available quantum programs. It is provided with a geometry file, the calculation is specified int the command line and results are printed to the terminal.
+Quantum Hazel, a dynamic collection of electronic structure methods, effortlessly transforms input geometry into quantum insights. Simply input a geometry file, specify calculations via the command line, and watch as results appear in your terminal.
 </p>
 
 ## ✨ Features

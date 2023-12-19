@@ -30,3 +30,6 @@ bin/
 
 # cores
 core.*
+
+# specific
+M.xyz
