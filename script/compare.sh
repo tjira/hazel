@@ -1,6 +1,6 @@
 echo "system,basis,nbf,method,hazel,orca,difference"
 
-SYSTEMS=("CO" "HCl" "CO2" "ozone" "water" "ammonia" "formaldehyde" "methane" "ethylene" "cyclopropanone" "ethanol" "acetone" "pyrrole" "benzene")
+SYSTEMS=("HCl" "CO2" "water" "ammonia" "formaldehyde" "methane" "ethylene" "cyclopropanone" "ethanol" "acetone" "pyrrole" "benzene")
 BASES=("mini" "midi" "sto-3g" "3-21g" "6-31g" "6-31+g*" "6-31+g**" "6-31++g**" "6-311g" "6-311+g*" "6-311+g**" "6-311++g**" "cc-pvdz" "cc-pvtz")
 
 for SYSTEM in "${SYSTEMS[@]}"; do
