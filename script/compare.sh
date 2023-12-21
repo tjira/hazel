@@ -1,8 +1,12 @@
 echo "system,basis,nbf,method,hazel,orca,difference"
 
+# define the systems to compare
 SYSTEMS=("HCl" "CO2" "water" "ammonia" "formaldehyde" "methane" "ethylene" "cyclopropanone" "ethanol" "acetone" "pyrrole" "benzene")
-BASES=("mini" "midi" "sto-3g" "3-21g" "6-31g" "6-31+g*" "6-31+g**" "6-31++g**" "6-311g" "6-311+g*" "6-311+g**" "6-311++g**" "cc-pvdz" "cc-pvtz")
 
+# define the bases to use
+BASES=("mini" "sto-3g" "6-311++g**" "cc-pvdz" "def2-svp" "aug-cc-pvdz")
+
+# compare RHF
 for SYSTEM in "${SYSTEMS[@]}"; do
 for BASIS in "${BASES[@]}"; do
     NBF=$(./bin/hazel -b "$BASIS" -f "example/molecule/$SYSTEM.xyz" | grep NBF | awk '{print $7}'); [[ $NBF -ge 80 ]] && continue
@@ -16,6 +20,7 @@ for BASIS in "${BASES[@]}"; do
 done
 done
 
+# compare MP2
 for SYSTEM in "${SYSTEMS[@]}"; do
 for BASIS in "${BASES[@]}"; do
     NBF=$(./bin/hazel -b "$BASIS" -f "example/molecule/$SYSTEM.xyz" | grep NBF | awk '{print $7}'); [[ $NBF -ge 50 ]] && continue
@@ -29,6 +34,7 @@ for BASIS in "${BASES[@]}"; do
 done
 done
 
+# compare CISD
 for SYSTEM in "${SYSTEMS[@]}"; do
 for BASIS in "${BASES[@]}"; do
     NBF=$(./bin/hazel -b "$BASIS" -f "example/molecule/$SYSTEM.xyz" | grep NBF | awk '{print $7}'); [[ $NBF -ge 10 ]] && continue
@@ -42,6 +48,7 @@ for BASIS in "${BASES[@]}"; do
 done
 done
 
+# compare FCI
 for SYSTEM in "${SYSTEMS[@]}"; do
 for BASIS in "${BASES[@]}"; do
     NBF=$(./bin/hazel -b "$BASIS" -f "example/molecule/$SYSTEM.xyz" | grep NBF | awk '{print $7}'); [[ $NBF -ge 10 ]] && continue

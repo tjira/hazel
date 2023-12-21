@@ -550,8 +550,12 @@ void Distributor::dynamics() {
 }
 
 void Distributor::qdyn() {
-    // print the dynamics header
+    // print the dynamics title
     std::cout << std::endl; Printer::Title("QUANTUM DYNAMICS");
+
+    // print QD header
+    std::printf("\n-- ITERS: %d, TIMESTEP: %.2f, STATES: %d\n", parser.at("qd").get<int>("-i"), parser.at("qd").get<double>("-s"), parser.at("qd").get<int>("-n"));
+    std::printf("-- THRESHOLD: %.2e\n\n", parser.at("qd").get<double>("-t"));
 
     // perform the dynamics
     QD::Results qdres = QD(QD::Options::Load(parser.at("qd"))).run(system);

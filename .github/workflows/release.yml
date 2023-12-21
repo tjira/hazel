@@ -110,7 +110,7 @@ jobs:
         uses: actions/download-artifact@v3
 
       - name: Remove Redundant Scripts
-        run: rm basis/basis.sh example/generate.sh
+        run: rm example/generate.sh
 
       - name: Copy x86-64 Binaries to the Root Folder
         run: |

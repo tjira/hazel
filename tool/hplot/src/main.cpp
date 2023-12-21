@@ -8,9 +8,9 @@ int main(int argc, char** argv) {
 
     // add arguments to program
     program.add_argument("-h", "--help").help("-- Print the help message.").default_value(false).implicit_value(true);
-    program.add_argument("--mdenergy").help("-- Energy from the MD simulation.").default_value(false).implicit_value(true);
-    program.add_argument("--hfconv").help("-- Plot the convergence of the SCF loop.").default_value(false).implicit_value(true);
-    program.add_argument("--pes").help("-- Plot the PES from a scan calculation.").default_value(false).implicit_value(true);
+    program.add_argument("-mde").help("-- Energy from the MD simulation.").default_value(false).implicit_value(true);
+    program.add_argument("-hfc").help("-- Plot the convergence of the SCF loop.").default_value(false).implicit_value(true);
+    program.add_argument("-pes").help("-- Plot the PES from a scan calculation.").default_value(false).implicit_value(true);
 
     // parse the arguments
     try {
@@ -29,7 +29,7 @@ int main(int argc, char** argv) {
     std::vector<std::vector<double>> data;
     std::cout << input << std::endl;
 
-    if (program.get<bool>("--hfconv")) {
+    if (program.get<bool>("-hfc")) {
         // create the line stringstream
         std::stringstream lss; lss << input;
 
@@ -53,7 +53,7 @@ int main(int argc, char** argv) {
                 }
             }
         }
-    } else if (program.get<bool>("--mdenergy")) {
+    } else if (program.get<bool>("-mde")) {
         // create the line stringstream
         std::stringstream lss; lss << input;
 
@@ -77,7 +77,7 @@ int main(int argc, char** argv) {
                 }
             }
         }
-    } else if (program.get<bool>("--pes")) {
+    } else if (program.get<bool>("-pes")) {
         // create the line stringstream
         std::stringstream lss; lss << input;
 
