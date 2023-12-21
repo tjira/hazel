@@ -53,7 +53,7 @@ QD::Results QD::run(System, bool print) const {
     // loop over all states
     for (int i = 0; i < opt.nstates; i++) {
         // print the iteration header
-        if (print) std::printf("%sSTATE %i\nITER       Eel [Eh]         |dE|     |dD|\n", i ? "\n" : "", i);
+        if (print) std::printf("%sSTATE %i\n ITER        Eel [Eh]         |dE|     |dD|\n", i ? "\n" : "", i);
 
         // assign the psi WFN to the correct state
         psi = states.at(i).at(states.at(i).size() - 1);
@@ -69,7 +69,7 @@ QD::Results QD::run(System, bool print) const {
             psi = R.array() * psi.array();
 
             // subtract lower eigenstates
-            for (int k = 0; k < i; k++) {
+            for (int k = 0; k < i && opt.imaginary; k++) {
                 psi = psi.array() - (Eigen::Conj(states.at(k).at(states.at(k).size() - 1)).array() * psi.array()).sum() * dx * states.at(k).at(states.at(k).size() - 1).array();
             }
 
@@ -84,7 +84,7 @@ QD::Results QD::run(System, bool print) const {
             double Eerr = std::abs(E - Eprev), Derr = (psi.array().abs2() - Dprev.array()).abs2().sum();
 
             // print the iteration
-            if (print) std::printf("%4d %20.14f %.2e %.2e\n", j, E, Eerr, Derr);
+            if (print) std::printf("%6d %20.14f %.2e %.2e\n", j, E, Eerr, Derr);
 
             // append the wave function
             states.at(i).push_back(psi);

@@ -9,15 +9,20 @@ import numpy as np
 import sys
 import re
 
+data, densdata, input = [], [], sys.stdin.read()
 xmin, xmax, ymin, ymax = 100, -100, 100, -100
-data, input = list(), sys.stdin.read()
+
+# define the square of complex number
+density = lambda re, im: re * re + im * im
 
 if __name__ == "__main__":
     # create the argument parser
     parser = ap.ArgumentParser(prog="Hazel Wavefunction Plotter", description="Wavefunction plotting script for the Hazel package.")
 
     # add arguments
-    parser.add_argument("--density", action="store_true")
+    parser.add_argument("--dens", action="store_true")
+    parser.add_argument("--imag", action="store_true")
+    parser.add_argument("--real", action="store_true")
 
     # parse arguments
     args = parser.parse_args()
@@ -57,8 +62,18 @@ if __name__ == "__main__":
     plt.axis([xmin, xmax, ymin - 0.1 * (ymax - ymin), ymax + 0.1 * (ymax - ymin)])
 
     # define the plots and animation update function
-    plots = [plt.plot(np.array(data[0]).T[0], np.array(data[0]).T[i] + energy[(i - 1) // 2])[0] for i in range(1, len(data[0][0]))]
-    update = lambda i: [plots[j - 1].set_ydata(np.array(data[i]).T[j] + energy[(j - 1) // 2]) for j in range(1, len(data[0][0]))]
+    if args.real:
+        plots = [plt.plot(np.array(data[0]).T[0], np.array(data[0]).T[i] + energy[(i - 1) // 2])[0] for i in range(1, len(data[0][0]), 2)]
+        update = lambda i: [plots[(j - 1) // 2].set_ydata(np.array(data[i]).T[j] + energy[(j - 1) // 2]) for j in range(1, len(data[0][0]), 2)]
+    elif args.imag:
+        plots = [plt.plot(np.array(data[0]).T[0], np.array(data[0]).T[i] + energy[(i - 1) // 2])[0] for i in range(2, len(data[0][0]), 2)]
+        update = lambda i: [plots[(j - 1) // 2].set_ydata(np.array(data[i]).T[j] + energy[(j - 1) // 2]) for j in range(2, len(data[0][0]), 2)]
+    elif args.dens:
+        plots = [plt.plot(np.array(data[0]).T[0], density(np.array(data[0]).T[i], np.array(data[0]).T[i + 1]) + energy[(i - 1) // 2])[0] for i in range(1, len(data[0][0]), 2)]
+        update = lambda i: [plots[(j - 1) // 2].set_ydata(density(np.array(data[i]).T[j], np.array(data[i]).T[j + 1]) + energy[(j - 1) // 2]) for j in range(1, len(data[0][0]), 2)]
+    else:
+        plots = [plt.plot(np.array(data[0]).T[0], np.array(data[0]).T[i] + energy[(i - 1) // 2])[0] for i in range(1, len(data[0][0]))]
+        update = lambda i: [plots[j - 1].set_ydata(np.array(data[i]).T[j] + energy[(j - 1) // 2]) for j in range(1, len(data[0][0]))]
 
     # create the animation
     ani = anm.FuncAnimation(fig, update, frames=len(data), interval=30);
