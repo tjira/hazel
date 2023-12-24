@@ -2,8 +2,8 @@
 
 void MD::run(System system, const std::function<std::tuple<double, Matrix>(System&)>& egfunc, bool print) const {
     // calculate the initial energy and gradient and print the header with the initial state info
-    auto[E, G] = egfunc(system); if (print) std::printf("\n ITER         E [Eh]              KIN [Eh]              T [Eh]         |GRAD|      TIME\n");
-    if (print) std::printf("%6d %20.14f %20.14f %20.14f %.2e %s\n", 0, E, 0.0, 0.0, G.norm(), "00:00:00.000");
+    auto[E, G] = egfunc(system); if (print) std::printf("\n ITER   TIME [fs]        E [Eh]              KIN [Eh]              TK [K]         |GRAD|      TIME\n");
+    if (print) std::printf("%6d %10.4f %20.14f %20.14f %20.14f %.2e %s\n", 0, 0.0, E, 0.0, 0.0, G.norm(), "00:00:00.000");
 
     // get the degrees of freedom
     double Nf = system.atoms.size() * 3 - 6;
@@ -44,6 +44,6 @@ void MD::run(System system, const std::function<std::tuple<double, Matrix>(Syste
         system.save(opt.output, std::ios::app);
 
         // print the iteration info
-        if (print) std::printf("%6d %20.14f %20.14f %20.14f %.2e %s\n", i + 1, E, Ekin, T / BOLTZMANN, G.norm(), Timer::Format(Timer::Elapsed(start)).c_str());
+        if (print) std::printf("%6d %10.4f %20.14f %20.14f %20.14f %.2e %s\n", i + 1, AU2FS * opt.step * (i + 1), E, Ekin, T / BOLTZMANN, G.norm(), Timer::Format(Timer::Elapsed(start)).c_str());
     }
 }

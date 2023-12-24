@@ -195,7 +195,7 @@ Parser::Parser(int argc, char** argv) : program("hazel", "0.1", argparse::defaul
 
     // add arguments to the MD argument parser
     program.at<argparse::ArgumentParser>("md").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
-    program.at<argparse::ArgumentParser>("md").add_argument("-s", "--step").help("-- Time step in atomic units.").default_value(0.5).scan<'g', double>();
+    program.at<argparse::ArgumentParser>("md").add_argument("-s", "--step").help("-- Time step in atomic units.").default_value(1.0).scan<'g', double>();
     program.at<argparse::ArgumentParser>("md").add_argument("-i", "--iters").help("-- Number of iterations in dynamics.").default_value(100).scan<'i', int>();
     program.at<argparse::ArgumentParser>("md").add_argument("-o", "--output").help("-- Output of the trajectory.").default_value("trajectory.xyz");
     program.at<argparse::ArgumentParser>("md").add_argument("--berendsen").help("-- Enable Berendsen thermostat with temperature and tau parameter.").default_value(std::vector<double>{0.0, 1.0}).nargs(2).scan<'g', double>();
