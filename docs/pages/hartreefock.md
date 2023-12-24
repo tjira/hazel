@@ -35,7 +35,7 @@ are calculated using a basis set and handled by libint library. Additionally, th
 S_{\mu\nu}=\braket{\phi_{\mu}|\phi_{\nu}}
 \end{equation}
 
-and the two-electron Coulomb repulsion tensor
+and the two-electron Coulomb repulsion integral
 
 \begin{equation}
 J_{\mu\nu\kappa\lambda}=\braket{\phi_{\mu}\phi_{\mu}|\hat{J}|\phi_{\kappa}\phi_{\lambda}}

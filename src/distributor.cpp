@@ -518,7 +518,9 @@ void Distributor::dynamics() {
     std::cout << std::endl; Printer::Title("MOLECULAR DYNAMICS");
 
     // print MD header
-    std::printf("\n-- ITERS: %d, TIMESTEP: %.2f\n", parser.at("md").get<int>("-i"), parser.at("md").get<double>("-s"));
+    if (parser.at("md").has("--berendsen")) std::printf("\n-- THERMOSTAT: BERENDSEN, TEMP: %.2f, TAU: %.2f\n", parser.at("md").get<std::vector<double>>("--berendsen").at(0), parser.at("md").get<std::vector<double>>("--berendsen").at(1));
+    else std::cout << std::endl;
+    std::printf("-- ITERS: %d, TIMESTEP: %.2f\n", parser.at("md").get<int>("-i"), parser.at("md").get<double>("-s"));
 
     // define the anonymous function for gradient
     std::function<std::tuple<double, Matrix>(System&)> egfunc;
@@ -543,10 +545,12 @@ void Distributor::dynamics() {
     } else if (parser.at("md").used("uhf")) {
         auto uhfopt = HF::OptionsUnrestricted::Load(parser.at("md").at("uhf"), parser.get<bool>("--no-coulomb"));
         egfunc = Lambda::EGHF(uhfopt, parser.at("md").at("uhf").get<std::vector<double>>("-g"), Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
+    } else {
+        throw std::runtime_error("NO METHOD SPECIFIED FOR MOLECULAR DYNAMICS");
     }
 
     // perform the dynamics
-    MD(parser.at("md").get<int>("-i"), parser.at("md").get<double>("-s"), parser.at("md").get<std::string>("-o")).run(system, egfunc);
+    MD(MD::Options::Load(parser.at("md"))).run(system, egfunc);
 }
 
 void Distributor::qdyn() {

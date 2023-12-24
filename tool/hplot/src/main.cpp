@@ -9,6 +9,7 @@ int main(int argc, char** argv) {
     // add arguments to program
     program.add_argument("-h", "--help").help("-- Print the help message.").default_value(false).implicit_value(true);
     program.add_argument("-mde").help("-- Energy from the MD simulation.").default_value(false).implicit_value(true);
+    program.add_argument("-mdt").help("-- Temperature from the MD simulation.").default_value(false).implicit_value(true);
     program.add_argument("-hfc").help("-- Plot the convergence of the SCF loop.").default_value(false).implicit_value(true);
     program.add_argument("-pes").help("-- Plot the PES from a scan calculation.").default_value(false).implicit_value(true);
 
@@ -62,7 +63,7 @@ int main(int argc, char** argv) {
             // if cursor in RHF block
             if (line == "MOLECULAR DYNAMICS") {
                 // skip lines
-                for (int i = 0; i < 5; i++) std::getline(lss, line);
+                for (int i = 0; i < 6; i++) std::getline(lss, line);
 
                 // while iterations
                 while (std::getline(lss, line) && !line.empty()) {
@@ -74,6 +75,30 @@ int main(int argc, char** argv) {
 
                     // exctract and append data
                     double iter, E; css >> iter, css >> E; data.push_back({iter, E});
+                }
+            }
+        }
+    } else if (program.get<bool>("-mdt")) {
+        // create the line stringstream
+        std::stringstream lss; lss << input;
+
+        // loop over lines
+        while (std::getline(lss, line)) {
+            // if cursor in RHF block
+            if (line == "MOLECULAR DYNAMICS") {
+                // skip lines
+                for (int i = 0; i < 6; i++) std::getline(lss, line);
+
+                // while iterations
+                while (std::getline(lss, line) && !line.empty()) {
+                    // create the column stringstream
+                    std::stringstream css; css << line;
+
+                    // set precision
+                    css << std::fixed; css.precision(14);
+
+                    // exctract and append data
+                    double iter, E, Ekin, T; css >> iter, css >> E, css >> Ekin, css >> T; data.push_back({iter, T});
                 }
             }
         }

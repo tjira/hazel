@@ -33,17 +33,19 @@ QD::Results QD::run(System, bool print) const {
         K = (-0.5 * I * k.array().pow(2) * opt.dt).exp();
         R = (-0.5 * I * V.array() * opt.dt).exp();
 
-        // create imaginary options
-        Options imopt = opt; imopt.imaginary = true;
-        imopt.iters = 1000;
+        // create imaginary options and set some necessary values
+        Options imopt = opt; imopt.imaginary = true, imopt.iters = 100000;
 
         // optimize the wavefunctions
-        states = QD(imopt).run(System(), false).states;
+        states = QD(imopt).run(System(), true).states;
 
         // delete optimization steps
         for (size_t i = 0; i < states.size(); i++) {
             states.at(i) = {states.at(i).at(states.at(i).size() - 1)};
         }
+
+        // print empty line
+        std::cout << std::endl;
     }
 
     // calculate the total energy
@@ -53,7 +55,7 @@ QD::Results QD::run(System, bool print) const {
     // loop over all states
     for (int i = 0; i < opt.nstates; i++) {
         // print the iteration header
-        if (print) std::printf("%sSTATE %i\n ITER        Eel [Eh]         |dE|     |dD|\n", i ? "\n" : "", i);
+        if (print) std::printf("%sSTATE %i %s\n ITER        Eel [Eh]         |dE|     |dD|\n", i ? "\n" : "", i, opt.imaginary ? "(IT)" : "(RT)");
 
         // assign the psi WFN to the correct state
         psi = states.at(i).at(states.at(i).size() - 1);
