@@ -25,7 +25,7 @@
     </a>
     <br>
     <a href="https://github.com/tjira/hazel">
-        <img src="https://tokei.rs/b1/github/tjira/hazel?style=for-the-badge"/>
+        <img src="https://tokei.rs/b1/github/tjira/hazel?category=code&style=for-the-badge"/>
     </a>
     <a href="https://github.com/tjira/hazel">
         <img src="https://img.shields.io/github/languages/code-size/tjira/hazel?style=for-the-badge"/>
