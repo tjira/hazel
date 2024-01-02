@@ -141,19 +141,19 @@ hazel -f molecule.xyz -b sto-3g rhf mp2
 Currently, the HF method is the only one with implemented analytical gradient. To calculate it execute the following command.
 
 ```bash
-hazel -f molecule.xyz -b sto-3g rhf -g 0 1e-5
+hazel -f molecule.xyz -b sto-3g rhf -g 0
 ```
 
-The 0 disables numerical gradient and 1e-5 is the step size for numerical gradient. The step is not ussed for analytical gradient, but you have to specify it if you plan to add another options after the `-g` flag. You can calculate numerical gradients with the post HF methods as follows.
+The first `-g` argument is step for the numerical gradient, if it is 0, then the analytical gradient is used. You can calculate numerical gradients with the post HF methods as follows.
 
 ```bash
-hazel -f molecule.xyz -b sto-3g rhf fci -g 1 1e-5
+hazel -f molecule.xyz -b sto-3g rhf fci -g 1e-5
 ```
 
-The 1 enables numerical gradient and 1e-5 is the step size. The frequencies have to be calculated numerically. Below is an example to calculate it for the MP2 method.
+The number 1e-5 is the step size. The frequencies have to be calculated numerically. Below is an example to calculate it for the MP2 method.
 
 ```bash
-hazel -f molecule.xyz -b sto-3g rhf mp2 -f 1 1e-5
+hazel -f molecule.xyz -b sto-3g rhf mp2 -f 1e-5
 ```
 
 ### Molecular Optimization
@@ -161,10 +161,10 @@ hazel -f molecule.xyz -b sto-3g rhf mp2 -f 1 1e-5
 To optimize a molecule using RHF method you can do the following. 
 
 ```bash
-hazel -f molecule.xyz -b sto-3g opt -t 1e-8 rhf -g 1 1e-5
+hazel -f molecule.xyz -b sto-3g opt -t 1e-8 rhf -g 0
 ```
 
-We also specified options for the gradient calculation. The 1e-8 is the gradient threshold for optimization.
+The 1e-8 is the gradient threshold for optimization.
 
 ### Molecular Dynamics
 

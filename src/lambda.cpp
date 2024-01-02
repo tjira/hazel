@@ -57,8 +57,8 @@ std::function<double(System)> Lambda::EMP2(const HF::OptionsRestricted& rhfopt, 
     };
 }
 
-std::function<std::tuple<double, Matrix>(System&)> Lambda::EGCI(const HF::OptionsRestricted& rhfopt, const std::vector<int>& excits, const std::vector<double>& gopt, Matrix D) {
-    return [rhfopt, excits, gopt, D](System& system) {
+std::function<std::tuple<double, Matrix>(System&)> Lambda::EGCI(const HF::OptionsRestricted& rhfopt, const std::vector<int>& excits, double gstep, Matrix D) {
+    return [rhfopt, excits, gstep, D](System& system) {
         // calculate the atomic integrals
         system.ints.T = Integral::Kinetic(system), system.ints.V = Integral::Nuclear(system);
         system.ints.S = Integral::Overlap(system), system.ints.J = Integral::Coulomb(system);
@@ -67,7 +67,7 @@ std::function<std::tuple<double, Matrix>(System&)> Lambda::EGCI(const HF::Option
         HF::ResultsRestricted rhfres = HF(rhfopt).rscf(system, D, false);
 
         // calculate the CI gradient
-        Matrix G = Gradient(gopt.at(1)).get(system, Lambda::ECI(rhfopt, excits, rhfres.D), false);
+        Matrix G = Gradient(gstep).get(system, Lambda::ECI(rhfopt, excits, rhfres.D), false);
 
         // transform the Hamiltonian and Coulomb tensor to MS basis
         Matrix Hms = Transform::OneelecSpin(system.ints.T + system.ints.V, rhfres.C);
@@ -81,8 +81,8 @@ std::function<std::tuple<double, Matrix>(System&)> Lambda::EGCI(const HF::Option
     };
 }
 
-std::function<std::tuple<double, Matrix>(System&)> Lambda::EGHF(const HF::OptionsRestricted& rhfopt, const std::vector<double>& gopt, Matrix D) {
-    return [rhfopt, gopt, D](System& system) {
+std::function<std::tuple<double, Matrix>(System&)> Lambda::EGHF(const HF::OptionsRestricted& rhfopt, double gstep, Matrix D) {
+    return [rhfopt, gstep, D](System& system) {
         // calculate the atomic integrals
         system.ints.T = Integral::Kinetic(system), system.ints.V = Integral::Nuclear(system);
         system.ints.S = Integral::Overlap(system), system.ints.J = Integral::Coulomb(system);
@@ -91,7 +91,7 @@ std::function<std::tuple<double, Matrix>(System&)> Lambda::EGHF(const HF::Option
         HF::ResultsRestricted rhfres = HF(rhfopt).rscf(system, D, false);
 
         // calculate the numerical or analytical gradient
-        if (gopt.at(0)) return std::tuple{rhfres.E, Gradient(gopt.at(1)).get(system, Lambda::EHF(rhfopt, rhfres.D), false)};
+        if (gstep) return std::tuple{rhfres.E, Gradient(gstep).get(system, Lambda::EHF(rhfopt, rhfres.D), false)};
         else {
             // calculate the integral derivatives
             system.dints.dT = Integral::dKinetic(system), system.dints.dV = Integral::dNuclear(system);
@@ -103,8 +103,8 @@ std::function<std::tuple<double, Matrix>(System&)> Lambda::EGHF(const HF::Option
     };
 }
 
-std::function<std::tuple<double, Matrix>(System&)> Lambda::EGHF(const HF::OptionsUnrestricted& uhfopt, const std::vector<double>& gopt, Matrix D) {
-    return [uhfopt, gopt, D](System& system) {
+std::function<std::tuple<double, Matrix>(System&)> Lambda::EGHF(const HF::OptionsUnrestricted& uhfopt, double gstep, Matrix D) {
+    return [uhfopt, gstep, D](System& system) {
         // calculate the atomic integrals
         system.ints.T = Integral::Kinetic(system), system.ints.V = Integral::Nuclear(system);
         system.ints.S = Integral::Overlap(system), system.ints.J = Integral::Coulomb(system);
@@ -113,13 +113,13 @@ std::function<std::tuple<double, Matrix>(System&)> Lambda::EGHF(const HF::Option
         HF::ResultsUnrestricted uhfres = HF(uhfopt).uscf(system, D, false);
 
         // calculate the numerical or analytical gradient
-        if (gopt.at(0)) return std::tuple{uhfres.E, Gradient(gopt.at(1)).get(system, Lambda::EHF(uhfopt, 0.5 * (uhfres.Da + uhfres.Db)), false)};
+        if (gstep) return std::tuple{uhfres.E, Gradient(gstep).get(system, Lambda::EHF(uhfopt, 0.5 * (uhfres.Da + uhfres.Db)), false)};
         else throw std::runtime_error("ANALYTICAL GRADIENT FOR UHF NOT IMPLEMENTED");
     };
 }
 
-std::function<std::tuple<double, Matrix>(System&)> Lambda::EGMP2(const HF::OptionsRestricted& rhfopt, const std::vector<double>& gopt, Matrix D) {
-    return [rhfopt, gopt, D](System& system) {
+std::function<std::tuple<double, Matrix>(System&)> Lambda::EGMP2(const HF::OptionsRestricted& rhfopt, double gstep, Matrix D) {
+    return [rhfopt, gstep, D](System& system) {
         // calculate the atomic integrals
         system.ints.T = Integral::Kinetic(system), system.ints.V = Integral::Nuclear(system);
         system.ints.S = Integral::Overlap(system), system.ints.J = Integral::Coulomb(system);
@@ -128,7 +128,7 @@ std::function<std::tuple<double, Matrix>(System&)> Lambda::EGMP2(const HF::Optio
         HF::ResultsRestricted rhfres = HF(rhfopt).rscf(system, D, false);
 
         // calculate the MP2 gradient and energy
-        Matrix G = Gradient(gopt.at(1)).get(system, Lambda::EMP2(rhfopt, rhfres.D), false);
+        Matrix G = Gradient(gstep).get(system, Lambda::EMP2(rhfopt, rhfres.D), false);
         Tensor<4> Jmo = Transform::Coulomb(system.ints.J, rhfres.C);
         double Ecorr = MP(rhfres).rmp2(system, Jmo, false);
 

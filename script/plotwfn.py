@@ -9,6 +9,7 @@ import numpy as np
 import sys
 import re
 
+# define the data arrays and input
 data, densdata, input = [], [], sys.stdin.read()
 xmin, xmax, ymin, ymax = 100, -100, 100, -100
 

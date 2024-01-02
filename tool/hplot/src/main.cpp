@@ -74,7 +74,7 @@ int main(int argc, char** argv) {
                     css << std::fixed; css.precision(14);
 
                     // exctract and append data
-                    double iter, time, E; css >> iter, css >> time, css >> E; data.push_back({iter, E});
+                    double iter, time, E; css >> iter, css >> time, css >> E; data.push_back({time, E});
                 }
             }
         }
@@ -98,7 +98,7 @@ int main(int argc, char** argv) {
                     css << std::fixed; css.precision(14);
 
                     // exctract and append data
-                    double iter, time, E, Ekin, T; css >> iter, css >> time, css >> E, css >> Ekin, css >> T; data.push_back({iter, T});
+                    double iter, time, E, Ekin, T; css >> iter, css >> time, css >> E, css >> Ekin, css >> T; data.push_back({time, T});
                 }
             }
         }
