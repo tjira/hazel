@@ -1,0 +1,12 @@
+# folders
+.github
+example
+script
+basis
+docs
+tool
+
+# exts
+*.txt
+*.md
+*.py

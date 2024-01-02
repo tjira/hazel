@@ -2,9 +2,9 @@
 
 <h4 align="center">
   <a href="https://github.com/tjira/hazel#%EF%B8%8F-compilation">Compilation</a>
-  .
+  ·
   <a href="https://github.com/tjira/hazel#%EF%B8%8F-examples">Examples</a>
-  .
+  ·
   <a href="https://github.com/tjira/hazel#%EF%B8%8F-printing">Printing</a>
   ·
   <a href="https://tjira.github.io/hazel/">Docs</a>
