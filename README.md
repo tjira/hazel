@@ -2,29 +2,36 @@
 
 <h4 align="center">
   <a href="https://github.com/tjira/hazel#%EF%B8%8F-compilation">Compilation</a>
+  .
+  <a href="https://github.com/tjira/hazel#%EF%B8%8F-examples">Examples</a>
+  .
+  <a href="https://github.com/tjira/hazel#%EF%B8%8F-printing">Printing</a>
   ·
   <a href="https://tjira.github.io/hazel/">Docs</a>
 </h4>
 
 <p align="center">
     <a href="https://github.com/tjira/hazel/pulse">
-        <img src="https://img.shields.io/github/last-commit/tjira/hazel?logo=github&logoColor=white&style=for-the-badge"/>
+        <img src="https://img.shields.io/github/last-commit/tjira/hazel?style=for-the-badge"/>
     </a>
     <a href="https://github.com/tjira/hazel/blob/master/LICENSE.md">
-        <img src="https://img.shields.io/github/license/tjira/hazel?logo=gitbook&logoColor=white&style=for-the-badge"/>
+        <img src="https://img.shields.io/github/license/tjira/hazel?style=for-the-badge"/>
     </a>
     <a href="https://github.com/tjira/hazel/stargazers">
-        <img src="https://img.shields.io/github/stars/tjira/hazel?logo=apachespark&logoColor=white&style=for-the-badge"/>
+        <img src="https://img.shields.io/github/stars/tjira/hazel?style=for-the-badge"/>
+    </a>
+    <a href="https://github.com/tjira/hazel/releases/latest">
+        <img src="https://img.shields.io/github/v/release/tjira/hazel?display_name=tag&style=for-the-badge"/>
     </a>
     <a href="https://github.com/tjira/hazel">
-        <img src="https://img.shields.io/github/languages/code-size/tjira/hazel?logo=databricks&logoColor=white&style=for-the-badge"/>
+        <img src="https://tokei.rs/b1/github/tjira/hazel?style=for-the-badge"/>
+    </a>
+    <a href="https://github.com/tjira/hazel">
+        <img src="https://img.shields.io/github/languages/code-size/tjira/hazel?style=for-the-badge"/>
     </a>
     <br>
     <a href="https://github.com/tjira/hazel/releases/latest">
-        <img src="https://img.shields.io/github/v/release/tjira/hazel?display_name=tag&logo=sharp&logoColor=white&style=for-the-badge"/>
-    </a>
-    <a href="https://github.com/tjira/hazel/releases/latest">
-        <img src="https://img.shields.io/github/downloads/tjira/hazel/total?logo=markdown&logoColor=white&style=for-the-badge"/>
+        <img src="https://img.shields.io/github/downloads/tjira/hazel/total?style=for-the-badge"/>
     </a>
 </p>
 
@@ -32,7 +39,7 @@
 Quantum Hazel, a dynamic collection of electronic structure methods, effortlessly transforms input geometry into quantum insights. Simply input a geometry file, specify calculations via the command line, and watch as results appear in your terminal.
 </p>
 
-## ✨ Features
+## Features
 
 Below are all the important features of Hazel divided into categories.
 
@@ -54,7 +61,7 @@ Below are all the important features of Hazel divided into categories.
 
 * Direct Inversion in the Iterative Subspace
 
-## 🛠️ Compilation
+## Compilation
 
 ### The Simple Way
 
@@ -101,7 +108,7 @@ cmake --build build
 
 After the compilation the bin folder will be created along with the executable.
 
-## 🖥️ Examples
+## Examples
 
 This section show some basic calculation examples. You can view all the options of a specific command directly from the software by executing the calculation with added `-h` flag.
 
@@ -169,7 +176,7 @@ hazel -f molecule.xyz -b sto-3g md rhf mp2
 
 During the calculation the file trajectory.xyz will be created.
 
-## 🖨️ Printing Options
+## Printing
 
 In his section you find all the printing options implemented in Hazel. This also an overview of what data you, as a user, can extract from the software.
 
@@ -221,7 +228,7 @@ In his section you find all the printing options implemented in Hazel. This also
     * `cie` - Eigenvalues of CI Hamiltonian.
     * `cic` - Eigenvectors of CI Hamiltonian.
 
-## ⭐ Credits
+## Credits
 
 * [argparse](https://github.com/p-ranav/argparse) - Argument Parser for Modern C++.
 * [glad](https://github.com/Dav1dde/glad) - Multi-Language Vulkan/GL/GLES/EGL/GLX/WGL Loader-Generator based on the official specs.
