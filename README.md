@@ -23,13 +23,13 @@
     <a href="https://github.com/tjira/hazel/releases/latest">
         <img src="https://img.shields.io/github/v/release/tjira/hazel?display_name=tag&style=for-the-badge"/>
     </a>
+    <br>
     <a href="https://github.com/tjira/hazel">
         <img src="https://tokei.rs/b1/github/tjira/hazel?style=for-the-badge"/>
     </a>
     <a href="https://github.com/tjira/hazel">
         <img src="https://img.shields.io/github/languages/code-size/tjira/hazel?style=for-the-badge"/>
     </a>
-    <br>
     <a href="https://github.com/tjira/hazel/releases/latest">
         <img src="https://img.shields.io/github/downloads/tjira/hazel/total?style=for-the-badge"/>
     </a>
