@@ -119,8 +119,8 @@ jobs:
 
       - name: Create x86-64 Packages
         run: |
-          zip -r hazel_windows_x86-64.zip hazel.exe hview.exe basis example LICENSE.md
-          tar -czf hazel_linux_x86-64.tar.gz hazel hview basis example LICENSE.md
+          zip -r hazel_windows_x86-64.zip hazel.exe hview.exe basis example script/plotwfn.py script/potential.py LICENSE.md
+          tar -czf hazel_linux_x86-64.tar.gz hazel hview basis example script/plotwfn.py script/potential.py LICENSE.md
 
       - name: Copy x86-64_openmp Binaries to the Root Folder
         run: |
@@ -129,7 +129,7 @@ jobs:
 
       - name: Create x86-64_openmp Packages
         run: |
-          tar -czf hazel_linux_x86-64_openmp.tar.gz hazel hview basis example LICENSE.md
+          tar -czf hazel_linux_x86-64_openmp.tar.gz hazel hview basis example script/plotwfn.py script/potential.py LICENSE.md
 
       - name: Release linux_x86-64 Version of Hazel
         uses: svenstaro/upload-release-action@v2
