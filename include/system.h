@@ -12,11 +12,19 @@ inline std::unordered_map<int, double> masses = {
     {9, 18.998403},
 };
 
+inline std::unordered_map<int, std::string> an2sm = {
+    {1, "H"},
+    {6, "C"},
+    {7, "N"},
+    {8, "O"},
+    {9, "F"}
+};
+
 struct System {
     // constructors and all the functions
     System() = default; System(std::ifstream& stream, const std::string& basis, int charge, int multi);
     void save(const std::string& fname, std::ios::openmode mode = std::ios::out) const;
-    void move(const Matrix& dir); Determinant det() const; System& clearints();
+    void move(const Matrix& dir); Determinant det() const;
 
     // properties of the system
     std::vector<libint2::Atom> atoms;

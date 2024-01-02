@@ -2,10 +2,11 @@
 
 Parser::Parser(int argc, char** argv) : program("hazel", "0.1", argparse::default_arguments::none) {
     // add main parsers
-    parsers.reserve(7);
+    parsers.reserve(8);
     parsers.insert({"ints", std::make_shared<Parser>(Parser("ints"))}); program.add_subparser(at("ints").program);
     parsers.insert({"md", std::make_shared<Parser>(Parser("md"))}); program.add_subparser(at("md").program);
     parsers.insert({"opt", std::make_shared<Parser>(Parser("opt"))}); program.add_subparser(at("opt").program);
+    parsers.insert({"orca", std::make_shared<Parser>(Parser("orca"))}); program.add_subparser(at("orca").program);
     parsers.insert({"qd", std::make_shared<Parser>(Parser("qd"))}); program.add_subparser(at("qd").program);
     parsers.insert({"rhf", std::make_shared<Parser>(Parser("rhf"))}); program.add_subparser(at("rhf").program);
     parsers.insert({"scan", std::make_shared<Parser>(Parser("scan"))}); program.add_subparser(at("scan").program);
@@ -283,6 +284,12 @@ Parser::Parser(int argc, char** argv) : program("hazel", "0.1", argparse::defaul
     program.at<argparse::ArgumentParser>("qd").add_argument("-f", "--potfile").help("-- File with the PES.").default_value("pes.dat");
     program.at<argparse::ArgumentParser>("qd").add_argument("-t", "--thresh").help("-- Threshold for conververgence in ITP loop.").default_value(1e-8).scan<'g', double>();
     program.at<argparse::ArgumentParser>("qd").add_argument("--no-real").help("-- Help message.").default_value(false).implicit_value(true);
+
+    // add arguments to the ORCA argument parser
+    program.at<argparse::ArgumentParser>("orca").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
+    program.at<argparse::ArgumentParser>("orca").add_argument("-g", "--gradient").help("-- Step size for gradient calculation or 0 for analytical gradient.").default_value(0.0).scan<'g', double>();
+    program.at<argparse::ArgumentParser>("orca").add_argument("-f", "--frequency").help("-- Step size for frequency calculation or 0 for analytical hessian.").default_value(0.0).scan<'g', double>();
+    program.at<argparse::ArgumentParser>("orca").add_argument("-m", "--method").help("-- Method for ORCA calculation.").default_value("hf");
 
     try {
         program.parse_args(argc, argv);

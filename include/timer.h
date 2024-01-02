@@ -1,9 +1,6 @@
 #pragma once
 
-#include <iomanip>
-#include <sstream>
-#include <chrono>
-#include <string>
+#include <bits/stdc++.h>
 
 namespace Timer {
     typedef std::chrono::time_point<std::chrono::high_resolution_clock> Timepoint;

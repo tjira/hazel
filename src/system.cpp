@@ -1,11 +1,5 @@
 #include "system.h"
 
-std::unordered_map<int, std::string> an2sm = {
-    {1, "H"},
-    {6, "C"},
-    {8, "O"}
-};
-
 System::System(std::ifstream& stream, const std::string& basis, int charge, int multi) : electrons(0), charge(charge), multi(multi), basis(basis) {
     // check for the input file existence
     if (!stream.good()) throw std::runtime_error("SYSTEM FILE DOES NOT EXIST");
@@ -36,11 +30,6 @@ System::System(std::ifstream& stream, const std::string& basis, int charge, int 
             dists(i, j) = (coords.row(i) - coords.row(j)).norm();
         }
     }
-}
-
-System& System::clearints() {
-    // delete integrals and return reference of itself
-    ints = {}, dints = {}; return *this;
 }
 
 Determinant System::det() const {

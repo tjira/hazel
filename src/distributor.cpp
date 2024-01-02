@@ -43,10 +43,11 @@ void Distributor::run() {
     }
 
     // distribute the calculations
-    if (parser.used("scan")) scan();
     if (parser.used("md")) dynamics();
+    if (parser.used("orca")) orca();
     if (parser.used("qd")) qdyn();
     if (parser.used("rhf")) rhfrun();
+    if (parser.used("scan")) scan();
     if (parser.used("uhf")) uhfrun();
 }
 
@@ -655,4 +656,32 @@ void Distributor::integrals() {
         // print new line
         std::cout << "\n";
     }
+}
+
+void Distributor::orca() {
+    // print the ORCA calculation header
+    std::cout << "\n" << std::setprecision(12); Printer::Title("ORCA INPUT");
+
+    // create the ORCA class
+    Orca orca(system, parser.at("orca").get<std::string>("-m"));
+
+    // add additional options
+    if (parser.at("orca").has("-g")) orca.gradient(parser.at("orca").get<double>("-g"));
+    if (parser.at("orca").has("-f")) orca.hessian(parser.at("orca").get<double>("-f"));
+
+    // print the input
+    std::cout << "\n" << orca.getInput();
+
+    // run the calculation
+    auto orcares = orca.run();
+
+    // print the gradient
+    if (parser.at("orca").has("-g")) {
+        std::cout << "\n"; Printer::Title("ORCA GRADIENT");
+        Printer::Mat("\nNUCLEAR GRADIENT", orcares.G); std::printf("\nGRADIENT NORM: %.2e\n", orcares.G.norm());
+    }
+
+    // print the energy
+    std::cout << "\n"; Printer::Title("ORCA ENERGY");
+    std::cout << "\nFINAL ENERGY: " << orcares.E << std::endl;
 }

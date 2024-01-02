@@ -19,7 +19,7 @@ void Printer::Initial(const Parser& program, System& system) {
         std::cout << std::endl;
 
         // print the system block
-        Title(std::string("SYSTEM SPECIFICATION (") + program.get<std::string>("-b") + std::string(")"));
+        Title(std::string("SYSTEM SPECIFICATION (") + Utility::ToUpper(program.get<std::string>("-b")) + std::string(")"));
         std::printf("\n-- ATOMS: %d, ELECTRONS: %d, NBF: %d\n", (int)system.atoms.size(), system.electrons, (int)system.shells.nbf());
         std::printf("-- CHARGE: %d, MULTIPLICITY: %d\n", system.charge, system.multi);
         Printer::Mat("\nSYSTEM COORDINATES", system.coords);

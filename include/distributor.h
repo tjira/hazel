@@ -4,6 +4,7 @@
 #include "lambda.h"
 #include "md.h"
 #include "optimizer.h"
+#include "orca.h"
 #include "parser.h"
 #include "printer.h"
 #include "qd.h"
@@ -37,6 +38,9 @@ private:
 
     // SCAN, MD and QD distribution
     void scan(); void dynamics(); void qdyn();
+
+    // external tools
+    void orca();
 
 private:
     // argument parsers, timer and system
