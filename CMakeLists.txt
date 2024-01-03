@@ -23,6 +23,11 @@ set(CMAKE_CXX_FLAGS_RELEASE "-s -mavx -O3")
 if (WIN32)
     string(APPEND CMAKE_CXX_FLAGS_RELEASE " -static")
     string(APPEND CMAKE_CXX_FLAGS_DEBUG " -static")
+    if (WIN32)
+        file(READ ${libint_SOURCE_DIR}/include/libint2/boys.h CONTENT)
+        string(REPLACE "posix_memfree(c);" "// posix_memfree(c);" CONTENT "${CONTENT}")
+        file(WRITE ${libint_SOURCE_DIR}/include/libint2/boys.h "${CONTENT}")
+    endif()
 endif()
 
 # set the variable that contains the compile flags
