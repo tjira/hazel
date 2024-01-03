@@ -61,7 +61,7 @@ add_executable(hview
 
 # add a specific windows release flag
 if (WIN32 AND CMAKE_BUILD_TYPE STREQUAL Release)
-    target_compile_options(hview PRIVATE "-mwindows")
+    target_compile_options(glfw PRIVATE "-mwindows")
 endif()
 
 # link hview executable
