@@ -136,3 +136,19 @@ std::function<std::tuple<double, Matrix>(System&)> Lambda::EGMP2(const HF::Optio
         return std::tuple{rhfres.E + Ecorr, G};
     };
 }
+
+std::function<std::tuple<double, Matrix>(System&)> Lambda::EGORCA(const Orca::Options& orcaopt, double gstep) {
+    return [orcaopt, gstep](System& system) {
+        // initialize ORCA object
+        Orca orca(system, orcaopt);
+
+        // enable the gradient
+        orca.enableGradient(gstep);
+
+        // run the calculation
+        auto orcares = orca.run();
+
+        // calculate the numerical or analytical gradient
+        return std::tuple{orcares.E, orcares.G};
+    };
+}

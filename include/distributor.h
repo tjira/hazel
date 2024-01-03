@@ -1,14 +1,10 @@
 #pragma once
 
 #include "integral.h"
-#include "lambda.h"
 #include "md.h"
 #include "optimizer.h"
-#include "orca.h"
-#include "parser.h"
 #include "printer.h"
 #include "qd.h"
-#include "utility.h"
 #include "wavetool.h"
 
 class Distributor {

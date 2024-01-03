@@ -10,8 +10,8 @@ Distributor::~Distributor() {
 
 void Distributor::run() {
     // initialize the system
-    std::string basis = parser.get<std::string>("-b"); std::replace(basis.begin(), basis.end(), '*', 's'), std::replace(basis.begin(), basis.end(), '+', 'p');
-    std::ifstream stream(parser.get<std::string>("-f")); system = System(stream, basis, parser.get<int>("-c"), parser.get<int>("-s")); stream.close();
+    std::string basis = parser.get<std::string>("-b"); std::ifstream stream(parser.get<std::string>("-f"));
+    system = System(stream, basis, parser.get<int>("-c"), parser.get<int>("-s")); stream.close();
 
     // print the initial stuff
     Printer::Initial(parser, system);
@@ -562,6 +562,9 @@ void Distributor::dynamics() {
     } else if (parser.at("md").used("uhf")) {
         auto uhfopt = HF::OptionsUnrestricted::Load(parser.at("md").at("uhf"), parser.get<bool>("--no-coulomb"));
         egfunc = Lambda::EGHF(uhfopt, parser.at("md").at("uhf").get<double>("-g"), Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
+    } else if (parser.at("md").used("orca")) {
+        Orca::Options orcaopt = {parser.at("md").at("orca").get<std::string>("-m")};
+        egfunc = Lambda::EGORCA(orcaopt, parser.at("md").at("orca").get<double>("-g"));
     } else {
         throw std::runtime_error("NO METHOD SPECIFIED FOR MOLECULAR DYNAMICS");
     }
@@ -663,11 +666,11 @@ void Distributor::orca() {
     std::cout << "\n" << std::setprecision(12); Printer::Title("ORCA INPUT");
 
     // create the ORCA class
-    Orca orca(system, parser.at("orca").get<std::string>("-m"));
+    Orca orca(system, {parser.at("orca").get<std::string>("-m")});
 
     // add additional options
-    if (parser.at("orca").has("-g")) orca.gradient(parser.at("orca").get<double>("-g"));
-    if (parser.at("orca").has("-f")) orca.hessian(parser.at("orca").get<double>("-f"));
+    if (parser.at("orca").has("-g")) orca.enableGradient(parser.at("orca").get<double>("-g"));
+    if (parser.at("orca").has("-f")) orca.enableHessian(parser.at("orca").get<double>("-f"));
 
     // print the input
     std::cout << "\n" << orca.getInput();
@@ -681,7 +684,20 @@ void Distributor::orca() {
         Printer::Mat("\nNUCLEAR GRADIENT", orcares.G); std::printf("\nGRADIENT NORM: %.2e\n", orcares.G.norm());
     }
 
-    // print the energy
+    // print the frequencies
+    if (parser.at("orca").has("-f")) {
+        std::cout << "\n"; Printer::Title("ORCA FREQUENCY ANALYSIS");
+        Printer::Mat("\nVIBRATIONAL FREQUENCIES", orcares.freq);
+    }
+
+    // print the energy title
     std::cout << "\n"; Printer::Title("ORCA ENERGY");
+
+    // print the excitation energies
+    if (Utility::StringContains(parser.at("orca").get<std::string>("-m"), "casscf")) {
+        Printer::Mat("\nENERGIES OF GROUND AND EXCITED STATES", orcares.excs);
+    }
+
+    // print the final energy
     std::cout << "\nFINAL ENERGY: " << orcares.E << std::endl;
 }

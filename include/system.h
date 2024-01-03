@@ -13,11 +13,12 @@ inline std::unordered_map<int, double> masses = {
 };
 
 inline std::unordered_map<int, std::string> an2sm = {
-    {1, "H"},
-    {6, "C"},
-    {7, "N"},
-    {8, "O"},
-    {9, "F"}
+    { 1,  "H"},
+    { 6,  "C"},
+    { 7,  "N"},
+    { 8,  "O"},
+    { 9,  "F"},
+    {17, "Cl"}
 };
 
 struct System {
@@ -28,10 +29,10 @@ struct System {
 
     // properties of the system
     std::vector<libint2::Atom> atoms;
+    std::string basis, originbasis;
     int electrons, charge, multi;
     libint2::BasisSet shells;
     Matrix coords, dists;
-    std::string basis;
 
     // containers for integrals
     struct {Tensor<3> dT, dS, dV; Tensor<5> dJ;} dints;

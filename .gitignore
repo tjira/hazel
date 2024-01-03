@@ -32,4 +32,4 @@ bin/
 core.*
 
 # specific
-M.xyz
+.orca*

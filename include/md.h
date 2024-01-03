@@ -6,7 +6,7 @@
 class MD {
 public:
     struct Options {
-        int iters; double step; std::string output;
+        int iters, state; double step; std::string output;
         struct Berendsen {double temp, tau;} berendsen;
         static MD::Options Load(const Parser& parser);
     };
@@ -22,5 +22,5 @@ private:
 };
 
 inline MD::Options MD::Options::Load(const Parser& parser) {
-    return {parser.get<int>("-i"), parser.get<double>("-s"), parser.get<std::string>("-o"), {BOLTZMANN * parser.get<std::vector<double>>("--berendsen").at(0), parser.get<std::vector<double>>("--berendsen").at(1)}};
+    return {parser.get<int>("-i"), parser.get<int>("-e"), parser.get<double>("-s"), parser.get<std::string>("-o"), {BOLTZMANN * parser.get<std::vector<double>>("--berendsen").at(0), parser.get<std::vector<double>>("--berendsen").at(1)}};
 }

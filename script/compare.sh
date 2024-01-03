@@ -13,7 +13,7 @@ for BASIS in "${BASES[@]}"; do
     echo -n "$SYSTEM,$BASIS,$NBF,HF,"
     HAZEL=$(./bin/hazel -b "$BASIS" -f "example/molecule/$SYSTEM.xyz" rhf -i 1000 -t 1e-8 | grep "FINAL" | awk '{print $4}' | head -c -3)
     echo -n "$HAZEL,"
-    ORCA=$(./script/orca.sh "example/molecule/$SYSTEM.xyz" 0 1 hf "$BASIS" | head -n 1 | awk '{print $2}')
+    ORCA=$(./bin/hazel -b "$BASIS" -f "example/molecule/$SYSTEM.xyz" orca -m rhf | grep "FINAL" | awk '{print $3}' | head -c -3)
     echo -n "$ORCA,"
     DIFF=$(echo "($HAZEL)-($ORCA)" | bc -l)
     printf "%.2e\n" "${DIFF#-}"

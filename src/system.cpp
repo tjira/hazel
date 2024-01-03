@@ -1,8 +1,11 @@
 #include "system.h"
 
-System::System(std::ifstream& stream, const std::string& basis, int charge, int multi) : electrons(0), charge(charge), multi(multi), basis(basis) {
+System::System(std::ifstream& stream, const std::string& basis, int charge, int multi) : basis(basis), originbasis(basis), electrons(0), charge(charge), multi(multi) {
     // check for the input file existence
     if (!stream.good()) throw std::runtime_error("SYSTEM FILE DOES NOT EXIST");
+
+    // replace the basis placeholders
+    std::replace(this->basis.begin(), this->basis.end(), '*', 's'), std::replace(this->basis.begin(), this->basis.end(), '+', 'p');
 
     // throw an error if impossible combination of charge and multiplicity
     if (std::abs(charge) % 2 == 0 && multi % 2 == 0) {
@@ -17,7 +20,7 @@ System::System(std::ifstream& stream, const std::string& basis, int charge, int 
     // assign all the other variables
     coords = Matrix(atoms.size(), 3), dists = Matrix(atoms.size(), atoms.size());
     for (const auto& atom : atoms) electrons += atom.atomic_number;
-    shells = libint2::BasisSet(basis, atoms, true);
+    shells = libint2::BasisSet(this->basis, atoms, true);
 
     // fill the coordinate matrix
     for (int i = 0; i < coords.rows(); i++) {

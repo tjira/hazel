@@ -9,19 +9,30 @@ inline std::string ORCA = R"(
 )";
 
 class Orca {
+public:
+    struct Options {
+        std::string method;
+    };
     struct Results {
-        double E; Matrix G;
+        double E; Vector excs, freq; Matrix G;
     };
 public:
-    // constructor nad input creator
-    Orca(const System& system, const std::string& method);
+    // constructors
+    Orca(const System& system, const Options& opt);
 
     // setters
-    void gradient(double step); void hessian(double step);
+    void enableGradient(double step); void enableHessian(double step);
 
     // runner and input getter
     std::string getInput() const {return input;} Results run() const;
 
+    // extractors
+    Vector extractFrequencies(const std::string& output) const;
+    Matrix extractGradient(const std::string& output) const;
+    Vector extractEnergies(const std::string& output) const;
+    double extractEnergy(const std::string& output) const;
+
 private:
-    std::string directory, input, method; System system;
+    std::string directory, input;
+    Options opt; System system;
 };

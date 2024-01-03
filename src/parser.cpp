@@ -36,7 +36,8 @@ Parser::Parser(int argc, char** argv) : program("hazel", "0.1", argparse::defaul
     at("opt").at("rhf").parsers.insert({"ci", std::make_shared<Parser>(Parser("ci"))}); at("opt").at("rhf").program.add_subparser(at("opt").at("rhf").at("ci").program);
 
     // add parsers for MD
-    at("md").parsers.reserve(2);
+    at("md").parsers.reserve(3);
+    at("md").parsers.insert({"orca", std::make_shared<Parser>(Parser("orca"))}); at("md").program.add_subparser(at("md").at("orca").program);
     at("md").parsers.insert({"rhf", std::make_shared<Parser>(Parser("rhf"))}); at("md").program.add_subparser(at("md").at("rhf").program);
     at("md").parsers.insert({"uhf", std::make_shared<Parser>(Parser("uhf"))}); at("md").program.add_subparser(at("md").at("uhf").program);
 
@@ -196,6 +197,7 @@ Parser::Parser(int argc, char** argv) : program("hazel", "0.1", argparse::defaul
 
     // add arguments to the MD argument parser
     program.at<argparse::ArgumentParser>("md").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
+    program.at<argparse::ArgumentParser>("md").add_argument("-e", "--excitation").help("-- Initial state of the molecule.").default_value(1).scan<'i', int>();
     program.at<argparse::ArgumentParser>("md").add_argument("-s", "--step").help("-- Time step in atomic units.").default_value(1.0).scan<'g', double>();
     program.at<argparse::ArgumentParser>("md").add_argument("-i", "--iters").help("-- Number of iterations in dynamics.").default_value(100).scan<'i', int>();
     program.at<argparse::ArgumentParser>("md").add_argument("-o", "--output").help("-- Output of the trajectory.").default_value("trajectory.xyz");
@@ -206,7 +208,7 @@ Parser::Parser(int argc, char** argv) : program("hazel", "0.1", argparse::defaul
     program.at<argparse::ArgumentParser>("md").at<argparse::ArgumentParser>("rhf").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
     program.at<argparse::ArgumentParser>("md").at<argparse::ArgumentParser>("rhf").add_argument("-i", "--iters").help("-- Maximum number of iterations in SCF loop.").default_value(100).scan<'i', int>();
     program.at<argparse::ArgumentParser>("md").at<argparse::ArgumentParser>("rhf").add_argument("-t", "--thresh").help("-- Threshold for conververgence in SCF loop.").default_value(1e-12).scan<'g', double>();
-    program.at<argparse::ArgumentParser>("md").at<argparse::ArgumentParser>("rhf").add_argument("-g", "--gradient").help("-- Step size for gradient calculation or 0 for analytical gradient.").default_value(1e-5).scan<'g', double>();
+    program.at<argparse::ArgumentParser>("md").at<argparse::ArgumentParser>("rhf").add_argument("-g", "--gradient").help("-- Step size for gradient calculation or 0 for analytical gradient.").default_value(0.0).scan<'g', double>();
 
     // add arguments to the MD UHF argument parser
     program.at<argparse::ArgumentParser>("md").at<argparse::ArgumentParser>("uhf").add_argument("-d", "--diis").help("-- Start iteration and history length for DIIS algorithm.").default_value(std::vector<int>{3, 5}).nargs(2).scan<'i', int>();
@@ -290,6 +292,11 @@ Parser::Parser(int argc, char** argv) : program("hazel", "0.1", argparse::defaul
     program.at<argparse::ArgumentParser>("orca").add_argument("-g", "--gradient").help("-- Step size for gradient calculation or 0 for analytical gradient.").default_value(0.0).scan<'g', double>();
     program.at<argparse::ArgumentParser>("orca").add_argument("-f", "--frequency").help("-- Step size for frequency calculation or 0 for analytical hessian.").default_value(0.0).scan<'g', double>();
     program.at<argparse::ArgumentParser>("orca").add_argument("-m", "--method").help("-- Method for ORCA calculation.").default_value("hf");
+
+    // add arguments to the MD ORCA argument parser
+    program.at<argparse::ArgumentParser>("md").at<argparse::ArgumentParser>("orca").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
+    program.at<argparse::ArgumentParser>("md").at<argparse::ArgumentParser>("orca").add_argument("-g", "--gradient").help("-- Step size for gradient calculation or 0 for analytical gradient.").default_value(0.0).scan<'g', double>();
+    program.at<argparse::ArgumentParser>("md").at<argparse::ArgumentParser>("orca").add_argument("-m", "--method").help("-- Method for ORCA calculation.").default_value("hf");
 
     try {
         program.parse_args(argc, argv);

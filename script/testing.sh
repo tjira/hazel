@@ -8,7 +8,7 @@ set_tests_properties(%s PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "%s")
 EOF
 
 read -d '' RHFAG << EOF
-add_test(NAME %s COMMAND \${PROJECT_SOURCE_DIR}/bin/hazel -b \"%s\" -c %d -f \${PROJECT_SOURCE_DIR}/example/molecule/%s.xyz -n 2 -s %d rhf $HFOPT -g 0 1e-5)
+add_test(NAME %s COMMAND \${PROJECT_SOURCE_DIR}/bin/hazel -b \"%s\" -c %d -f \${PROJECT_SOURCE_DIR}/example/molecule/%s.xyz -n 2 -s %d rhf $HFOPT -g)
 set_tests_properties(%s PROPERTIES DEPENDS build PASS_REGULAR_EXPRESSION "%s")
 EOF
 
@@ -30,7 +30,7 @@ create() {
         [[ "$EXPECT" ]] && printf "\n\n# test-energy: %s %d %d %s RHF\n" "$SYSTEM" "$CHARGE" "$MULT" "${BASIS^^}"; TNAME="${SYSTEM}_${CHARGE}-${MULT}_${BASISFILE}_rhf_energy"
         [[ "$EXPECT" ]] && printf "$RHF" "$TNAME" "$BASIS" "$CHARGE" "$SYSTEM" "$MULT" "$TNAME" "$(echo ${EXPECT::-6} | sed -e 's/+/\\\\+/g')"
     elif [ "$METHOD" == "RHFAG" ]; then
-        EXPECT=$(./bin/hazel -b "$BASIS" -c "$CHARGE" -f "./example/molecule/$SYSTEM.xyz" -n $CORES -s "$MULT" rhf $HFOPT -g 0 1e-5 | grep "NORM")
+        EXPECT=$(./bin/hazel -b "$BASIS" -c "$CHARGE" -f "./example/molecule/$SYSTEM.xyz" -n $CORES -s "$MULT" rhf $HFOPT -g | grep "NORM")
         [[ "$EXPECT" ]] && printf "\n\n# test-gradient: %s %d %d %s RHF\n" "$SYSTEM" "$CHARGE" "$MULT" "${BASIS^^}"; TNAME="${SYSTEM}_${CHARGE}-${MULT}_${BASISFILE}_rhf_gradient"
         [[ "$EXPECT" ]] && printf "$RHFAG" "$TNAME" "$BASIS" "$CHARGE" "$SYSTEM" "$MULT" "$TNAME" "$(echo ${EXPECT} | sed -e 's/+/\\\\+/g')"
     elif [ "$METHOD" == "RMP2" ]; then
