@@ -3,7 +3,7 @@
 #include "system.h"
 
 inline std::string ORCA = R"(
-! METHOD BASIS
+! METHOD BASIS HCORE NOFROZENCORE
 
 *xyz CHARGE MULTI
 )";

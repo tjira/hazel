@@ -8,7 +8,7 @@
 - [ ] Add ORCA dynamics to examples in README.md
 - [x] Implement scanning with ORCA energies
 - [ ] Add README.md to tools or describe tools in the main README.md
-- [ ] Add timing to the compare script
+- [x] Add timing to the compare script
 - [ ] Fix the MO transform in python version
 - [x] Implement optimization with ORCA gradients
 - [ ] Implement scanning more than one state

@@ -84,7 +84,7 @@ jobs:
         run: pip install jinja2
 
       - name: Configure Hazel
-        run: cmake -B build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGOMP=OFF -DSTANDALONE=ON -G "Unix Makefiles"
+        run: cmake -B build -DCMAKE_BUILD_TYPE=Debug -DGOMP=OFF -DSTANDALONE=ON -G "Unix Makefiles"
 
       - name: Build Hazel
         run: cmake --build build --parallel 2
