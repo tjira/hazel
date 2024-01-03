@@ -8,7 +8,36 @@ void Printer::Initial(const Parser& program, System& system) {
     Title("GENERAL INFO");
     std::printf("\nCOMPILATION TIMESTAMP: %s\nEXECUTION TIMESTAMP: %s\n", __TIMESTAMP__, Timer::Local().c_str());
     std::printf("\nCOMPILER: %s, GCC %d.%d.%d (%s)", OS, __GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__, CXXFLAGS);
-    std::printf("\nLIBRARIES: EIGEN %d.%d.%d, LIBINT %d.%d.%d\n", EIGEN_WORLD_VERSION, EIGEN_MAJOR_VERSION, EIGEN_MINOR_VERSION, LIBINT_MAJOR_VERSION, LIBINT_MINOR_VERSION, LIBINT_MICRO_VERSION);
+    std::printf("\nLIBRARIES: EIGEN %d.%d.%d, LIBINT %d.%d.%d", EIGEN_WORLD_VERSION, EIGEN_MAJOR_VERSION, EIGEN_MINOR_VERSION, LIBINT_MAJOR_VERSION, LIBINT_MINOR_VERSION, LIBINT_MICRO_VERSION);
+
+    // print the external libraries
+    #ifndef _WIN32
+    if (!std::system("which orca > /dev/null 2>&1")) {
+        // define the command from which to get the ORCA version
+        std::unique_ptr<FILE, decltype(&pclose)> pipe(popen("orca - 2>&1", "r"), pclose);
+
+        // check for success
+        if (!pipe) throw std::runtime_error("ORCA EXECUTION FAILED");
+
+        // read the output 
+        std::array<char, 128> buffer; std::string output;
+        while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
+            output += std::string(buffer.data());
+        }
+
+        // extracto orca version using regex
+        std::smatch match; std::regex_search(output, match, std::regex("Program Version ([0-9]+)\\.([0-9]+)\\.([0-9]+)"));
+
+        // print the version
+        std::printf("\nEXTERNAL: ORCA %s\n", match.str(0).substr(16, 5).c_str());
+    } else {
+        std::cout << std::endl;
+    }
+    #else
+    std::cout << std::endl;
+    #endif
+
+    // print the OpenMP info
     #if defined(_OPENMP)
     std::cout << std::endl; Title(std::string("OPENMP ") + std::to_string(_OPENMP));
     std::printf("\nAVAILABLE CORES: %d\nUSED THREADS: %d\n", std::thread::hardware_concurrency(), program.get<int>("-n"));

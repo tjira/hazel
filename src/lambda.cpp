@@ -57,6 +57,17 @@ std::function<double(System)> Lambda::EMP2(const HF::OptionsRestricted& rhfopt, 
     };
 }
 
+std::function<double(System)> Lambda::EORCA(const Orca::Options& orcaopt) {
+    return [orcaopt](System system) {
+        // run the calculation
+        auto orcares = Orca(system, orcaopt).run();
+
+        // perform the MP calculation and return the energy
+        return orcares.E;
+    };
+
+}
+
 std::function<std::tuple<double, Matrix>(System&)> Lambda::EGCI(const HF::OptionsRestricted& rhfopt, const std::vector<int>& excits, double gstep, Matrix D) {
     return [rhfopt, excits, gstep, D](System& system) {
         // calculate the atomic integrals

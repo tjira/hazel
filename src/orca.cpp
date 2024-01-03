@@ -56,7 +56,7 @@ Orca::Results Orca::run() const {
 
     // execute the command
     #ifdef _WIN32
-    std::unique_ptr<FILE, decltype(&pclose)> pipe(_popen(("cd " + directory").c_str(), "r"), _pclose);
+    std::unique_ptr<FILE, decltype(&pclose)> pipe(_popen(("cd " + directory).c_str(), "r"), _pclose);
     #else
     std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(("cd " + directory + " && orca orca.inp > >(tee orca.out) 2> /dev/null").c_str(), "r"), pclose);
     #endif
@@ -67,6 +67,8 @@ Orca::Results Orca::run() const {
     // read the output
     while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
         if (Utility::StringContains(std::string(buffer.data()), ": Error")) {
+            throw std::runtime_error(std::string(buffer.data()));
+        } else if (Utility::StringContains(std::string(buffer.data()), "INPUT ERROR")) {
             throw std::runtime_error(std::string(buffer.data()));
         }
         output += std::string(buffer.data());

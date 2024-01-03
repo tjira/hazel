@@ -18,4 +18,5 @@ struct Lambda {
     static std::function<double(System)> EHF(const HF::OptionsUnrestricted& uhfopt, Matrix D);
     static std::function<double(System)> EMP2(const HF::OptionsRestricted& rhfopt, Matrix D);
     static std::function<double(System)> EHF(const HF::OptionsRestricted& rhfopt, Matrix D);
+    static std::function<double(System)> EORCA(const Orca::Options& orcaopt);
 };

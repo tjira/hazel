@@ -36,7 +36,7 @@ private:
     void scan(); void dynamics(); void qdyn();
 
     // external tools
-    void orca();
+    void orca(); void orcao();
 
 private:
     // argument parsers, timer and system

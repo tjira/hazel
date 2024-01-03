@@ -6,5 +6,9 @@
 - [ ] Write the MP2 method to docs
 - [ ] Write the CI method to docs
 - [ ] Add ORCA dynamics to examples in README.md
-- [ ] Implement scanning with orca energies
+- [x] Implement scanning with ORCA energies
 - [ ] Add README.md to tools or describe tools in the main README.md
+- [ ] Add timing to the compare script
+- [ ] Fix the MO transform in python version
+- [x] Implement optimization with ORCA gradients
+- [ ] Implement scanning more than one state

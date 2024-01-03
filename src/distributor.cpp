@@ -38,7 +38,8 @@ void Distributor::run() {
             else if (parser.at("opt").at("rhf").used("cisd")) rcio();
             else if (parser.at("opt").at("rhf").used("fci")) rcio();
             else rhfo();
-        } else if (parser.at("opt").used("uhf")) uhfo();
+        } else if (parser.at("opt").used("orca")) orcao();
+        else if (parser.at("opt").used("uhf")) uhfo();
         else throw std::runtime_error("NO METHOD FOR OPTIMIZATION SPECIFIED.");
     }
 
@@ -205,7 +206,7 @@ void Distributor::rcio() {
 
     // print the optimized coordinates and distances
     Printer::Mat("\nOPTIMIZED SYSTEM COORDINATES", system.coords);
-    if (Utility::VectorContains<std::string>(rciparser().get<std::vector<std::string>>("-p"), "dist")) Printer::Mat("\nOPTIMIZED DISTANCE MATRIX", system.dists);
+    if (Utility::VectorContains<std::string>(parser.at("opt").get<std::vector<std::string>>("-p"), "dist")) Printer::Mat("\nOPTIMIZED DISTANCE MATRIX", system.dists);
 }
 
 void Distributor::rhfrun() {
@@ -304,7 +305,7 @@ void Distributor::rhfo() {
 
     // print the optimized coordinates and distances
     Printer::Mat("\nOPTIMIZED SYSTEM COORDINATES", system.coords);
-    if (Utility::VectorContains<std::string>(parser.at("opt").at("rhf").get<std::vector<std::string>>("-p"), "dist")) Printer::Mat("\nOPTIMIZED DISTANCE MATRIX", system.dists);
+    if (Utility::VectorContains<std::string>(parser.at("opt").get<std::vector<std::string>>("-p"), "dist")) Printer::Mat("\nOPTIMIZED DISTANCE MATRIX", system.dists);
 }
 
 void Distributor::uhfrun() {
@@ -394,7 +395,7 @@ void Distributor::uhfo() {
 
     // print the optimized coordinates and distances
     Printer::Mat("\nOPTIMIZED SYSTEM COORDINATES", system.coords);
-    if (Utility::VectorContains<std::string>(parser.at("opt").at("uhf").get<std::vector<std::string>>("-p"), "dist")) Printer::Mat("\nOPTIMIZED DISTANCE MATRIX", system.dists);
+    if (Utility::VectorContains<std::string>(parser.at("opt").get<std::vector<std::string>>("-p"), "dist")) Printer::Mat("\nOPTIMIZED DISTANCE MATRIX", system.dists);
 }
 
 void Distributor::rmp2run(const HF::ResultsRestricted& rhfres) {
@@ -471,7 +472,7 @@ void Distributor::rmp2o() {
 
     // print the optimized coordinates and distances
     Printer::Mat("\nOPTIMIZED SYSTEM COORDINATES", system.coords);
-    if (Utility::VectorContains<std::string>(parser.at("opt").at("rhf").at("mp2").get<std::vector<std::string>>("-p"), "dist")) Printer::Mat("\nOPTIMIZED DISTANCE MATRIX", system.dists);
+    if (Utility::VectorContains<std::string>(parser.at("opt").get<std::vector<std::string>>("-p"), "dist")) Printer::Mat("\nOPTIMIZED DISTANCE MATRIX", system.dists);
 }
 
 void Distributor::scan() {
@@ -501,6 +502,11 @@ void Distributor::scan() {
     } else if (parser.at("scan").used("uhf")) {
         auto uhfopt = HF::OptionsUnrestricted::Load(parser.at("scan").at("uhf"), parser.get<bool>("--no-coulomb"));
         efunc = Lambda::EHF(uhfopt, Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
+    } else if (parser.at("scan").used("orca")) {
+        Orca::Options orcaopt = {parser.at("scan").at("orca").get<std::string>("-m")};
+        efunc = Lambda::EORCA(orcaopt);
+    } else {
+        throw std::runtime_error("NO METHOD SPECIFIED FOR SCANNING");
     }
 
     // count the number of geometries
@@ -700,4 +706,22 @@ void Distributor::orca() {
 
     // print the final energy
     std::cout << "\nFINAL ENERGY: " << orcares.E << std::endl;
+}
+
+void Distributor::orcao() {
+    // print the optimization header
+    std::cout << std::endl; Printer::Title("ORCA OPTIMIZATION");
+
+    // extract the options
+    Orca::Options orcaopt = {parser.at("opt").at("orca").get<std::string>("-m")};
+
+    // exctract the energy and gradient function
+    auto egfunc = Lambda::EGORCA(orcaopt, parser.at("opt").at("orca").get<double>("-g"));
+
+    // perform the optimization
+    system = Optimizer(parser.at("opt").get<double>("-t")).optimize(system, egfunc);
+
+    // print the optimized coordinates and distances
+    Printer::Mat("\nOPTIMIZED SYSTEM COORDINATES", system.coords);
+    if (Utility::VectorContains<std::string>(parser.at("opt").get<std::vector<std::string>>("-p"), "dist")) Printer::Mat("\nOPTIMIZED DISTANCE MATRIX", system.dists);
 }

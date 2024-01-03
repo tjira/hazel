@@ -46,8 +46,9 @@ Below are all the important features of Hazel divided into categories.
 ### Quantum Mechanical Methods
 
 * Hartree-Fock Method (RHF & UHF)
-* Møller–Plesset Perturbation Theory
-* Full Configuration Interaction
+* Møller–Plesset Perturbation Theory (RMP2)
+* Full Configuration Interaction (RCI)
+* All method from ORCA via interface
 
 ### Additional Calculations
 
@@ -191,8 +192,9 @@ In his section you find all the printing options implemented in Hazel. This also
     * `s` - Overlap integral in AO basis.
     * `t` - Kinetic integral in AO basis.
     * `v` - Nuclear integral in AO basis.
+* `opt`
+    * `dist` - Optimized distance matrix.
 * `rhf`
-    * `dist` - Optimized distance matrix (only for optimization).
     * `dj` - Derivative of the coulomb integral in AO basis (only if calculated).
     * `ds` - Derivative of the overlap integral in AO basis (only if calculated).
     * `dt` - Derivaitve of the kinetic integral in AO basis (only if calculated).
@@ -206,7 +208,6 @@ In his section you find all the printing options implemented in Hazel. This also
     * `v` - Nuclear integral in AO basis.
     * `pop` - Population analysis.
 * `uhf`
-    * `dist` - Optimized distance matrix (only for optimization).
     * `ca` - Matrix of coefficients for alpha electrons electrons in MO basis.
     * `cb` - Matrix of coefficients for beta electrons electrons in MO basis.
     * `da` - Density matrix for alpha electrons in MO basis.
@@ -218,10 +219,8 @@ In his section you find all the printing options implemented in Hazel. This also
     * `t` - Kinetic integral in AO basis.
     * `v` - Nuclear integral in AO basis.
 * `rhf mp2`
-    * `dist` - Optimized distance matrix (only for optimization).
     * `jmo` - Coulomb integral in MO basis.
 * `rhf ci`, `rhf cis`, `rhf cid`, `rhf cisd`, `rhf fci`
-    * `dist` - Optimized distance matrix (only for optimization).
     * `hms` - Hamiltonian in MS basis.
     * `jms` - Coulomb integral in MS basis.
     * `cih` - Configuration interaction Hamiltonian.
