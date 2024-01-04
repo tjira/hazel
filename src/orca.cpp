@@ -1,5 +1,4 @@
 #include "orca.h"
-#include "utility.h"
 
 Orca::Orca(const System& system, const Options& opt) : input(ORCA), opt(opt), system(system) {
     // define the directory name and remove the starting new line
@@ -11,14 +10,16 @@ Orca::Orca(const System& system, const Options& opt) : input(ORCA), opt(opt), sy
     input = std::regex_replace(input, std::regex("MULTI"), std::to_string(system.multi));
 
     // replace placeholders for method
-    if (Utility::StringContains(opt.method, "casscf")) {
+    if (Utility::StringContains(opt.method, "hf") || Utility::StringContains(opt.method, "cisd") || Utility::StringContains(opt.method, "fci") || Utility::StringContains(opt.method, "ccsd")) {
+        input = std::regex_replace(input, std::regex("METHOD"), Utility::ToUpper(opt.method) + " HCORE");
+    } else if (Utility::StringContains(opt.method, "casscf")) {
         input = std::regex_replace(input, std::regex("METHOD"), "HF"); std::vector<std::string> casopt; size_t last = 0, next = 0;
         while ((next = opt.method.find("/", last)) != std::string::npos) {
             casopt.push_back(opt.method.substr(last, next - last)); last = next + 1;
         } casopt.push_back(opt.method.substr(last));
-        input = std::regex_replace(input, std::regex("\n"), "\n\n%casscf\nnel " + casopt.at(1) + "\nnorb " + casopt.at(2) + "\nmult 1\nnroots " + casopt.at(3) + "\nend\n", std::regex_constants::format_first_only);
+        input = std::regex_replace(input, std::regex("\n\\*xyz"), "\n%casscf\nnel " + casopt.at(1) + "\nnorb " + casopt.at(2) + "\nmult 1\nnroots " + casopt.at(3) + "\nend\n\n*xyz");
     } else {
-        input = std::regex_replace(input, std::regex("METHOD"), Utility::ToUpper(opt.method));
+        throw std::runtime_error("METHOD NOT IMPLEMENTED IN HAZEL-ORCA INTERFACE");
     }
 
     // write the coordinates
@@ -48,8 +49,8 @@ Orca::Results Orca::run() const {
     std::filesystem::create_directory(directory);
     std::ofstream ifile(directory + "/orca.inp");
 
-    // write the input to the opened file and define regex match
-    ifile << input; ifile.close(); std::smatch match;
+    // write the input to the opened file
+    ifile << input; ifile.close();
 
     // define the buffer for output and result string with struct
     std::array<char, 128> buffer; std::string output; Results results;
@@ -67,6 +68,8 @@ Orca::Results Orca::run() const {
     // read the output
     while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
         if (Utility::StringContains(std::string(buffer.data()), ": Error")) {
+            throw std::runtime_error(std::string(buffer.data()));
+        } else if (Utility::StringContains(std::string(buffer.data()), ": ERROR")) {
             throw std::runtime_error(std::string(buffer.data()));
         } else if (Utility::StringContains(std::string(buffer.data()), "INPUT ERROR")) {
             throw std::runtime_error(std::string(buffer.data()));
@@ -123,9 +126,6 @@ double Orca::extractEnergy(const std::string& output) const {
         if (Utility::StringContains(line, "FINAL SINGLE POINT ENERGY")) {
             // create the column stringstream
             std::stringstream css; css << line;
-
-            // set precision
-            css << std::fixed; css.precision(14);
 
             // exctract the correct column energy
             std::string cell; for (int i = 0; i < 5; i++) css >> cell;

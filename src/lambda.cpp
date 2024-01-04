@@ -57,15 +57,24 @@ std::function<double(System)> Lambda::EMP2(const HF::OptionsRestricted& rhfopt, 
     };
 }
 
+std::function<double(System)> Lambda::EBAGEL(const Bagel::Options& bagelopt) {
+    return [bagelopt](System system) {
+        // run the calculation
+        auto bagelres = Bagel(system, bagelopt).run();
+
+        // return the energy
+        return bagelres.E;
+    };
+}
+
 std::function<double(System)> Lambda::EORCA(const Orca::Options& orcaopt) {
     return [orcaopt](System system) {
         // run the calculation
         auto orcares = Orca(system, orcaopt).run();
 
-        // perform the MP calculation and return the energy
+        // return the energy
         return orcares.E;
     };
-
 }
 
 std::function<std::tuple<double, Matrix>(System&)> Lambda::EGCI(const HF::OptionsRestricted& rhfopt, const std::vector<int>& excits, double gstep, Matrix D) {
@@ -145,6 +154,22 @@ std::function<std::tuple<double, Matrix>(System&)> Lambda::EGMP2(const HF::Optio
 
         // return the tuple containing energy and gradient
         return std::tuple{rhfres.E + Ecorr, G};
+    };
+}
+
+std::function<std::tuple<double, Matrix>(System&)> Lambda::EGBAGEL(const Bagel::Options& bagelopt, double gstep) {
+    return [bagelopt, gstep](System& system) {
+        // initialize ORCA object
+        Bagel bagel(system, bagelopt);
+
+        // enable the gradient
+        bagel.enableGradient(gstep);
+
+        // run the calculation
+        auto bagelres = bagel.run();
+
+        // calculate the numerical or analytical gradient
+        return std::tuple{bagelres.E, bagelres.G};
     };
 }
 

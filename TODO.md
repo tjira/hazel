@@ -12,3 +12,8 @@
 - [ ] Fix the MO transform in python version
 - [x] Implement optimization with ORCA gradients
 - [ ] Implement scanning more than one state
+- [ ] Implement printing of calculation folder for ORCA ad BAGEL
+- [ ] Add BAGEL to program header
+- [ ] Add some more methods to BAGEL interface
+- [ ] Add CASPT2 to BAGEL interface
+- [ ] Add functionals for ORCA interface

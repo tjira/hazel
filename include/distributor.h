@@ -7,6 +7,7 @@
 #include "qd.h"
 #include "wavetool.h"
 
+
 class Distributor {
 public:
     Distributor(int argc, char** argv);
@@ -36,6 +37,7 @@ private:
     void scan(); void dynamics(); void qdyn();
 
     // external tools
+    void bagel(); void bagelo();
     void orca(); void orcao();
 
 private:

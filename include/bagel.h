@@ -2,18 +2,20 @@
 
 #include "system.h"
 
-inline std::string ORCA = R"(
-! METHOD NOFROZENCORE
+inline std::string BAGEL = R"(
+{ "bagel" : [
 
-%basis
-Basis "BASIS"
-decontract false
-end
+{
+  "title" : "molecule",
+  "df_basis" : "svp-jkfit",
+  "angstrom" : "true",
+  "geometry" : []
+}
 
-*xyz CHARGE MULTI
+]}
 )";
 
-class Orca {
+class Bagel {
 public:
     struct Options {
         std::string method;
@@ -23,13 +25,13 @@ public:
     };
 public:
     // constructors
-    Orca(const System& system, const Options& opt);
+    Bagel(const System& system, const Options& opt);
 
     // setters
     void enableGradient(double step); void enableHessian(double step);
 
     // runner and input getter
-    std::string getInput() const {return input;} Results run() const;
+    nlohmann::json getInput() const {return input;} Results run() const;
 
     // extractors
     Vector extractFrequencies(const std::string& output) const;
@@ -38,6 +40,7 @@ public:
     double extractEnergy(const std::string& output) const;
 
 private:
-    std::string directory, input;
     Options opt; System system;
+    std::string directory;
+    nlohmann::json input;
 };

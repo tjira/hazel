@@ -38,12 +38,14 @@ void Distributor::run() {
             else if (parser.at("opt").at("rhf").used("cisd")) rcio();
             else if (parser.at("opt").at("rhf").used("fci")) rcio();
             else rhfo();
-        } else if (parser.at("opt").used("orca")) orcao();
+        } else if (parser.at("opt").used("bagel")) bagelo();
+        else if (parser.at("opt").used("orca")) orcao();
         else if (parser.at("opt").used("uhf")) uhfo();
         else throw std::runtime_error("NO METHOD FOR OPTIMIZATION SPECIFIED.");
     }
 
     // distribute the calculations
+    if (parser.used("bagel")) bagel();
     if (parser.used("md")) dynamics();
     if (parser.used("orca")) orca();
     if (parser.used("qd")) qdyn();
@@ -502,6 +504,9 @@ void Distributor::scan() {
     } else if (parser.at("scan").used("uhf")) {
         auto uhfopt = HF::OptionsUnrestricted::Load(parser.at("scan").at("uhf"), parser.get<bool>("--no-coulomb"));
         efunc = Lambda::EHF(uhfopt, Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
+    } else if (parser.at("scan").used("bagel")) {
+        Bagel::Options bagelopt = {parser.at("scan").at("bagel").get<std::string>("-m")};
+        efunc = Lambda::EBAGEL(bagelopt);
     } else if (parser.at("scan").used("orca")) {
         Orca::Options orcaopt = {parser.at("scan").at("orca").get<std::string>("-m")};
         efunc = Lambda::EORCA(orcaopt);
@@ -568,6 +573,9 @@ void Distributor::dynamics() {
     } else if (parser.at("md").used("uhf")) {
         auto uhfopt = HF::OptionsUnrestricted::Load(parser.at("md").at("uhf"), parser.get<bool>("--no-coulomb"));
         egfunc = Lambda::EGHF(uhfopt, parser.at("md").at("uhf").get<double>("-g"), Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
+    } else if (parser.at("md").used("bagel")) {
+        Bagel::Options bagelopt = {parser.at("md").at("bagel").get<std::string>("-m")};
+        egfunc = Lambda::EGBAGEL(bagelopt, parser.at("md").at("bagel").get<double>("-g"));
     } else if (parser.at("md").used("orca")) {
         Orca::Options orcaopt = {parser.at("md").at("orca").get<std::string>("-m")};
         egfunc = Lambda::EGORCA(orcaopt, parser.at("md").at("orca").get<double>("-g"));
@@ -665,6 +673,65 @@ void Distributor::integrals() {
         // print new line
         std::cout << "\n";
     }
+}
+
+void Distributor::bagel() {
+    // print the ORCA calculation header
+    std::cout << "\n" << std::setprecision(12); Printer::Title("BAGEL INPUT");
+
+    // create the ORCA class
+    Bagel bagel(system, {parser.at("bagel").get<std::string>("-m")});
+
+    // add additional options
+    if (parser.at("bagel").has("-g")) bagel.enableGradient(parser.at("bagel").get<double>("-g"));
+    if (parser.at("bagel").has("-f")) bagel.enableHessian(parser.at("bagel").get<double>("-f"));
+
+    // print the input
+    std::cout << "\n" << bagel.getInput().dump(2) << std::endl;
+
+    // run the calculation
+    auto bagelres = bagel.run();
+
+    // print the gradient
+    if (parser.at("bagel").has("-g")) {
+        std::cout << "\n"; Printer::Title("BAGEL GRADIENT");
+        Printer::Mat("\nNUCLEAR GRADIENT", bagelres.G); std::printf("\nGRADIENT NORM: %.2e\n", bagelres.G.norm());
+    }
+
+    // print the frequencies
+    if (parser.at("bagel").has("-f")) {
+        std::cout << "\n"; Printer::Title("BAGEL FREQUENCY ANALYSIS");
+        Printer::Mat("\nVIBRATIONAL FREQUENCIES", bagelres.freq);
+    }
+
+    // print the energy title
+    std::cout << "\n"; Printer::Title("BAGEL ENERGY");
+
+    // print the excitation energies
+    if (Utility::StringContains(parser.at("bagel").get<std::string>("-m"), "casscf")) {
+        Printer::Mat("\nENERGIES OF GROUND AND EXCITED STATES", bagelres.excs);
+    }
+
+    // print the final energy
+    std::cout << "\nFINAL ENERGY: " << bagelres.E << std::endl;
+}
+
+void Distributor::bagelo() {
+    // print the optimization header
+    std::cout << std::endl; Printer::Title("BAGEL OPTIMIZATION");
+
+    // extract the options
+    Bagel::Options bagelopt = {parser.at("opt").at("bagel").get<std::string>("-m")};
+
+    // exctract the energy and gradient function
+    auto egfunc = Lambda::EGBAGEL(bagelopt, parser.at("opt").at("bagel").get<double>("-g"));
+
+    // perform the optimization
+    system = Optimizer(parser.at("opt").get<double>("-t")).optimize(system, egfunc);
+
+    // print the optimized coordinates and distances
+    Printer::Mat("\nOPTIMIZED SYSTEM COORDINATES", system.coords);
+    if (Utility::VectorContains<std::string>(parser.at("opt").get<std::vector<std::string>>("-p"), "dist")) Printer::Mat("\nOPTIMIZED DISTANCE MATRIX", system.dists);
 }
 
 void Distributor::orca() {

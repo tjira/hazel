@@ -2,6 +2,7 @@
 
 #include "determinant.h"
 
+#include <nlohmann/json.hpp>
 #include <libint2/diis.h>
 
 inline std::unordered_map<int, double> masses = {

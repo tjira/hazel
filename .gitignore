@@ -32,4 +32,5 @@ bin/
 core.*
 
 # specific
+.bagel*
 .orca*

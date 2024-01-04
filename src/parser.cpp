@@ -2,7 +2,8 @@
 
 Parser::Parser(int argc, char** argv) : program("hazel", "0.1", argparse::default_arguments::none) {
     // add main parsers
-    parsers.reserve(8);
+    parsers.reserve(9);
+    parsers.insert({"bagel", std::make_shared<Parser>(Parser("bagel"))}); program.add_subparser(at("bagel").program);
     parsers.insert({"ints", std::make_shared<Parser>(Parser("ints"))}); program.add_subparser(at("ints").program);
     parsers.insert({"md", std::make_shared<Parser>(Parser("md"))}); program.add_subparser(at("md").program);
     parsers.insert({"opt", std::make_shared<Parser>(Parser("opt"))}); program.add_subparser(at("opt").program);
@@ -22,7 +23,8 @@ Parser::Parser(int argc, char** argv) : program("hazel", "0.1", argparse::defaul
     at("rhf").parsers.insert({"ci", std::make_shared<Parser>(Parser("ci"))}); at("rhf").program.add_subparser(at("rhf").at("ci").program);
 
     // add parsers for OPT
-    at("opt").parsers.reserve(3);
+    at("opt").parsers.reserve(4);
+    at("opt").parsers.insert({"bagel", std::make_shared<Parser>(Parser("bagel"))}); at("opt").program.add_subparser(at("opt").at("bagel").program);
     at("opt").parsers.insert({"orca", std::make_shared<Parser>(Parser("orca"))}); at("opt").program.add_subparser(at("opt").at("orca").program);
     at("opt").parsers.insert({"rhf", std::make_shared<Parser>(Parser("rhf"))}); at("opt").program.add_subparser(at("opt").at("rhf").program);
     at("opt").parsers.insert({"uhf", std::make_shared<Parser>(Parser("uhf"))}); at("opt").program.add_subparser(at("opt").at("uhf").program);
@@ -37,7 +39,8 @@ Parser::Parser(int argc, char** argv) : program("hazel", "0.1", argparse::defaul
     at("opt").at("rhf").parsers.insert({"ci", std::make_shared<Parser>(Parser("ci"))}); at("opt").at("rhf").program.add_subparser(at("opt").at("rhf").at("ci").program);
 
     // add parsers for MD
-    at("md").parsers.reserve(3);
+    at("md").parsers.reserve(4);
+    at("md").parsers.insert({"bagel", std::make_shared<Parser>(Parser("bagel"))}); at("md").program.add_subparser(at("md").at("bagel").program);
     at("md").parsers.insert({"orca", std::make_shared<Parser>(Parser("orca"))}); at("md").program.add_subparser(at("md").at("orca").program);
     at("md").parsers.insert({"rhf", std::make_shared<Parser>(Parser("rhf"))}); at("md").program.add_subparser(at("md").at("rhf").program);
     at("md").parsers.insert({"uhf", std::make_shared<Parser>(Parser("uhf"))}); at("md").program.add_subparser(at("md").at("uhf").program);
@@ -52,7 +55,8 @@ Parser::Parser(int argc, char** argv) : program("hazel", "0.1", argparse::defaul
     at("md").at("rhf").parsers.insert({"ci", std::make_shared<Parser>(Parser("ci"))}); at("md").at("rhf").program.add_subparser(at("md").at("rhf").at("ci").program);
 
     // add parsers for SCAN
-    at("scan").parsers.reserve(3);
+    at("scan").parsers.reserve(4);
+    at("scan").parsers.insert({"bagel", std::make_shared<Parser>(Parser("bagel"))}); at("scan").program.add_subparser(at("scan").at("bagel").program);
     at("scan").parsers.insert({"orca", std::make_shared<Parser>(Parser("orca"))}); at("scan").program.add_subparser(at("scan").at("orca").program);
     at("scan").parsers.insert({"rhf", std::make_shared<Parser>(Parser("rhf"))}); at("scan").program.add_subparser(at("scan").at("rhf").program);
     at("scan").parsers.insert({"uhf", std::make_shared<Parser>(Parser("uhf"))}); at("scan").program.add_subparser(at("scan").at("uhf").program);
@@ -198,6 +202,11 @@ Parser::Parser(int argc, char** argv) : program("hazel", "0.1", argparse::defaul
     program.at<argparse::ArgumentParser>("opt").at<argparse::ArgumentParser>("rhf").at<argparse::ArgumentParser>("fci").add_argument("-g", "--gradient").help("-- Step size for gradient calculation or 0 for analytical gradient.").default_value(1e-5).scan<'g', double>();
     program.at<argparse::ArgumentParser>("opt").at<argparse::ArgumentParser>("rhf").at<argparse::ArgumentParser>("fci").add_argument("-p", "--print").help("-- Printing options.").default_value<std::vector<std::string>>({}).append();
 
+    // add arguments to the OPT BAGEL argument parser
+    program.at<argparse::ArgumentParser>("opt").at<argparse::ArgumentParser>("bagel").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
+    program.at<argparse::ArgumentParser>("opt").at<argparse::ArgumentParser>("bagel").add_argument("-g", "--gradient").help("-- Step size for gradient calculation or 0 for analytical gradient.").default_value(0.0).scan<'g', double>();
+    program.at<argparse::ArgumentParser>("opt").at<argparse::ArgumentParser>("bagel").add_argument("-m", "--method").help("-- Method for ORCA calculation.").default_value("hf");
+
     // add arguments to the OPT ORCA argument parser
     program.at<argparse::ArgumentParser>("opt").at<argparse::ArgumentParser>("orca").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
     program.at<argparse::ArgumentParser>("opt").at<argparse::ArgumentParser>("orca").add_argument("-g", "--gradient").help("-- Step size for gradient calculation or 0 for analytical gradient.").default_value(0.0).scan<'g', double>();
@@ -250,6 +259,11 @@ Parser::Parser(int argc, char** argv) : program("hazel", "0.1", argparse::defaul
     program.at<argparse::ArgumentParser>("md").at<argparse::ArgumentParser>("rhf").at<argparse::ArgumentParser>("fci").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
     program.at<argparse::ArgumentParser>("md").at<argparse::ArgumentParser>("rhf").at<argparse::ArgumentParser>("fci").add_argument("-g", "--gradient").help("-- Step size for gradient calculation or 0 for analytical gradient.").default_value(1e-5).scan<'g', double>();
 
+    // add arguments to the MD BAGEL argument parser
+    program.at<argparse::ArgumentParser>("md").at<argparse::ArgumentParser>("bagel").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
+    program.at<argparse::ArgumentParser>("md").at<argparse::ArgumentParser>("bagel").add_argument("-g", "--gradient").help("-- Step size for gradient calculation or 0 for analytical gradient.").default_value(0.0).scan<'g', double>();
+    program.at<argparse::ArgumentParser>("md").at<argparse::ArgumentParser>("bagel").add_argument("-m", "--method").help("-- Method for ORCA calculation.").default_value("hf");
+
     // add arguments to the MD ORCA argument parser
     program.at<argparse::ArgumentParser>("md").at<argparse::ArgumentParser>("orca").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
     program.at<argparse::ArgumentParser>("md").at<argparse::ArgumentParser>("orca").add_argument("-g", "--gradient").help("-- Step size for gradient calculation or 0 for analytical gradient.").default_value(0.0).scan<'g', double>();
@@ -290,6 +304,10 @@ Parser::Parser(int argc, char** argv) : program("hazel", "0.1", argparse::defaul
     // add arguments to the SCAN FCI argument parser
     program.at<argparse::ArgumentParser>("scan").at<argparse::ArgumentParser>("rhf").at<argparse::ArgumentParser>("fci").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
 
+    // add arguments to the SCAN BAGEL argument parser
+    program.at<argparse::ArgumentParser>("scan").at<argparse::ArgumentParser>("bagel").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
+    program.at<argparse::ArgumentParser>("scan").at<argparse::ArgumentParser>("bagel").add_argument("-m", "--method").help("-- Method for ORCA calculation.").default_value("hf");
+
     // add arguments to the SCAN ORCA argument parser
     program.at<argparse::ArgumentParser>("scan").at<argparse::ArgumentParser>("orca").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
     program.at<argparse::ArgumentParser>("scan").at<argparse::ArgumentParser>("orca").add_argument("-m", "--method").help("-- Method for ORCA calculation.").default_value("hf");
@@ -303,6 +321,12 @@ Parser::Parser(int argc, char** argv) : program("hazel", "0.1", argparse::defaul
     program.at<argparse::ArgumentParser>("qd").add_argument("-f", "--potfile").help("-- File with the PES.").default_value("pes.dat");
     program.at<argparse::ArgumentParser>("qd").add_argument("-t", "--thresh").help("-- Threshold for conververgence in ITP loop.").default_value(1e-8).scan<'g', double>();
     program.at<argparse::ArgumentParser>("qd").add_argument("--no-real").help("-- Help message.").default_value(false).implicit_value(true);
+
+    // add arguments to the BAGEL argument parser
+    program.at<argparse::ArgumentParser>("bagel").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
+    program.at<argparse::ArgumentParser>("bagel").add_argument("-g", "--gradient").help("-- Step size for gradient calculation or 0 for analytical gradient.").default_value(0.0).scan<'g', double>();
+    program.at<argparse::ArgumentParser>("bagel").add_argument("-f", "--frequency").help("-- Step size for frequency calculation or 0 for analytical hessian.").default_value(0.0).scan<'g', double>();
+    program.at<argparse::ArgumentParser>("bagel").add_argument("-m", "--method").help("-- Method for ORCA calculation.").default_value("hf");
 
     // add arguments to the ORCA argument parser
     program.at<argparse::ArgumentParser>("orca").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);

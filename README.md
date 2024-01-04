@@ -48,7 +48,7 @@ Below are all the important features of Hazel divided into categories.
 * Hartree-Fock Method (RHF & UHF)
 * Møller–Plesset Perturbation Theory (RMP2)
 * Full Configuration Interaction (RCI)
-* All method from ORCA via interface
+* All methods from ORCA and BAGEL via interface
 
 ### Additional Calculations
 
