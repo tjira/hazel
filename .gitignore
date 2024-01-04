@@ -1,7 +1,6 @@
 # root links
 /compile_commands.json
 /trajectory.xyz
-/molecule.xyz
 /movie.xyz
 
 # profiling
@@ -31,6 +30,9 @@ bin/
 # cores
 core.*
 
-# specific
+# tools
 .bagel*
 .orca*
+
+# specific
+molecule.xyz

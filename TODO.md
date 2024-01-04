@@ -5,7 +5,6 @@
 - [ ] Add FCI to BAGEL interface
 - [ ] Add MP2 to BAGEL interface
 - [ ] Add README.md to tools or describe tools in the main README.md
-- [ ] Fix the MO transform in python version
 - [ ] Write the CI method to docs
 - [ ] Write the MP2 method to docs
 - [ ] Write the frequency analysis to docs
@@ -13,6 +12,7 @@
 - [x] Add functionals for ORCA interface
 - [x] Add timing to the compare script
 - [x] Change the "x" axis to time when plotting MD energy or time
+- [x] Fix the MO transform in python version
 - [x] Implement optimization with ORCA gradients
 - [x] Implement printing of calculation folder for ORCA and BAGEL
 - [x] Implement scanning more than one state
