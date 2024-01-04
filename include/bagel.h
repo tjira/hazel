@@ -32,6 +32,7 @@ public:
 
     // runner and input getter
     nlohmann::json getInput() const {return input;} Results run() const;
+    std::string getFolder() const {return directory;}
 
     // extractors
     Vector extractFrequencies(const std::string& output) const;

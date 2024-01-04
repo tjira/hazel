@@ -30,6 +30,7 @@ public:
 
     // runner and input getter
     std::string getInput() const {return input;} Results run() const;
+    std::string getFolder() const {return directory;}
 
     // extractors
     Vector extractFrequencies(const std::string& output) const;

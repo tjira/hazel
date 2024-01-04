@@ -496,12 +496,22 @@ void Distributor::scan() {
         } else if (parser.at("scan").used("uhf")) {
             throw std::runtime_error("EXCITED STATE SCAN NOT IMPLEMENTED FOR UHF");
         } else if (parser.at("scan").used("bagel")) {
+            #ifndef _WIN32
+            if (std::system("which BAGEL > /dev/null 2>&1")) throw std::runtime_error("BAGEL IS NOT AVAILABLE");
+            # else
+            throw std::runtime_error("BAGEL IS NOT AVAILABLE");
+            #endif
             if (!Utility::StringContains(parser.at("scan").at("bagel").get<std::string>("-m"), "casscf")) {
                 throw std::runtime_error("THIS METHOD IN BAGEL DOES NOT PROVIDE EXCITATION ENERGIES");
             }
             Bagel::Options bagelopt = {parser.at("scan").at("bagel").get<std::string>("-m")};
             esfunc = Lambda::ESBAGEL(bagelopt);
         } else if (parser.at("scan").used("orca")) {
+            #ifndef _WIN32
+            if (std::system("which orca > /dev/null 2>&1")) throw std::runtime_error("ORCA IS NOT AVAILABLE");
+            # else
+            throw std::runtime_error("ORCA IS NOT AVAILABLE");
+            #endif
             if (!Utility::StringContains(parser.at("scan").at("orca").get<std::string>("-m"), "casscf")) {
                 throw std::runtime_error("THIS METHOD IN ORCA DOES NOT PROVIDE EXCITATION ENERGIES");
             }
@@ -531,9 +541,19 @@ void Distributor::scan() {
             auto uhfopt = HF::OptionsUnrestricted::Load(parser.at("scan").at("uhf"), parser.get<bool>("--no-coulomb"));
             efunc = Lambda::EHF(uhfopt, Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
         } else if (parser.at("scan").used("bagel")) {
+            #ifndef _WIN32
+            if (std::system("which BAGEL > /dev/null 2>&1")) throw std::runtime_error("BAGEL IS NOT AVAILABLE");
+            # else
+            throw std::runtime_error("BAGEL IS NOT AVAILABLE");
+            #endif
             Bagel::Options bagelopt = {parser.at("scan").at("bagel").get<std::string>("-m")};
             efunc = Lambda::EBAGEL(bagelopt);
         } else if (parser.at("scan").used("orca")) {
+            #ifndef _WIN32
+            if (std::system("which orca > /dev/null 2>&1")) throw std::runtime_error("ORCA IS NOT AVAILABLE");
+            # else
+            throw std::runtime_error("ORCA IS NOT AVAILABLE");
+            #endif
             Orca::Options orcaopt = {parser.at("scan").at("orca").get<std::string>("-m")};
             efunc = Lambda::EORCA(orcaopt);
         } else {
@@ -615,9 +635,19 @@ void Distributor::dynamics() {
         auto uhfopt = HF::OptionsUnrestricted::Load(parser.at("md").at("uhf"), parser.get<bool>("--no-coulomb"));
         egfunc = Lambda::EGHF(uhfopt, parser.at("md").at("uhf").get<double>("-g"), Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
     } else if (parser.at("md").used("bagel")) {
+        #ifndef _WIN32
+        if (std::system("which BAGEL > /dev/null 2>&1")) throw std::runtime_error("BAGEL IS NOT AVAILABLE");
+        # else
+        throw std::runtime_error("BAGEL IS NOT AVAILABLE");
+        #endif
         Bagel::Options bagelopt = {parser.at("md").at("bagel").get<std::string>("-m")};
         egfunc = Lambda::EGBAGEL(bagelopt, parser.at("md").at("bagel").get<double>("-g"));
     } else if (parser.at("md").used("orca")) {
+        #ifndef _WIN32
+        if (std::system("which orca > /dev/null 2>&1")) throw std::runtime_error("ORCA IS NOT AVAILABLE");
+        # else
+        throw std::runtime_error("ORCA IS NOT AVAILABLE");
+        #endif
         Orca::Options orcaopt = {parser.at("md").at("orca").get<std::string>("-m")};
         egfunc = Lambda::EGORCA(orcaopt, parser.at("md").at("orca").get<double>("-g"));
     } else {
@@ -717,11 +747,18 @@ void Distributor::integrals() {
 }
 
 void Distributor::bagel() {
-    // print the ORCA calculation header
-    std::cout << "\n" << std::setprecision(12); Printer::Title("BAGEL INPUT");
+    // error if orca is not in PATH
+    #ifndef _WIN32
+    if (std::system("which BAGEL > /dev/null 2>&1")) throw std::runtime_error("BAGEL IS NOT AVAILABLE");
+    # else
+    throw std::runtime_error("BAGEL IS NOT AVAILABLE");
+    #endif
 
-    // create the ORCA class
+    // create the BAGEL class
     Bagel bagel(system, {parser.at("bagel").get<std::string>("-m")});
+
+    // print the BAGEL calculation header
+    std::cout << "\n" << std::setprecision(12); Printer::Title("BAGEL INPUT (" + bagel.getFolder() + ")");
 
     // add additional options
     if (parser.at("bagel").has("-g")) bagel.enableGradient(parser.at("bagel").get<double>("-g"));
@@ -758,6 +795,13 @@ void Distributor::bagel() {
 }
 
 void Distributor::bagelo() {
+    // error if orca is not in PATH
+    #ifndef _WIN32
+    if (std::system("which BAGEL > /dev/null 2>&1")) throw std::runtime_error("BAGEL IS NOT AVAILABLE");
+    # else
+    throw std::runtime_error("BAGEL IS NOT AVAILABLE");
+    #endif
+
     // print the optimization header
     std::cout << std::endl; Printer::Title("BAGEL OPTIMIZATION");
 
@@ -776,11 +820,18 @@ void Distributor::bagelo() {
 }
 
 void Distributor::orca() {
-    // print the ORCA calculation header
-    std::cout << "\n" << std::setprecision(12); Printer::Title("ORCA INPUT");
+    // error if orca is not in PATH
+    #ifndef _WIN32
+    if (std::system("which orca > /dev/null 2>&1")) throw std::runtime_error("ORCA IS NOT AVAILABLE");
+    # else
+    throw std::runtime_error("ORCA IS NOT AVAILABLE");
+    #endif
 
     // create the ORCA class
     Orca orca(system, {parser.at("orca").get<std::string>("-m")});
+
+    // print the ORCA calculation header
+    std::cout << "\n" << std::setprecision(12); Printer::Title("ORCA INPUT (" + orca.getFolder() + ")");
 
     // add additional options
     if (parser.at("orca").has("-g")) orca.enableGradient(parser.at("orca").get<double>("-g"));
@@ -817,6 +868,13 @@ void Distributor::orca() {
 }
 
 void Distributor::orcao() {
+    // error if orca is not in PATH
+    #ifndef _WIN32
+    if (std::system("which orca > /dev/null 2>&1")) throw std::runtime_error("ORCA IS NOT AVAILABLE");
+    # else
+    throw std::runtime_error("ORCA IS NOT AVAILABLE");
+    #endif
+
     // print the optimization header
     std::cout << std::endl; Printer::Title("ORCA OPTIMIZATION");
 

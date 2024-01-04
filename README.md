@@ -167,6 +167,26 @@ hazel -f molecule.xyz -b sto-3g opt -t 1e-8 rhf -g 0
 
 The 1e-8 is the gradient threshold for optimization.
 
+### External Tools
+
+You can run calculations of external programs and use its output. Currently, you can use ORCA and BAGEL, provided you have the programs installed. To run a simple MP2 calculation in ORCA you can run the following.
+
+```bash
+hazel -f molecule.xyz -b sto-3g orca -m mp2
+```
+
+You can perform multireference calculations like SA3-CASSCF(4, 5) with ORCA or BAGEL like this.
+
+```bash
+hazel -f molecule.xyz -b 6-31G orca -m casscf/4/5/3
+```
+
+To run a ground state HF dynamics using BAGEL you can execute the following.
+
+```bash
+hazel -f molecule.xyz -b cc-pvdz bagel -m hf
+```
+
 ### Molecular Dynamics
 
 To perform simple MP2 molecular dynamics with default settings for the gradient execute the following.

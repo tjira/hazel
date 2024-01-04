@@ -10,16 +10,14 @@ Orca::Orca(const System& system, const Options& opt) : input(ORCA), opt(opt), sy
     input = std::regex_replace(input, std::regex("MULTI"), std::to_string(system.multi));
 
     // replace placeholders for method
-    if (Utility::StringContains(opt.method, "hf") || Utility::StringContains(opt.method, "cisd") || Utility::StringContains(opt.method, "fci") || Utility::StringContains(opt.method, "ccsd")) {
-        input = std::regex_replace(input, std::regex("METHOD"), Utility::ToUpper(opt.method) + " HCORE");
-    } else if (Utility::StringContains(opt.method, "casscf")) {
+    if (Utility::StringContains(opt.method, "casscf")) {
         input = std::regex_replace(input, std::regex("METHOD"), "HF"); std::vector<std::string> casopt; size_t last = 0, next = 0;
         while ((next = opt.method.find("/", last)) != std::string::npos) {
             casopt.push_back(opt.method.substr(last, next - last)); last = next + 1;
         } casopt.push_back(opt.method.substr(last));
         input = std::regex_replace(input, std::regex("\n\\*xyz"), "\n%casscf\nnel " + casopt.at(1) + "\nnorb " + casopt.at(2) + "\nmult 1\nnroots " + casopt.at(3) + "\nend\n\n*xyz");
     } else {
-        throw std::runtime_error("METHOD NOT IMPLEMENTED IN HAZEL-ORCA INTERFACE");
+        input = std::regex_replace(input, std::regex("METHOD"), Utility::ToUpper(opt.method) + " HCORE");
     }
 
     // write the coordinates
@@ -163,12 +161,12 @@ Vector Orca::extractFrequencies(const std::string& output) const {
 
                 // set the data
                 if (freq) f.push_back(freq);
-            } return Eigen::Map<Vector>(f.data(), f.size());
+            } std::reverse(f.begin(), f.end()); return Eigen::Map<Vector>(f.data(), f.size());
         }
     }
 
     // return the frequencies
-    return Eigen::Map<Vector>(f.data(), f.size());
+    std::reverse(f.begin(), f.end()); return Eigen::Map<Vector>(f.data(), f.size());
 }
 
 Matrix Orca::extractGradient(const std::string& output) const {
