@@ -4,6 +4,14 @@
 #include <iomanip>
 #include <vector>
 
+inline std::vector<std::string> colors = {
+    "blue",
+    "green",
+    "red",
+    "orange",
+    "purple"
+};
+
 class Plot {
 public:
     Plot(const std::string& name) : name(name) {}

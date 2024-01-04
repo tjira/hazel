@@ -77,6 +77,26 @@ std::function<double(System)> Lambda::EORCA(const Orca::Options& orcaopt) {
     };
 }
 
+std::function<Vector(System)> Lambda::ESBAGEL(const Bagel::Options& bagelopt) {
+    return [bagelopt](System system) {
+        // run the calculation
+        auto bagelres = Bagel(system, bagelopt).run();
+
+        // return the energy
+        return bagelres.excs;
+    };
+}
+
+std::function<Vector(System)> Lambda::ESORCA(const Orca::Options& orcaopt) {
+    return [orcaopt](System system) {
+        // run the calculation
+        auto orcares = Orca(system, orcaopt).run();
+
+        // return the energy
+        return orcares.excs;
+    };
+}
+
 std::function<std::tuple<double, Matrix>(System&)> Lambda::EGCI(const HF::OptionsRestricted& rhfopt, const std::vector<int>& excits, double gstep, Matrix D) {
     return [rhfopt, excits, gstep, D](System& system) {
         // calculate the atomic integrals

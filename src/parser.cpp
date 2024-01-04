@@ -272,6 +272,7 @@ Parser::Parser(int argc, char** argv) : program("hazel", "0.1", argparse::defaul
     // add arguments to the SCAN argument parser
     program.at<argparse::ArgumentParser>("scan").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
     program.at<argparse::ArgumentParser>("scan").add_argument("-o", "--output").help("-- Output of the PES energies.").default_value("pes.dat");
+    program.at<argparse::ArgumentParser>("scan").add_argument("-n", "--nstate").help("-- Number of scanned states.").default_value(1).scan<'i', int>();
 
     // add arguments to the SCAN RHF argument parser
     program.at<argparse::ArgumentParser>("scan").at<argparse::ArgumentParser>("rhf").add_argument("-d", "--diis").help("-- Start iteration and history length for DIIS algorithm.").default_value(std::vector<int>{3, 5}).nargs(2).scan<'i', int>();

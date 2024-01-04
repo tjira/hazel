@@ -22,4 +22,8 @@ struct Lambda {
     static std::function<double(System)> EHF(const HF::OptionsRestricted& rhfopt, Matrix D);
     static std::function<double(System)> EBAGEL(const Bagel::Options& bagelopt);
     static std::function<double(System)> EORCA(const Orca::Options& orcaopt);
+
+    // multiple energy functions
+    static std::function<Vector(System)> ESBAGEL(const Bagel::Options& bagelopt);
+    static std::function<Vector(System)> ESORCA(const Orca::Options& orcaopt);
 };

@@ -20,6 +20,8 @@ void Distributor::run() {
     if (parser.get<int>("-s") != 1) {
         if (parser.at("md").used("rhf")) {
             throw std::runtime_error("SPIN MUST BE 1 FOR RHF CALCULATIONS.");
+        } else if (parser.at("opt").used("rhf")) {
+            throw std::runtime_error("SPIN MUST BE 1 FOR RHF CALCULATIONS.");
         } else if (parser.at("scan").used("rhf")) {
             throw std::runtime_error("SPIN MUST BE 1 FOR RHF CALCULATIONS.");
         } else if (parser.used("rhf")) throw std::runtime_error("SPIN MUST BE 1 FOR RHF CALCULATIONS.");
@@ -479,39 +481,64 @@ void Distributor::rmp2o() {
 
 void Distributor::scan() {
     // print the energy scan header
-    std::cout << std::endl; Printer::Title("ENERGY SCAN"); std::printf("\nITER       Eel [Eh]           TIME    \n");
+    std::cout << std::endl; Printer::Title("ENERGY SCAN");
+    std::printf("\nITER");
+    for (int i = 0; i < parser.at("scan").get<int>("-n"); i++) std::printf("       Eel [Eh]      ");
+    std::printf("     TIME    \n");
 
     // define the anonymous function for gradient
-    std::function<double(System)> efunc; std::vector<double> energies;
+    std::function<double(System)> efunc; std::function<Vector(System)> esfunc; std::vector<Vector> energies;
 
-    // get the energy and gradient function
-    if (parser.at("scan").used("rhf")) {
-        auto rhfopt = HF::OptionsRestricted::Load(parser.at("scan").at("rhf"), parser.get<bool>("--no-coulomb"));
-        efunc = Lambda::EHF(rhfopt, Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
-        if (parser.at("scan").at("rhf").used("mp2")) {
-            efunc = Lambda::EMP2(rhfopt, Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
-        } else if (parser.at("scan").at("rhf").used("ci")) {
-            efunc = Lambda::ECI(rhfopt, parser.at("scan").at("rhf").at("ci").get<std::vector<int>>("excitations"), Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
-        } else if (parser.at("scan").at("rhf").used("cis")) {
-            efunc = Lambda::ECI(rhfopt, {1}, Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
-        } else if (parser.at("scan").at("rhf").used("cid")) {
-            efunc = Lambda::ECI(rhfopt, {2}, Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
-        } else if (parser.at("scan").at("rhf").used("cisd")) {
-            efunc = Lambda::ECI(rhfopt, {1, 2}, Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
-        } else if (parser.at("scan").at("rhf").used("fci")) {
-            efunc = Lambda::ECI(rhfopt, {}, Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
+    // get the multiple energy function
+    if (parser.at("scan").get<int>("-n") > 1) {
+        if (parser.at("scan").used("rhf")) {
+            throw std::runtime_error("EXCITED STATE SCAN NOT IMPLEMENTED FOR RHF");
+        } else if (parser.at("scan").used("uhf")) {
+            throw std::runtime_error("EXCITED STATE SCAN NOT IMPLEMENTED FOR UHF");
+        } else if (parser.at("scan").used("bagel")) {
+            if (!Utility::StringContains(parser.at("scan").at("bagel").get<std::string>("-m"), "casscf")) {
+                throw std::runtime_error("THIS METHOD IN BAGEL DOES NOT PROVIDE EXCITATION ENERGIES");
+            }
+            Bagel::Options bagelopt = {parser.at("scan").at("bagel").get<std::string>("-m")};
+            esfunc = Lambda::ESBAGEL(bagelopt);
+        } else if (parser.at("scan").used("orca")) {
+            if (!Utility::StringContains(parser.at("scan").at("orca").get<std::string>("-m"), "casscf")) {
+                throw std::runtime_error("THIS METHOD IN ORCA DOES NOT PROVIDE EXCITATION ENERGIES");
+            }
+            Orca::Options orcaopt = {parser.at("scan").at("orca").get<std::string>("-m")};
+            esfunc = Lambda::ESORCA(orcaopt);
+        } else {
+            throw std::runtime_error("NO METHOD SPECIFIED FOR SCANNING");
         }
-    } else if (parser.at("scan").used("uhf")) {
-        auto uhfopt = HF::OptionsUnrestricted::Load(parser.at("scan").at("uhf"), parser.get<bool>("--no-coulomb"));
-        efunc = Lambda::EHF(uhfopt, Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
-    } else if (parser.at("scan").used("bagel")) {
-        Bagel::Options bagelopt = {parser.at("scan").at("bagel").get<std::string>("-m")};
-        efunc = Lambda::EBAGEL(bagelopt);
-    } else if (parser.at("scan").used("orca")) {
-        Orca::Options orcaopt = {parser.at("scan").at("orca").get<std::string>("-m")};
-        efunc = Lambda::EORCA(orcaopt);
     } else {
-        throw std::runtime_error("NO METHOD SPECIFIED FOR SCANNING");
+        if (parser.at("scan").used("rhf")) {
+            auto rhfopt = HF::OptionsRestricted::Load(parser.at("scan").at("rhf"), parser.get<bool>("--no-coulomb"));
+            efunc = Lambda::EHF(rhfopt, Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
+            if (parser.at("scan").at("rhf").used("mp2")) {
+                efunc = Lambda::EMP2(rhfopt, Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
+            } else if (parser.at("scan").at("rhf").used("ci")) {
+                efunc = Lambda::ECI(rhfopt, parser.at("scan").at("rhf").at("ci").get<std::vector<int>>("excitations"), Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
+            } else if (parser.at("scan").at("rhf").used("cis")) {
+                efunc = Lambda::ECI(rhfopt, {1}, Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
+            } else if (parser.at("scan").at("rhf").used("cid")) {
+                efunc = Lambda::ECI(rhfopt, {2}, Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
+            } else if (parser.at("scan").at("rhf").used("cisd")) {
+                efunc = Lambda::ECI(rhfopt, {1, 2}, Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
+            } else if (parser.at("scan").at("rhf").used("fci")) {
+                efunc = Lambda::ECI(rhfopt, {}, Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
+            }
+        } else if (parser.at("scan").used("uhf")) {
+            auto uhfopt = HF::OptionsUnrestricted::Load(parser.at("scan").at("uhf"), parser.get<bool>("--no-coulomb"));
+            efunc = Lambda::EHF(uhfopt, Matrix::Zero(system.shells.nbf(), system.shells.nbf()));
+        } else if (parser.at("scan").used("bagel")) {
+            Bagel::Options bagelopt = {parser.at("scan").at("bagel").get<std::string>("-m")};
+            efunc = Lambda::EBAGEL(bagelopt);
+        } else if (parser.at("scan").used("orca")) {
+            Orca::Options orcaopt = {parser.at("scan").at("orca").get<std::string>("-m")};
+            efunc = Lambda::EORCA(orcaopt);
+        } else {
+            throw std::runtime_error("NO METHOD SPECIFIED FOR SCANNING");
+        }
     }
 
     // count the number of geometries
@@ -526,18 +553,32 @@ void Distributor::scan() {
         std::string basis = parser.get<std::string>("-b"); std::replace(basis.begin(), basis.end(), '*', 's'), std::replace(basis.begin(), basis.end(), '+', 'p');
         system = System(stream, basis, parser.get<int>("-c"), parser.get<int>("-s")); Timer::Timepoint start = Timer::Now();
 
-        // start the timer and calculate the energy
-        double E = efunc(system); energies.push_back(E);
+        // create the vector of energies
+        Vector ES(parser.at("scan").get<int>("-n"));
 
-        // print the energy
-        std::printf("%4d %20.14f %s\n", i + 1, E, Timer::Format(Timer::Elapsed(start)).c_str());
+        // start the timer and calculate the energy
+        if (parser.at("scan").get<int>("-n") == 1) ES << efunc(system);
+        else if (parser.at("scan").get<int>("-n") > 1) ES = esfunc(system);
+        else throw std::runtime_error("INVALID NUMBER OF STATES");
+
+        // append the energy vector
+        energies.push_back(ES);
+
+        // print the iteration
+        std::printf("%4d", i + 1);
+        for (int i = 0; i < parser.at("scan").get<int>("-n"); i++) std::printf(" %20.14f", ES(i));
+        std::printf(" %s\n", Timer::Format(Timer::Elapsed(start)).c_str());
     }
     
     // save the file
     std::ofstream file(parser.at("scan").get<std::string>("-o"));
-    file << std::fixed << std::setprecision(14) << "# i              E\n";
+    file << std::fixed << std::setprecision(14) << "# it";
+    for (int i = 0; i < parser.at("scan").get<int>("-n"); i++) file << "       Eel [Eh]      ";
+    file << "\n";
     for (size_t i = 0; i < energies.size(); i++) {
-        file << std::setw(5) << i << " " << std::setw(20) << energies.at(i) << "\n";
+        file << std::setw(4) << i;
+        for (int j = 0; j < parser.at("scan").get<int>("-n"); j++) file << " " << std::setw(20) << energies.at(i)(j);
+        file << "\n";
     }
 }
 

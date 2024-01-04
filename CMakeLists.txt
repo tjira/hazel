@@ -39,7 +39,7 @@ FetchContent_Declare(json GIT_REPOSITORY https://github.com/nlohmann/json.git GI
 FetchContent_Declare(libint URL https://github.com/evaleev/libint/releases/download/v2.8.1/libint-2.8.1-mpqc4.tgz)
 
 # fetch the libraries
-FetchContent_MakeAvailable(argparse)
+FetchContent_MakeAvailable(argparse json)
 
 # download dependencies if needed
 if (${STANDALONE})
@@ -54,7 +54,7 @@ else()
 endif()
 
 # include directories (the second include is there because of boost/preprocessor.hpp)
-include_directories(include ${CMAKE_BINARY_DIR}/include ${argparse_SOURCE_DIR}/include/argparse)
+include_directories(include ${CMAKE_BINARY_DIR}/include ${argparse_SOURCE_DIR}/include/argparse ${json_SOURCE_DIR}/include)
 
 # find OpenMP if enabled
 if (${GOMP})

@@ -48,7 +48,7 @@ Below are all the important features of Hazel divided into categories.
 * Hartree-Fock Method (RHF & UHF)
 * Møller–Plesset Perturbation Theory (RMP2)
 * Full Configuration Interaction (RCI)
-* All methods from ORCA and BAGEL via interface
+* All methods from ORCA and BAGEL via Interface
 
 ### Additional Calculations
 
@@ -231,7 +231,7 @@ In his section you find all the printing options implemented in Hazel. This also
 
 * [argparse](https://github.com/p-ranav/argparse) - Argument Parser for Modern C++.
 * [glad](https://github.com/Dav1dde/glad) - Multi-Language Vulkan/GL/GLES/EGL/GLX/WGL Loader-Generator based on the official specs.
-* [glfw](https://github.com/glfw/glfw) - A multi-platform library for OpenGL, OpenGL ES, Vulkan, window and input .
+* [glfw](https://github.com/glfw/glfw) - A multi-platform library for OpenGL, OpenGL ES, Vulkan, window and input.
 * [glm](https://github.com/g-truc/glm) - OpenGL Mathematics.
 * [imgui](https://github.com/ocornut/imgui) - Bloat-free Graphical User Interface for C++ with minimal dependencies.
 * [imguifiledialog](https://github.com/aiekick/ImGuiFileDialog) - File dialog for Dear ImGui.

@@ -80,7 +80,11 @@ int main(int argc, char** argv) {
                     std::stringstream css; css << line;
 
                     // exctract and append data
-                    double iter, E; css >> iter, css >> E; data.push_back({iter, E});
+                    double iter, E; css >> iter; data.push_back({iter});
+                    while(css >> E) data.at(data.size() - 1).push_back(E);
+
+                    // erase the time
+                    data.at(data.size() - 1).erase(data.at(data.size() - 1).end() - 1);
                 }
             }
         }
