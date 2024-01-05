@@ -501,7 +501,7 @@ void Distributor::scan() {
             # else
             throw std::runtime_error("BAGEL IS NOT AVAILABLE");
             #endif
-            if (!Utility::StringContains(parser.at("scan").at("bagel").get<std::string>("-m"), "casscf")) {
+            if (Utility::StringContains(parser.at("scan").at("bagel").get<std::string>("-m"), "hf") || Utility::StringContains(parser.at("scan").at("bagel").get<std::string>("-m"), "mp2")) {
                 throw std::runtime_error("THIS METHOD IN BAGEL DOES NOT PROVIDE EXCITATION ENERGIES");
             }
             Bagel::Options bagelopt = {parser.at("scan").at("bagel").get<std::string>("-m")};
@@ -786,7 +786,7 @@ void Distributor::bagel() {
     std::cout << "\n"; Printer::Title("BAGEL ENERGY");
 
     // print the excitation energies
-    if (Utility::StringContains(parser.at("bagel").get<std::string>("-m"), "casscf")) {
+    if (Utility::StringContains(parser.at("bagel").get<std::string>("-m"), "casscf") || Utility::StringContains(parser.at("bagel").get<std::string>("-m"), "caspt2") || Utility::StringContains(parser.at("bagel").get<std::string>("-m"), "fci")) {
         Printer::Mat("\nENERGIES OF GROUND AND EXCITED STATES", bagelres.excs);
     }
 

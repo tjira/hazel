@@ -7,7 +7,7 @@ inline std::string BAGEL = R"(
 
 {
   "title" : "molecule",
-  "df_basis" : "svp-jkfit",
+  "df_basis" : "cc-pvdz-jkfit",
   "angstrom" : "true",
   "geometry" : []
 }

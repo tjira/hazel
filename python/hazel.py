@@ -1,6 +1,8 @@
 import numpy as np
 import scipy as sp
 
+import subprocess
+
 A2BOHR = 1.8897259886
 
 ATOM = {
@@ -12,12 +14,15 @@ def ints():
     T, V, S = np.loadtxt("T.mat"), np.loadtxt("V.mat"), np.loadtxt("S.mat")
     J = np.loadtxt("J.mat").reshape(4 * [S.shape[1]]); return T, V, S, J
 
-def mol(filename="molecule.xyz", VN=0):
+def mol(filename="molecule.xyz"):
     with open(filename) as M:
         lines = np.array([line.split() for line in M.readlines()[2:]])
     return [ATOM[S] for S in lines[:, 0]], lines[:, 1:].astype(float)
 
 if __name__ == "__main__":
+    # generate integrals from hazel
+    subprocess.run(["hazel", "ints", "-e", "t", "-e", "v", "-e", "s", "-e", "j"], stdout=subprocess.DEVNULL)
+
     # load the integrals and define the convergence threshold
     [T, V, S, J], [atoms, coords], thresh = ints(), mol(), 1e-12
 
@@ -35,7 +40,7 @@ if __name__ == "__main__":
 
     while abs(E_HF - E_HF_P) > thresh:
         # build the Fock matrix
-        F = H + np.einsum("ijkl,ij", J - 0.5 * K, D)
+        F = H + np.einsum("ijkl,ij", J - 0.5 * K, D, optimize=True)
 
         # solve the Fock equations
         eps, C = sp.linalg.eigh(F, S)
@@ -44,7 +49,7 @@ if __name__ == "__main__":
         D = 2 * np.einsum("ij,kj", C[:, :nocc], C[:, :nocc])
 
         # calculate electron energy
-        E_HF_P, E_HF = E_HF, 0.5 * np.einsum("ij,ij", D, H + F)
+        E_HF_P, E_HF = E_HF, 0.5 * np.einsum("ij,ij", D, H + F, optimize=True)
 
     # transform the coulomb integral to MO basis
     Jmo = np.einsum("ip,jq,ijkl,kr,ls", C, C, J, C, C, optimize=True)

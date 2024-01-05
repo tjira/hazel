@@ -12,24 +12,43 @@ void Printer::Initial(const Parser& program, System& system) {
 
     // print the external libraries
     #ifndef _WIN32
-    if (!std::system("which orca > /dev/null 2>&1")) {
-        // define the command from which to get the ORCA version
-        std::unique_ptr<FILE, decltype(&pclose)> pipe(popen("orca - 2>&1", "r"), pclose);
+    // get the ORCA and BAGEL versions
+    bool bagel = !std::system("which BAGEL > /dev/null 2>&1");
+    bool orca = !std::system("which orca > /dev/null 2>&1");
 
-        // check for success
-        if (!pipe) throw std::runtime_error("ORCA EXECUTION FAILED");
+    // check if any of the two is available
+    if (orca || bagel) {
+        // print the external libraries block
+        std::printf("\nEXTERNAL:");
 
-        // read the output 
-        std::array<char, 128> buffer; std::string output;
-        while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
-            output += std::string(buffer.data());
+        // print the ORCA version
+        if (orca) {
+            // define the command from which to get the ORCA version
+            std::unique_ptr<FILE, decltype(&pclose)> pipe(popen("orca - 2>&1", "r"), pclose);
+
+            // check for success
+            if (!pipe) throw std::runtime_error("ORCA EXECUTION FAILED");
+
+            // read the output 
+            std::array<char, 128> buffer; std::string output;
+            while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
+                output += std::string(buffer.data());
+            }
+
+            // extracto orca version using regex
+            std::smatch match; std::regex_search(output, match, std::regex("Program Version ([0-9]+)\\.([0-9]+)\\.([0-9]+)"));
+
+            // print the version
+            std::printf(" ORCA %s", match.str(0).substr(16, 5).c_str());
         }
 
-        // extracto orca version using regex
-        std::smatch match; std::regex_search(output, match, std::regex("Program Version ([0-9]+)\\.([0-9]+)\\.([0-9]+)"));
+        // print the BAGEL version
+        if (bagel) {
+            std::cout << (orca ? ", " : " ") << "BAGEL";
+        }
 
-        // print the version
-        std::printf("\nEXTERNAL: ORCA %s\n", match.str(0).substr(16, 5).c_str());
+        // print the newline
+        std::cout << std::endl;
     } else {
         std::cout << std::endl;
     }

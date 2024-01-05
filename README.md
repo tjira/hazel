@@ -166,6 +166,15 @@ hazel -f molecule.xyz -b sto-3g opt -t 1e-8 rhf -g 0
 ```
 
 The 1e-8 is the gradient threshold for optimization.
+### Molecular Dynamics
+
+To perform simple MP2 molecular dynamics with default settings for the gradient execute the following.
+
+```bash
+hazel -f molecule.xyz -b sto-3g md rhf mp2
+```
+
+During the calculation the file trajectory.xyz will be created.
 
 ### External Tools
 
@@ -186,16 +195,6 @@ To run a ground state HF dynamics using BAGEL you can execute the following.
 ```bash
 hazel -f molecule.xyz -b cc-pvdz bagel -m hf
 ```
-
-### Molecular Dynamics
-
-To perform simple MP2 molecular dynamics with default settings for the gradient execute the following.
-
-```bash
-hazel -f molecule.xyz -b sto-3g md rhf mp2
-```
-
-During the calculation the file trajectory.xyz will be created.
 
 ## Printing
 

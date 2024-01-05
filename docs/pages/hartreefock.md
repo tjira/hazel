@@ -1,6 +1,6 @@
 ---
 title: Hartree–Fock Method
-parent: Methods
+parent: Electronic Structure Methods
 layout: default
 nav_order: 1
 ---
