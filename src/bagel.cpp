@@ -51,6 +51,7 @@ Bagel::Bagel(const System& system, const Options& opt) : opt(opt), system(system
 
 void Bagel::enableGradient(double) {
     input["bagel"][input["bagel"].size() - 1] = {{"title", "force"}, {"method", {input["bagel"][input["bagel"].size() - 1]}}};
+    input["bagel"][input["bagel"].size() - 1]["export"] = true;
     if (input["bagel"][input["bagel"].size() - 1]["method"][0]["title"] == "smith") {
         // change title
         input["bagel"][input["bagel"].size() - 1]["method"][0]["title"] = "caspt2";
@@ -114,37 +115,42 @@ Bagel::Results Bagel::run() const {
 
     // execute the command
     #ifdef _WIN32
-    std::unique_ptr<FILE, decltype(&pclose)> pipe(_popen(("cd " + directory).c_str(), "r"), _pclose);
+    auto pipe = _popen(("cd " + directory + " && BAGEL bagel.json > >(tee bagel.out) 2> /dev/null").c_str(), "r");
     #else
-    std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(("cd " + directory + " && BAGEL bagel.json > >(tee bagel.out) 2> /dev/null").c_str(), "r"), pclose);
+    auto pipe = popen(("cd " + directory + " && BAGEL bagel.json > >(tee bagel.out) 2> /dev/null").c_str(), "r");
     #endif
 
     // check for success
     if (!pipe) throw std::runtime_error("BAGEL EXECUTION FAILED");
 
     // read the output
-    while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
-        if (Utility::StringContains(std::string(buffer.data()), "Error:")) {
-            throw std::runtime_error(std::string(buffer.data()));
-        } else if (Utility::StringContains(std::string(buffer.data()), "ERROR:")) {
-            throw std::runtime_error(std::string(buffer.data()));
-        } else if (Utility::StringContains(std::string(buffer.data()), " error message")) {
-            throw std::runtime_error(std::string(buffer.data()));
+    while (!feof(pipe)) {
+        if (fgets(buffer.data(), buffer.size(), pipe) != nullptr) {
+            output += buffer.data();
         }
-        output += std::string(buffer.data());
     }
+
+    #ifdef _WIN32
+    if (_pclose(pipe) != EXIT_SUCCESS) {
+        throw std::runtime_error("BAGEL TERMINATED UNSUCCESSFULLY");
+    }
+    #else
+    if (pclose(pipe) != EXIT_SUCCESS) {
+        throw std::runtime_error("BAGEL TERMINATED UNSUCCESSFULLY");
+    }
+    #endif
 
     // copy the output
     std::filesystem::copy_file(directory + "/bagel.out", "bagel.out", std::filesystem::copy_options::overwrite_existing);
-
-    // remove the calculataion directory
-    std::filesystem::remove_all(directory);
     
     // return the results
     Results results = {extractEnergy(output), extractEnergies(output), extractFrequencies(output), extractGradient(output)};
 
-    // if CASSCF or CASPT2, change the ground state energy
-    if (Utility::StringContains(opt.method, "casscf") || Utility::StringContains(opt.method, "caspt2") || Utility::StringContains(opt.method, "fci")) {
+    // remove the calculataion directory
+    std::filesystem::remove_all(directory);
+
+    // assign the correct ground state
+    if (results.excs.size()) {
         results.E = results.excs(0);
     }
 
@@ -153,131 +159,72 @@ Bagel::Results Bagel::run() const {
 }
 
 Vector Bagel::extractEnergies(const std::string& output) const {
-    // create the string stream and line buffer
-    std::stringstream lss; lss << output; std::string line;
+    // define iterator, smatch and number of states
+    std::vector<double> excs; std::smatch match; int nstate;
+    std::string::const_iterator sstart(output.begin());
 
-    // create the energy vector and some variables
-    std::vector<double> excs; std::string str; double energy; int states = 0;
-
-    // loop over lines
-    while (std::getline(lss, line)) {
-        if (Utility::StringContains(line, "nstate")) {std::stringstream css; css << line; css >> str, css >> str, css >> str, css >> states;}
-        if (Utility::StringContains(line, "FCI iteration")) {
-            // loop over excitation lines
-            while (std::getline(lss, line) && !Utility::StringContains(line, "vector")) {
-                if (Utility::StringContains(line, "*")) {
-                    // create the column stringstream
-                    std::stringstream css; css << line;
-
-                    // exctract the correct column energy
-                    for (int i = 0; i < 3; i++) {css >> str;} css >> energy;
-
-                    // append the energy
-                    excs.push_back(energy);
-                }
-            }
-        } else if (Utility::StringContains(line, "MS-CASPT2 energy")) {
-            // create the column stringstream
-            std::stringstream css; css << line;
-
-            // exctract the correct column energy
-            for (int i = 0; i < 6; i++) {css >> str;} css >> energy;
-
-            // append the energy
-            excs.push_back(energy);
-        }
+    // find and append the FCI or CASSCF roots to the result
+    while (std::regex_search(sstart, output.end(), match, std::regex(".*(\\d+) \\*\\ *([\\-\\.\\d]+).*"))) {
+        nstate = std::stoi(match[1]) + 1, excs.push_back(std::stod(match[2])), sstart = match.suffix().first;
     }
 
-    // fix number of states
-    if (states == 0) states = input["bagel"][2]["nstate"];
+    // find and append the CAPT2 roots to the result
+    while (std::regex_search(sstart, output.end(), match, std::regex(".*MS-CASPT2 energy : state\\ *\\d+\\ *(.*)\n"))) {
+        excs.push_back(std::stod(match[1])), sstart = match.suffix().first;
+    }
 
     // return the results
-    if (excs.size()) return Eigen::Map<Vector>(excs.data() + excs.size() - states, states);
+    if (excs.size()) return Eigen::Map<Vector>(excs.data() + excs.size() - nstate, nstate);
     else return Vector();
 }
 
 double Bagel::extractEnergy(const std::string& output) const {
-    // create the string stream, line buffer and energy placeholder
-    std::stringstream lss; lss << output; std::string line; double E = 0;
+    // define iterator, smatch and the placeholder for the energy
+    std::string::const_iterator sstart(output.begin());
+    std::smatch match; double energy;
 
-    // loop over lines
-    while (std::getline(lss, line)) {
-        if (Utility::StringContains(line, "Fock build")) {
-            // skip line and create the column stringstream
-            std::getline(lss, line); std::stringstream css; css << line;
+    // find append the CASSCF roots to the result
+    while (std::regex_search(sstart, output.end(), match, std::regex(".*Fock build.*\n\\ *\\d+\\ *([\\-\\.\\d]+).*"))) {
+        energy = std::stod(match[1]), sstart = match.suffix().first;
+    }
 
-            // exctract the correct column energy
-            std::string cell; for (int i = 0; i < 2; i++) css >> cell;
-
-            // assign the final energy
-            E = std::stod(cell);
-        } else if(Utility::StringContains(line, "MP2 total energy")) {
-            // create the column stringstream
-            std::stringstream css; css << line;
-
-            // exctract the correct column energy
-            std::string cell; for (int i = 0; i < 4; i++) css >> cell;
-
-            // assign the final energy
-            E = std::stod(cell);
-        }
+    if (std::regex_search(sstart, output.end(), match, std::regex("\\ *MP2 total energy:\\ *([\\-\\.\\d]+)"))) {
+        energy = std::stod(match[1]), sstart = match.suffix().first;
     }
 
     // return the results
-    return E;
+    return energy;
 }
 
 Vector Bagel::extractFrequencies(const std::string& output) const {
-    // create the string stream and line buffer
-    std::stringstream lss; lss << output; double freq;
-    std::string line, str; std::vector<double> f;
+    // define iterator, smatch and number of states
+    std::vector<double> f; std::smatch match; int nstate;
+    std::string::const_iterator sstart(output.begin());
 
-    // loop over lines
-    while (std::getline(lss, line)) {
-        if (Utility::StringContains(line, "Freq")) {
-            std::stringstream css; css << line;
-
-            // skip columns
-            for (int i = 0; i < 2; i++) css >> str;
-
-            // for every frequency
-            while (css >> freq) {
-                if (freq) f.push_back(freq);
-            }
+    // find and append the frequencies
+    while (std::regex_search(sstart, output.end(), match, std::regex(".*Freq \\(cm\\-1\\)\\ *([\\-\\.\\d]*)\\ *([\\-\\.\\d]*)\\ *([\\-\\.\\d]*)\\ *([\\-\\.\\d]*)\\ *([\\-\\.\\d]*)\\ *([\\-\\.\\d]*)\n"))) {
+        for (int i = 1; i < 7 && !match[i].str().empty(); i++) {
+            f.insert(f.begin(), std::stod(match[i]));
         }
+        sstart = match.suffix().first;
     }
 
     // return the frequencies
-    std::reverse(f.begin(), f.end()); return Eigen::Map<Vector>(f.data(), f.size());
+    return (f.size() ? Eigen::Map<Vector>(f.data(), f.size()) : Vector());
 }
 
 Matrix Bagel::extractGradient(const std::string& output) const {
-    // create the string stream and line buffer
-    std::stringstream lss; lss << output; std::string line;
+    // create the gradient matrix
+    Matrix G(system.coords.rows(), 3); std::string line;
+    std::ifstream fstream(directory + "/FORCE_0.out");
 
-    // create the gradient matrix and some variables
-    Matrix G = Matrix::Zero(system.coords.rows(), 3);
-    double val; std::string str;
+    // loop over lines of gradient
+    for (int i = 0; std::getline(fstream, line); i++) if (i && line.size()) {
+        // creale column stringstream
+        std::stringstream css(line); css >> i;
 
-    // loop over lines
-    while (std::getline(lss, line)) {
-        if (Utility::StringContains(line, "Nuclear energy gradient")) {
-            // skip lines
-            for (int i = 0; i < 1; i++) std::getline(lss, line);
-
-            // loop over gradient lines
-            for (size_t i = 0; i < system.atoms.size(); i++) {
-                std::getline(lss, line);
-
-                // loop over gradient coordinates
-                for (int j = 0; j < 3; j++) {
-                    std::getline(lss, line); std::stringstream css; css << line;
-                    css >> str, css >> val; G(i, j) = val;
-                }
-
-                // set the data
-            } return G;
-        }
+        // assign gradient values
+        css >> G(i, 0), css >> G(i, 1), css >> G(i, 2);
     }
 
     // return the gradient

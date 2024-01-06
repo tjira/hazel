@@ -56,24 +56,31 @@ Orca::Results Orca::run() const {
     // execute the command
     #ifdef _WIN32
     std::unique_ptr<FILE, decltype(&pclose)> pipe(_popen(("cd " + directory).c_str(), "r"), _pclose);
+    auto pipe = _popen(("cd " + directory + " && orca orca.inp > >(tee orca.out) 2> /dev/null").c_str(), "r");
     #else
-    std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(("cd " + directory + " && orca orca.inp > >(tee orca.out) 2> /dev/null").c_str(), "r"), pclose);
+    auto pipe = popen(("cd " + directory + " && orca orca.inp > >(tee orca.out) 2> /dev/null").c_str(), "r");
     #endif
 
     // check for success
     if (!pipe) throw std::runtime_error("ORCA EXECUTION FAILED");
 
     // read the output
-    while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
-        if (Utility::StringContains(std::string(buffer.data()), ": Error")) {
-            throw std::runtime_error(std::string(buffer.data()));
-        } else if (Utility::StringContains(std::string(buffer.data()), ": ERROR")) {
-            throw std::runtime_error(std::string(buffer.data()));
-        } else if (Utility::StringContains(std::string(buffer.data()), "INPUT ERROR")) {
-            throw std::runtime_error(std::string(buffer.data()));
+    while (!feof(pipe)) {
+        if (fgets(buffer.data(), buffer.size(), pipe) != nullptr) {
+            output += buffer.data();
         }
-        output += std::string(buffer.data());
     }
+
+    // throw error
+    #ifdef _WIN32
+    if (_pclose(pipe) != EXIT_SUCCESS) {
+        throw std::runtime_error("ORCA TERMINATED UNSUCCESSFULLY");
+    }
+    #else
+    if (pclose(pipe) != EXIT_SUCCESS) {
+        throw std::runtime_error("ORCA TERMINATED UNSUCCESSFULLY");
+    }
+    #endif
 
     // copy the output
     std::filesystem::copy_file(directory + "/orca.out", "orca.out", std::filesystem::copy_options::overwrite_existing);
