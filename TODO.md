@@ -1,6 +1,8 @@
 # TODO List
 
 - [ ] Add README.md to tools or describe tools in the main README.md
+- [ ] Improve BAGEL parsing of gradients to allow for multiple states
+- [ ] Rewrite BAGEL output parsing using std::regex
 - [ ] Write the CI method to docs
 - [ ] Write the frequency analysis to docs
 - [x] Add BAGEL to program header

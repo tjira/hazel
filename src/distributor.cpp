@@ -762,7 +762,7 @@ void Distributor::bagel() {
 
     // add additional options
     if (parser.at("bagel").has("-g")) bagel.enableGradient(parser.at("bagel").get<double>("-g"));
-    if (parser.at("bagel").has("-f")) bagel.enableHessian(parser.at("bagel").get<double>("-f"));
+    else if (parser.at("bagel").has("-f")) bagel.enableHessian(parser.at("bagel").get<double>("-f"));
 
     // print the input
     std::cout << "\n" << bagel.getInput().dump(2) << std::endl;
@@ -777,7 +777,7 @@ void Distributor::bagel() {
     }
 
     // print the frequencies
-    if (parser.at("bagel").has("-f")) {
+    else if (parser.at("bagel").has("-f")) {
         std::cout << "\n"; Printer::Title("BAGEL FREQUENCY ANALYSIS");
         Printer::Mat("\nVIBRATIONAL FREQUENCIES", bagelres.freq);
     }
@@ -835,7 +835,7 @@ void Distributor::orca() {
 
     // add additional options
     if (parser.at("orca").has("-g")) orca.enableGradient(parser.at("orca").get<double>("-g"));
-    if (parser.at("orca").has("-f")) orca.enableHessian(parser.at("orca").get<double>("-f"));
+    else if (parser.at("orca").has("-f")) orca.enableHessian(parser.at("orca").get<double>("-f"));
 
     // print the input
     std::cout << "\n" << orca.getInput();
@@ -850,7 +850,7 @@ void Distributor::orca() {
     }
 
     // print the frequencies
-    if (parser.at("orca").has("-f")) {
+    else if (parser.at("orca").has("-f")) {
         std::cout << "\n"; Printer::Title("ORCA FREQUENCY ANALYSIS");
         Printer::Mat("\nVIBRATIONAL FREQUENCIES", orcares.freq);
     }

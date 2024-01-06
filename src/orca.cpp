@@ -50,8 +50,8 @@ Orca::Results Orca::run() const {
     // write the input to the opened file
     ifile << input; ifile.close();
 
-    // define the buffer for output and result string with struct
-    std::array<char, 128> buffer; std::string output; Results results;
+    // define the buffer for output
+    std::array<char, 128> buffer; std::string output;
 
     // execute the command
     #ifdef _WIN32
@@ -80,153 +80,72 @@ Orca::Results Orca::run() const {
 
     // remove the calculataion directory
     std::filesystem::remove_all(directory);
-    
+
+    // extract the results
+    Results results = {extractEnergy(output), extractEnergies(output), extractFrequencies(output), extractGradient(output)};
+
+    // assign the correct ground state energy
+    if (results.excs.size()) results.E = results.excs(0);
+
     // return the results
-    return {extractEnergy(output), extractEnergies(output), extractFrequencies(output), extractGradient(output)};
+    return results;
 }
 
 Vector Orca::extractEnergies(const std::string& output) const {
-    // create the string stream and line buffer
-    std::stringstream lss; lss << output; std::string line;
+    // define the start iterator and match
+    std::string::const_iterator sstart(output.begin());
+    std::smatch match; std::vector<double> excs;
 
-    // create the energy vector and some variables
-    std::vector<double> excs; std::string str; double energy;
+    // find the number of roots
+    if (std::regex_search(output, match, std::regex(".* NROOTS\\=\\ *(\\d*)"))) {
+        // assign the number of roots
+        int nroots = std::stoi(match[1]);
 
-    // loop over lines
-    while (std::getline(lss, line)) {
-        if (Utility::StringContains(line, "CAS-SCF STATES FOR BLOCK")) {
-            // loop over excitation lines
-            while (std::getline(lss, line)) {
-                if (Utility::StringContains(line, "E=") && !line.empty()) {
-                    // create the column stringstream
-                    std::stringstream css; css << line;
-
-                    // exctract the correct column energy
-                    for (int i = 0; i < 3; i++) {css >> str;} css >> energy;
-
-                    // append the energy
-                    excs.push_back(energy);
-                }
-            } return Eigen::Map<Vector>(excs.data(), excs.size());
+        // find append the CASSCF roots to the result
+        while (std::regex_search(sstart, output.end(), match, std::regex(".* E\\=\\ *([\\-\\.\\d]*) Eh.*"))) {
+            excs.push_back(std::stod(match[1])), sstart = match.suffix().first;
         }
+
+        // return the results
+        if (excs.size() >= nroots) return Eigen::Map<Vector>(excs.data() + excs.size() - nroots, nroots);
     }
 
-    // return the results
-    return Eigen::Map<Vector>(excs.data(), excs.size());
+    // return nothing
+    return Vector();
 }
 
 double Orca::extractEnergy(const std::string& output) const {
-    // create the string stream and line buffer
-    std::stringstream lss; lss << output; std::string line;
-
-    // loop over lines
-    while (std::getline(lss, line)) {
-        if (Utility::StringContains(line, "FINAL SINGLE POINT ENERGY")) {
-            // create the column stringstream
-            std::stringstream css; css << line;
-
-            // exctract the correct column energy
-            std::string cell; for (int i = 0; i < 5; i++) css >> cell;
-
-            // return the final energy
-            if (cell != "Root") return std::stod(cell);
-        }
-    }
-
-    // return the results
-    return 0;
+    // results in the following order: FCI, OTHER, NOT FOUND
+    if (std::smatch match; std::regex_search(output, match, std::regex("FINAL SINGLE .* Root 0 \t\\= ([\\-\\.\\d]*)"))) {
+        return std::stod(match[1]);
+    } else if (std::regex_search(output, match, std::regex("FINAL SINGLE .* ([\\-\\.\\d]*)"))) {
+        return std::stod(match[1]);
+    } else return 0;
 }
 
 Vector Orca::extractFrequencies(const std::string& output) const {
-    // create the string stream and line buffer
-    std::string line; std::vector<double> f;
-    std::stringstream lss; lss << output;
+    // define match, iterator and frequency vector
+    std::string::const_iterator sstart(output.begin());
+    std::smatch match; std::vector<double> f;
 
-    // create some variables
-    std::string str; double freq;
-
-    // loop over lines
-    while (std::getline(lss, line)) {
-        if (line == "VIBRATIONAL FREQUENCIES") {
-            // skip lines
-            for (int i = 0; i < 4; i++) std::getline(lss, line);
-
-            // loop over frequency lines
-            while (std::getline(lss, line) && !line.empty()) {
-                // create the column stringstream
-                std::stringstream css; css << line;
-
-                // exctract data
-                css >> str, css >> freq;
-
-                // set the data
-                if (freq) f.push_back(freq);
-            } std::reverse(f.begin(), f.end()); return Eigen::Map<Vector>(f.data(), f.size());
-        }
+    // find append the CASSCF roots to the result
+    while (std::regex_search(sstart, output.end(), match, std::regex(".* ([\\-\\.\\d]+) cm.*"))) {
+        f.insert(f.begin(), std::stod(match[1])), sstart = match.suffix().first;
     }
 
-    // return the frequencies
-    std::reverse(f.begin(), f.end()); return Eigen::Map<Vector>(f.data(), f.size());
+    return (f.size() ? Eigen::Map<Vector>(f.data(), f.size()) : Vector());
 }
 
 Matrix Orca::extractGradient(const std::string& output) const {
-    // create the string stream and line buffer
-    std::stringstream lss; lss << output; std::string line;
+    // define match, iterator and gradient matrix
+    std::smatch match; Matrix G(system.coords.rows(), 3);
+    std::string::const_iterator sstart(output.begin());
 
-    // create the gradient matrix and some variables
-    Matrix G = Matrix::Zero(system.coords.rows(), 3);
-    int i; double x, y, z; std::string str;
-
-    // loop over lines
-    while (std::getline(lss, line)) {
-        if (line == "CARTESIAN GRADIENT") {
-            // skip lines
-            for (int i = 0; i < 2; i++) std::getline(lss, line);
-
-            // loop over gradient lines
-            while (std::getline(lss, line) && !line.empty()) {
-                // create the column stringstream
-                std::stringstream css; css << line;
-
-                // exctract data
-                css >> i, css >> str, css >> str, css >> x, css >> y, css >> z;
-
-                // set the data
-                G(i - 1, 0) = x; G(i - 1, 1) = y; G(i - 1, 2) = z;
-            } return G;
-        } else if (line == "CARTESIAN GRADIENT (NUMERICAL)") {
-            // skip lines
-            for (int i = 0; i < 1; i++) std::getline(lss, line);
-
-            // loop over gradient lines
-            while (std::getline(lss, line) && !line.empty()) {
-                // create the column stringstream
-                std::stringstream css; css << line;
-
-                // exctract data
-                css >> i, css >> str, css >> str, css >> x, css >> y, css >> z;
-
-                // set the data
-                G(i - 1, 0) = x; G(i - 1, 1) = y; G(i - 1, 2) = z;
-            } return G;
-        } else if (line == "The final MP2 gradient") {
-            // loop over gradient lines
-            while (std::getline(lss, line) && !line.empty()) {
-                // create the column stringstream
-                std::stringstream css; css << line;
-
-                // exctract data
-                css >> str, css >> x, css >> y, css >> z;
-
-                // get the row index
-                int i = std::stoi(str.substr(0, str.size() - 1));
-
-                // set the data
-                G(i, 0) = x; G(i, 1) = y; G(i, 2) = z;
-            } return G;
-        }
+    // find append the CASSCF roots to the result
+    for (int i = 0; std::regex_search(sstart, output.end(), match, std::regex(".* \\d+.*:\\ *([\\-\\.\\d]+)\\ +([\\-\\.\\d]+)\\ +([\\-\\.\\d]+)\\n")); i++) {
+        G(i, 0) = std::stod(match[1]), G(i, 1) = std::stod(match[2]), G(i, 2) = std::stod(match[3]), sstart = match.suffix().first;
     }
 
-    // return the gradient
+    // return gradient
     return G;
 }
