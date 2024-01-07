@@ -17,12 +17,14 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # set compiler flags
 set(CMAKE_CXX_FLAGS_DEBUG "-g -pg -Og -fprofile-arcs -ftest-coverage -Wall -Wextra")
-set(CMAKE_CXX_FLAGS_RELEASE "-s -mavx -O3")
+set(CMAKE_CXX_FLAGS_RELEASE "-s -mavx")
 
 # static link on windows
 if (WIN32)
     string(APPEND CMAKE_CXX_FLAGS_RELEASE " -static")
     string(APPEND CMAKE_CXX_FLAGS_DEBUG " -static")
+else()
+    string(APPEND CMAKE_CXX_FLAGS_RELEASE " -O3")
 endif()
 
 # set the variable that contains the compile flags
