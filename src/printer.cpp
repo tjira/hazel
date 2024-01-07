@@ -88,5 +88,5 @@ void Printer::Mat(const std::string& title, const Matrix& A) {
 }
 
 void Printer::Title(const std::string& title) {
-    std::cout << std::string(128, '-') + "\n" << title << "\n" << std::string(128, '-') << std::endl;
+    std::cout << std::string(124, '-') + "\n" << title << "\n" << std::string(124, '-') << std::endl;
 }

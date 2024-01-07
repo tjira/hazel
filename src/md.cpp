@@ -1,9 +1,21 @@
 #include "md.h"
 
-void MD::run(System system, const std::function<std::tuple<double, Matrix>(System&)>& egfunc, bool print) const {
-    // calculate the initial energy and gradient and print the header with the initial state info
-    auto[E, G] = egfunc(system); if (print) std::printf("\n ITER  TIME [fs] S        E [Eh]              KIN [Eh]              TK [K]         |GRAD|      TIME\n");
-    if (print) std::printf("%6d %9.4f %d %20.14f %20.14f %20.14f %.2e %s\n", 0, 0.0, opt.state, E, 0.0, 0.0, G.norm(), "00:00:00.000");
+template <typename F>
+void MD::run(System system, const F& egfunc, bool print) const {
+    // define energy and gradients
+    Vector E(1); std::vector<Matrix> G;
+
+    // calculate the initial energy and gradient
+    if constexpr (std::is_same_v<F, std::function<std::tuple<Vector, std::vector<Matrix>>(System&, const std::vector<int>&)>>) {
+        std::tie(E, G) = egfunc(system, {opt.state});
+    } else if constexpr (std::is_same_v<F, std::function<std::tuple<double, Matrix>(System&)>>) {
+        auto[E0, G0] = egfunc(system); E << E0, G.push_back(G0);
+    }
+
+    // print the header
+    if (print) std::printf("\n ITER  TIME [fs] S");
+    if (print) for (int i = 0; i < E.size(); i++) std::printf("        E [Eh]       ");
+    if (print) std::printf("       KIN [Eh]              TK [K]         |GRAD|      TIME\n");
 
     // get the degrees of freedom
     double Nf = system.atoms.size() * 3 - 6;
@@ -19,6 +31,11 @@ void MD::run(System system, const std::function<std::tuple<double, Matrix>(Syste
     // write the initial geometry and define state
     system.save(opt.output); int state = opt.state;
 
+    // print the zeroth iteration
+    if (print) std::printf("%6d %9.4f %d", 0, 0.0, opt.state);
+    if (print) for (int i = 0; i < E.size(); i++) std::printf(" %20.14f", E(i));
+    if (print) std::printf(" %20.14f %20.14f %.2e %s\n", 0.0, 0.0, G.at(0).norm(), "00:00:00.000");
+
     // move the system while gradient is big
     for (int i = 0; i < opt.iters; i++) {
         // start the timer and store the previous v and a
@@ -26,7 +43,7 @@ void MD::run(System system, const std::function<std::tuple<double, Matrix>(Syste
         Matrix vp = v, ap = a;
 
         // calculate the velocity and accceleration
-        a = -G.array() / m.array(); v = vp + (ap + a) * opt.step / 2;
+        a = -G.at(0).array() / m.array(); v = vp + (ap + a) * opt.step / 2;
 
         // calculate the kinetic energy and temperature before thermostatting
         double Ekin = 0.5 * (m.array() * v.array() * v.array()).sum(); double T = 2 * Ekin / Nf;
@@ -37,13 +54,25 @@ void MD::run(System system, const std::function<std::tuple<double, Matrix>(Syste
         // calculate the kinetic energy and temperature after thermostatting
         Ekin = 0.5 * (m.array() * v.array() * v.array()).sum(); T = 2 * Ekin / Nf;
 
-        // move the system and calculate the next energy with gradient
-        system.move(opt.step * (v + 0.5 * a * opt.step)), std::tie(E, G) = egfunc(system);
+        // move the system
+        system.move(opt.step * (v + 0.5 * a * opt.step));
 
         // write the current geometry
         system.save(opt.output, std::ios::app);
 
+        // calculate the next energy with gradient
+        if constexpr (std::is_same_v<F, std::function<std::tuple<Vector, std::vector<Matrix>>(System&, const std::vector<int>&)>>) {
+            std::tie(E, G) = egfunc(system, {opt.state});
+        } else if constexpr (std::is_same_v<F, std::function<std::tuple<double, Matrix>(System&)>>) {
+            auto[E0, G0] = egfunc(system); E << E0, G = {G0};
+        }
+
         // print the iteration info
-        if (print) std::printf("%6d %9.4f %d %20.14f %20.14f %20.14f %.2e %s\n", i + 1, AU2FS * opt.step * (i + 1), state, E, Ekin, T / BOLTZMANN, G.norm(), Timer::Format(Timer::Elapsed(start)).c_str());
+        if (print) std::printf("%6d %9.4f %d", i + 1, AU2FS * opt.step * (i + 1), state);
+        if (print) for (int i = 0; i < E.size(); i++) std::printf(" %20.14f", E(i));
+        if (print) std::printf(" %20.14f %20.14f %.2e %s\n", Ekin, T / BOLTZMANN, G.at(0).norm(), Timer::Format(Timer::Elapsed(start)).c_str());
     }
 }
+
+template void MD::run(System, const std::function<std::tuple<Vector, std::vector<Matrix>>(System&, const std::vector<int>&)>&, bool) const;
+template void MD::run(System, const std::function<std::tuple<double, Matrix>(System&)>&, bool) const;

@@ -611,7 +611,8 @@ void Distributor::dynamics() {
     else std::cout << std::endl;
     std::printf("-- ITERS: %d, TIMESTEP: %.2f\n", parser.at("md").get<int>("-i"), parser.at("md").get<double>("-s"));
 
-    // define the anonymous function for gradient
+    // define the anonymous function for gradient and energy
+    std::function<std::tuple<Vector, std::vector<Matrix>>(System&, const std::vector<int>&)> esgsfunc;
     std::function<std::tuple<double, Matrix>(System&)> egfunc;
 
     // get the energy and gradient function
@@ -641,7 +642,7 @@ void Distributor::dynamics() {
         throw std::runtime_error("BAGEL IS NOT AVAILABLE");
         #endif
         Bagel::Options bagelopt = {parser.at("md").at("bagel").get<std::string>("-m")};
-        egfunc = Lambda::EGBAGEL(bagelopt);
+        egfunc = Lambda::EGBAGEL(bagelopt), esgsfunc = Lambda::ESGSBAGEL(bagelopt);
     } else if (parser.at("md").used("orca")) {
         #ifndef _WIN32
         if (std::system("which orca > /dev/null 2>&1")) throw std::runtime_error("ORCA IS NOT AVAILABLE");
@@ -655,7 +656,8 @@ void Distributor::dynamics() {
     }
 
     // perform the dynamics
-    MD(MD::Options::Load(parser.at("md"))).run(system, egfunc);
+    if (parser.at("md").get<int>("-e")) MD(MD::Options::Load(parser.at("md"))).run(system, esgsfunc);
+    else MD(MD::Options::Load(parser.at("md"))).run(system, egfunc);
 }
 
 void Distributor::qdyn() {

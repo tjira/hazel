@@ -209,8 +209,8 @@ std::function<std::tuple<double, Matrix>(System&)> Lambda::EGORCA(const Orca::Op
     };
 }
 
-std::function<std::tuple<Vector, std::vector<Matrix>>(System&)> Lambda::ESGSBAGEL(const Bagel::Options& bagelopt, const std::vector<int>& targets) {
-    return [bagelopt, targets](System& system) {
+std::function<std::tuple<Vector, std::vector<Matrix>>(System&, const std::vector<int>&)> Lambda::ESGSBAGEL(const Bagel::Options& bagelopt) {
+    return [bagelopt](System& system, const std::vector<int>& targets) {
         // initialize ORCA object
         Bagel bagel(system, bagelopt);
 

@@ -15,7 +15,7 @@ public:
     MD(const Options& opt) : opt(opt) {}
 
     // methods
-    void run(System system, const std::function<std::tuple<double, Matrix>(System&)>& egfunc, bool print = true) const;
+    template <typename F> void run(System system, const F& egfunc, bool print = true) const;
 
 private:
     Options opt;

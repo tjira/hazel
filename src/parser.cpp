@@ -214,7 +214,7 @@ Parser::Parser(int argc, char** argv) : program("hazel", "0.1", argparse::defaul
 
     // add arguments to the MD argument parser
     program.at<argparse::ArgumentParser>("md").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
-    program.at<argparse::ArgumentParser>("md").add_argument("-e", "--excitation").help("-- Initial state of the molecule.").default_value(1).scan<'i', int>();
+    program.at<argparse::ArgumentParser>("md").add_argument("-e", "--excitation").help("-- Initial state of the molecule.").default_value(0).scan<'i', int>();
     program.at<argparse::ArgumentParser>("md").add_argument("-s", "--step").help("-- Time step in atomic units.").default_value(1.0).scan<'g', double>();
     program.at<argparse::ArgumentParser>("md").add_argument("-i", "--iters").help("-- Number of iterations in dynamics.").default_value(100).scan<'i', int>();
     program.at<argparse::ArgumentParser>("md").add_argument("-o", "--output").help("-- Output of the trajectory.").default_value("trajectory.xyz");

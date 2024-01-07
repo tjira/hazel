@@ -23,6 +23,7 @@ Bagel::Bagel(const System& system, const Options& opt) : opt(opt), system(system
         } casopt.push_back(opt.method.substr(last));
         input["bagel"][1]["nstate"] = std::stoi(casopt.at(3)), input["bagel"][1]["nact"] = std::stoi(casopt.at(2));
         input["bagel"][1]["nclosed"] = system.electrons / 2 - std::stoi(casopt.at(1)) / 2;
+        input["bagel"][1]["maxiter"] = 1000, input["bagel"][1]["maxiter_micro"] = 1000;
         if (Utility::StringContains(opt.method, "caspt2")) {
             input["bagel"].push_back("{\"title\":\"smith\"}"_json);
             input["bagel"][2]["method"] = "caspt2";
@@ -176,13 +177,13 @@ Vector Bagel::extractEnergies(const std::string& output) const {
     }
 
     // return the results
-    return (excs.size() > 1 ? Eigen::Map<Vector>(excs.data() + excs.size() - nstate, nstate) : Vector());
+    return (excs.size() ? Eigen::Map<Vector>(excs.data() + excs.size() - nstate, nstate) : Vector());
 }
 
 double Bagel::extractEnergy(const std::string& output) const {
     // define iterator, smatch and the placeholder for the energy
     std::string::const_iterator sstart(output.begin());
-    std::smatch match; double energy;
+    std::smatch match; double energy = 0;
 
     // find append the CASSCF roots to the result
     while (std::regex_search(sstart, output.end(), match, std::regex(".*Fock build.*\n\\ *\\d+\\ *([\\-\\.\\d]+).*"))) {
@@ -199,8 +200,8 @@ double Bagel::extractEnergy(const std::string& output) const {
 
 Vector Bagel::extractFrequencies(const std::string& output) const {
     // define iterator, smatch and number of states
-    std::vector<double> f; std::smatch match; int nstate;
     std::string::const_iterator sstart(output.begin());
+    std::vector<double> f; std::smatch match;
 
     // find and append the frequencies
     while (std::regex_search(sstart, output.end(), match, std::regex(".*Freq \\(cm\\-1\\)\\ *([\\-\\.\\d]*)\\ *([\\-\\.\\d]*)\\ *([\\-\\.\\d]*)\\ *([\\-\\.\\d]*)\\ *([\\-\\.\\d]*)\\ *([\\-\\.\\d]*)\n"))) {
@@ -214,7 +215,7 @@ Vector Bagel::extractFrequencies(const std::string& output) const {
     return (f.size() ? Eigen::Map<Vector>(f.data(), f.size()) : Vector());
 }
 
-std::vector<Matrix> Bagel::extractGradient(const std::string& output) const {
+std::vector<Matrix> Bagel::extractGradient(const std::string&) const {
     // create the gradient vector
     std::vector<Matrix> Gs;
 

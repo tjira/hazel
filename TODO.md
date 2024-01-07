@@ -1,9 +1,10 @@
 # TODO List
 
 - [ ] Add README.md to tools or describe tools in the main README.md
-- [ ] Implement excited state dynamics with BAGEL
 - [ ] Write the CI method to docs
 - [ ] Write the frequency analysis to docs
+- [ ] Check for the correct working of the BAGEL excited dynamics
+- [x] Implement excited state dynamics with BAGEL
 - [x] Add BAGEL to program header
 - [x] Add CASPT2 to BAGEL interface
 - [x] Add FCI to BAGEL interface

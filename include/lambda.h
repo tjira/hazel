@@ -28,5 +28,5 @@ struct Lambda {
     static std::function<Vector(System)> ESORCA(const Orca::Options& orcaopt);
 
     // multiple energy and gradient functions
-    static std::function<std::tuple<Vector, std::vector<Matrix>>(System&)> ESGSBAGEL(const Bagel::Options& bagelopt, const std::vector<int>& targets);
+    static std::function<std::tuple<Vector, std::vector<Matrix>>(System&, const std::vector<int>&)> ESGSBAGEL(const Bagel::Options& bagelopt);
 };
