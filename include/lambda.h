@@ -12,8 +12,8 @@ struct Lambda {
     static std::function<std::tuple<double, Matrix>(System&)> EGHF(const HF::OptionsUnrestricted& uhfopt, double gstep, Matrix D);
     static std::function<std::tuple<double, Matrix>(System&)> EGMP2(const HF::OptionsRestricted& rhfopt, double gstep, Matrix D);
     static std::function<std::tuple<double, Matrix>(System&)> EGHF(const HF::OptionsRestricted& rhfopt, double gstep, Matrix D);
-    static std::function<std::tuple<double, Matrix>(System&)> EGBAGEL(const Bagel::Options& bagelopt, double gstep);
     static std::function<std::tuple<double, Matrix>(System&)> EGORCA(const Orca::Options& orcaopt, double gstep);
+    static std::function<std::tuple<double, Matrix>(System&)> EGBAGEL(const Bagel::Options& bagelopt);
 
     // energy functions
     static std::function<double(System)> ECI(const HF::OptionsRestricted& rhfopt, const std::vector<int>& excits, Matrix D);
@@ -26,4 +26,7 @@ struct Lambda {
     // multiple energy functions
     static std::function<Vector(System)> ESBAGEL(const Bagel::Options& bagelopt);
     static std::function<Vector(System)> ESORCA(const Orca::Options& orcaopt);
+
+    // multiple energy and gradient functions
+    static std::function<std::tuple<Vector, std::vector<Matrix>>(System&)> ESGSBAGEL(const Bagel::Options& bagelopt, const std::vector<int>& targets);
 };

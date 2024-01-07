@@ -641,7 +641,7 @@ void Distributor::dynamics() {
         throw std::runtime_error("BAGEL IS NOT AVAILABLE");
         #endif
         Bagel::Options bagelopt = {parser.at("md").at("bagel").get<std::string>("-m")};
-        egfunc = Lambda::EGBAGEL(bagelopt, parser.at("md").at("bagel").get<double>("-g"));
+        egfunc = Lambda::EGBAGEL(bagelopt);
     } else if (parser.at("md").used("orca")) {
         #ifndef _WIN32
         if (std::system("which orca > /dev/null 2>&1")) throw std::runtime_error("ORCA IS NOT AVAILABLE");
@@ -761,7 +761,7 @@ void Distributor::bagel() {
     std::cout << "\n" << std::setprecision(12); Printer::Title("BAGEL INPUT (" + bagel.getFolder() + ")");
 
     // add additional options
-    if (parser.at("bagel").has("-g")) bagel.enableGradient(parser.at("bagel").get<double>("-g"));
+    if (parser.at("bagel").has("-g")) bagel.enableGradient(parser.at("bagel").get<std::vector<int>>("-g"));
     else if (parser.at("bagel").has("-f")) bagel.enableHessian(parser.at("bagel").get<double>("-f"));
 
     // print the input
@@ -770,10 +770,12 @@ void Distributor::bagel() {
     // run the calculation
     auto bagelres = bagel.run();
 
-    // print the gradient
+    // print the gradients
     if (parser.at("bagel").has("-g")) {
-        std::cout << "\n"; Printer::Title("BAGEL GRADIENT");
-        Printer::Mat("\nNUCLEAR GRADIENT", bagelres.G); std::printf("\nGRADIENT NORM: %.2e\n", bagelres.G.norm());
+        for (size_t i = 0; i < bagelres.Gs.size(); i++) {
+            std::cout << "\n"; Printer::Title("BAGEL GRADIENT STATE " + std::to_string(parser.at("bagel").get<std::vector<int>>("-g").at(i)));
+            Printer::Mat("\nNUCLEAR GRADIENT", bagelres.Gs.at(i)); std::printf("\nGRADIENT NORM: %.2e\n", bagelres.Gs.at(i).norm());
+        }
     }
 
     // print the frequencies
@@ -786,7 +788,7 @@ void Distributor::bagel() {
     std::cout << "\n"; Printer::Title("BAGEL ENERGY");
 
     // print the excitation energies
-    if (Utility::StringContains(parser.at("bagel").get<std::string>("-m"), "casscf") || Utility::StringContains(parser.at("bagel").get<std::string>("-m"), "caspt2") || Utility::StringContains(parser.at("bagel").get<std::string>("-m"), "fci")) {
+    if (Utility::StringContains(parser.at("bagel").get<std::string>("-m"), "casscf") || Utility::StringContains(parser.at("bagel").get<std::string>("-m"), "caspt2")) {
         Printer::Mat("\nENERGIES OF GROUND AND EXCITED STATES", bagelres.excs);
     }
 
@@ -809,7 +811,7 @@ void Distributor::bagelo() {
     Bagel::Options bagelopt = {parser.at("opt").at("bagel").get<std::string>("-m")};
 
     // exctract the energy and gradient function
-    auto egfunc = Lambda::EGBAGEL(bagelopt, parser.at("opt").at("bagel").get<double>("-g"));
+    auto egfunc = Lambda::EGBAGEL(bagelopt);
 
     // perform the optimization
     system = Optimizer(parser.at("opt").get<double>("-t")).optimize(system, egfunc);

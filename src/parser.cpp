@@ -290,7 +290,7 @@ Parser::Parser(int argc, char** argv) : program("hazel", "0.1", argparse::defaul
     program.at<argparse::ArgumentParser>("scan").at<argparse::ArgumentParser>("rhf").at<argparse::ArgumentParser>("mp2").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
 
     // add arguments to the SCAN CI argument parser
-    program.at<argparse::ArgumentParser>("scan").at<argparse::ArgumentParser>("rhf").at<argparse::ArgumentParser>("ci").add_argument("excitations").help("-- Help message.").nargs(argparse::nargs_pattern::at_least_one).scan<'i', int>();
+    program.at<argparse::ArgumentParser>("scan").at<argparse::ArgumentParser>("rhf").at<argparse::ArgumentParser>("ci").add_argument("excitations").help("-- Exctitations to use for the CI calculation.").nargs(argparse::nargs_pattern::at_least_one).scan<'i', int>();
     program.at<argparse::ArgumentParser>("scan").at<argparse::ArgumentParser>("rhf").at<argparse::ArgumentParser>("ci").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
 
     // add arguments to the SCAN CIS argument parser
@@ -325,7 +325,7 @@ Parser::Parser(int argc, char** argv) : program("hazel", "0.1", argparse::defaul
 
     // add arguments to the BAGEL argument parser
     program.at<argparse::ArgumentParser>("bagel").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
-    program.at<argparse::ArgumentParser>("bagel").add_argument("-g", "--gradient").help("-- Step size for gradient calculation or 0 for analytical gradient.").default_value(0.0).scan<'g', double>();
+    program.at<argparse::ArgumentParser>("bagel").add_argument("-g", "--gradient").help("-- States to calculate the gradient for.").nargs(argparse::nargs_pattern::any).default_value(std::vector<int>{0}).scan<'i', int>();
     program.at<argparse::ArgumentParser>("bagel").add_argument("-f", "--frequency").help("-- Step size for frequency calculation or 0 for analytical hessian.").default_value(0.0).scan<'g', double>();
     program.at<argparse::ArgumentParser>("bagel").add_argument("-m", "--method").help("-- Method for ORCA calculation.").default_value("hf");
 

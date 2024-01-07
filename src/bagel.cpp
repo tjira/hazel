@@ -11,16 +11,10 @@ Bagel::Bagel(const System& system, const Options& opt) : opt(opt), system(system
     if (Utility::StringContains(opt.method, "hf")) {
         input["bagel"].push_back("{\"title\":\"hf\"}"_json);
     } else if (Utility::StringContains(opt.method, "mp2")) {
-        input["bagel"].push_back("{\"title\":\"hf\"}"_json);
         input["bagel"].push_back("{\"title\":\"mp2\",\"aux_basis\":\"cc-pvdz-ri\"}"_json);
     } else if (Utility::StringContains(opt.method, "fci")) {
         input["bagel"].push_back("{\"title\":\"hf\"}"_json);
         input["bagel"].push_back("{\"title\":\"fci\"}"_json);
-        std::vector<std::string> casopt; size_t last = 0, next = 0;
-        while ((next = opt.method.find("/", last)) != std::string::npos) {
-            casopt.push_back(opt.method.substr(last, next - last)); last = next + 1;
-        } casopt.push_back(opt.method.substr(last));
-        input["bagel"][2]["nstate"] = std::stoi(casopt.at(1));
     } else if (Utility::StringContains(opt.method, "casscf") || Utility::StringContains(opt.method, "caspt2")) {
         input["bagel"].push_back("{\"title\":\"casscf\"}"_json);
         std::vector<std::string> casopt; size_t last = 0, next = 0;
@@ -32,12 +26,7 @@ Bagel::Bagel(const System& system, const Options& opt) : opt(opt), system(system
         if (Utility::StringContains(opt.method, "caspt2")) {
             input["bagel"].push_back("{\"title\":\"smith\"}"_json);
             input["bagel"][2]["method"] = "caspt2";
-            input["bagel"][2]["ms"] = true;
-            input["bagel"][2]["xms"] = true;
-            input["bagel"][2]["sssr"] = true;
             input["bagel"][2]["shift"] = 0.2;
-            input["bagel"][2]["nstate"] = std::stoi(casopt.at(3)), input["bagel"][2]["nact"] = std::stoi(casopt.at(2));
-            input["bagel"][2]["nclosed"] = system.electrons / 2 - std::stoi(casopt.at(1)) / 2;
         }
     } else {
         throw std::runtime_error("METHOD NOT IMPLEMENTED IN HAZEL-BAGEL INTERFACE");
@@ -49,57 +38,70 @@ Bagel::Bagel(const System& system, const Options& opt) : opt(opt), system(system
     }
 }
 
-void Bagel::enableGradient(double) {
-    input["bagel"][input["bagel"].size() - 1] = {{"title", "force"}, {"method", {input["bagel"][input["bagel"].size() - 1]}}};
-    input["bagel"][input["bagel"].size() - 1]["export"] = true;
-    if (input["bagel"][input["bagel"].size() - 1]["method"][0]["title"] == "smith") {
-        // change title
-        input["bagel"][input["bagel"].size() - 1]["method"][0]["title"] = "caspt2";
+void Bagel::enableGradient(const std::vector<int>& targets) {
+    // create gradient methods
+    nlohmann::json gradient = {{"title", "force"}, {"method", {}}, {"export", true}};
 
-        // erase
-        input["bagel"][input["bagel"].size() - 1]["method"][0].erase("method");
-        input["bagel"][input["bagel"].size() - 1]["method"][0].erase("shift");
-        input["bagel"][input["bagel"].size() - 1]["method"][0].erase("sssr");
-        input["bagel"][input["bagel"].size() - 1]["method"][0].erase("xms");
-        input["bagel"][input["bagel"].size() - 1]["method"][0].erase("ms");
+    // add gradient targets
+    if (input["bagel"][input["bagel"].size() - 1]["title"] == "casscf" || input["bagel"][input["bagel"].size() - 1]["title"] == "smith") {
+        // rename the block title
+        gradient["title"] = "forces";
 
-        // smith block
-        input["bagel"][input["bagel"].size() - 1]["method"][0]["smith"]["method"] = "caspt2";
-        input["bagel"][input["bagel"].size() - 1]["method"][0]["smith"]["sssr"] = true;
-        input["bagel"][input["bagel"].size() - 1]["method"][0]["smith"]["shift"] = 0.2;
-        input["bagel"][input["bagel"].size() - 1]["method"][0]["smith"]["xms"] = true;
-        input["bagel"][input["bagel"].size() - 1]["method"][0]["smith"]["ms"] = true;
-    } else if (input["bagel"][input["bagel"].size() - 1]["method"][0]["title"] == "fci") {
-        throw std::runtime_error("COULD NOT CALCULATE GRADIENT FOR FCI");
-    } else if (input["bagel"][input["bagel"].size() - 1]["method"][0]["title"] == "hessian") {
-        throw std::runtime_error("CALCULATION OF GRADIENT AND HESSIAN NOT POSSIBLE");
+        // push the targets
+        for (int state : targets) {
+            gradient["grads"].push_back({{"title", "force"}, {"target", state}});
+        }
     }
+
+    // fill the gradient block
+    if (input["bagel"][input["bagel"].size() - 1]["title"] == "smith") {
+        gradient["method"] = {{
+            {"title", "caspt2"},
+            {"nclosed", input["bagel"][1]["nclosed"]},
+            {"nstate", input["bagel"][1]["nstate"]},
+            {"nact", input["bagel"][1]["nact"]},
+            {"smith", {
+                {"method", "caspt2"},
+                {"shift", 0.2}
+            }}
+        }};
+    } else {
+        for (size_t i = 1; i < input["bagel"].size(); i++) {
+            gradient["method"].push_back(input["bagel"][i]);
+        }
+    }
+
+    // save the targets
+    this->targets = targets;
+
+    // modify input
+    input["bagel"].push_back(gradient);
 }
 
 void Bagel::enableHessian(double) {
-    input["bagel"].push_back({{"title", "hessian"}, {"method", {input["bagel"][input["bagel"].size() - 1]}}});
-    if (input["bagel"][input["bagel"].size() - 1]["method"][0]["title"] == "smith") {
-        // change title
-        input["bagel"][input["bagel"].size() - 1]["method"][0]["title"] = "caspt2";
+    // create hessian methods
+    nlohmann::json hessian = {{"title", "hessian"}, {"method", {}}, {"export", true}};
 
-        // erase
-        input["bagel"][input["bagel"].size() - 1]["method"][0].erase("method");
-        input["bagel"][input["bagel"].size() - 1]["method"][0].erase("shift");
-        input["bagel"][input["bagel"].size() - 1]["method"][0].erase("sssr");
-        input["bagel"][input["bagel"].size() - 1]["method"][0].erase("xms");
-        input["bagel"][input["bagel"].size() - 1]["method"][0].erase("ms");
-
-        // smith block
-        input["bagel"][input["bagel"].size() - 1]["method"][0]["smith"]["method"] = "caspt2";
-        input["bagel"][input["bagel"].size() - 1]["method"][0]["smith"]["sssr"] = true;
-        input["bagel"][input["bagel"].size() - 1]["method"][0]["smith"]["shift"] = 0.2;
-        input["bagel"][input["bagel"].size() - 1]["method"][0]["smith"]["xms"] = true;
-        input["bagel"][input["bagel"].size() - 1]["method"][0]["smith"]["ms"] = true;
-    } else if (input["bagel"][input["bagel"].size() - 1]["method"][0]["title"] == "fci") {
-        throw std::runtime_error("COULD NOT CALCULATE HESSIAN FOR FCI");
-    } else if (input["bagel"][input["bagel"].size() - 1]["method"][0]["title"] == "force") {
-        throw std::runtime_error("CALCULATION OF GRADIENT AND HESSIAN NOT POSSIBLE");
+    // fill the gradient block
+    if (input["bagel"][input["bagel"].size() - 1]["title"] == "smith") {
+        hessian["method"] = {{
+            {"title", "caspt2"},
+            {"nclosed", input["bagel"][1]["nclosed"]},
+            {"nstate", input["bagel"][1]["nstate"]},
+            {"nact", input["bagel"][1]["nact"]},
+            {"smith", {
+                {"method", "caspt2"},
+                {"shift", 0.2}
+            }}
+        }};
+    } else {
+        for (size_t i = 1; i < input["bagel"].size(); i++) {
+            hessian["method"].push_back(input["bagel"][i]);
+        }
     }
+
+    // modify input
+    input["bagel"].push_back(hessian);
 }
 
 Bagel::Results Bagel::run() const {
@@ -108,7 +110,7 @@ Bagel::Results Bagel::run() const {
     std::ofstream ifile(directory + "/bagel.json");
 
     // write the input to the opened file
-    ifile << input.dump(2); ifile.close();
+    ifile << input.dump(2) << std::endl; ifile.close();
 
     // define the buffer for output
     std::array<char, 128> buffer; std::string output;
@@ -174,8 +176,7 @@ Vector Bagel::extractEnergies(const std::string& output) const {
     }
 
     // return the results
-    if (excs.size()) return Eigen::Map<Vector>(excs.data() + excs.size() - nstate, nstate);
-    else return Vector();
+    return (excs.size() > 1 ? Eigen::Map<Vector>(excs.data() + excs.size() - nstate, nstate) : Vector());
 }
 
 double Bagel::extractEnergy(const std::string& output) const {
@@ -213,20 +214,28 @@ Vector Bagel::extractFrequencies(const std::string& output) const {
     return (f.size() ? Eigen::Map<Vector>(f.data(), f.size()) : Vector());
 }
 
-Matrix Bagel::extractGradient(const std::string& output) const {
-    // create the gradient matrix
-    Matrix G(system.coords.rows(), 3); std::string line;
-    std::ifstream fstream(directory + "/FORCE_0.out");
+std::vector<Matrix> Bagel::extractGradient(const std::string& output) const {
+    // create the gradient vector
+    std::vector<Matrix> Gs;
 
-    // loop over lines of gradient
-    for (int i = 0; std::getline(fstream, line); i++) if (i && line.size()) {
-        // creale column stringstream
-        std::stringstream css(line); css >> i;
+    for (int i : targets) {
+        // create the gradient matrix
+        Matrix G(system.coords.rows(), 3); std::string line;
+        std::ifstream fstream(directory + "/FORCE_" + std::to_string(i) + ".out");
 
-        // assign gradient values
-        css >> G(i, 0), css >> G(i, 1), css >> G(i, 2);
+        // loop over lines of gradient
+        for (int i = 0; std::getline(fstream, line); i++) if (i && line.size()) {
+            // creale column stringstream
+            std::stringstream css(line); css >> i;
+
+            // assign gradient values
+            css >> G(i, 0), css >> G(i, 1), css >> G(i, 2);
+        }
+
+        // append the gradient
+        Gs.push_back(G);
     }
 
     // return the gradient
-    return G;
+    return Gs;
 }

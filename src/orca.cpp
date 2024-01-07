@@ -55,7 +55,6 @@ Orca::Results Orca::run() const {
 
     // execute the command
     #ifdef _WIN32
-    std::unique_ptr<FILE, decltype(&pclose)> pipe(_popen(("cd " + directory).c_str(), "r"), _pclose);
     auto pipe = _popen(("cd " + directory + " && orca orca.inp > >(tee orca.out) 2> /dev/null").c_str(), "r");
     #else
     auto pipe = popen(("cd " + directory + " && orca orca.inp > >(tee orca.out) 2> /dev/null").c_str(), "r");
@@ -140,6 +139,7 @@ Vector Orca::extractFrequencies(const std::string& output) const {
         f.insert(f.begin(), std::stod(match[1])), sstart = match.suffix().first;
     }
 
+    // return the frequencies
     return (f.size() ? Eigen::Map<Vector>(f.data(), f.size()) : Vector());
 }
 

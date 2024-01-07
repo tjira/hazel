@@ -177,19 +177,19 @@ std::function<std::tuple<double, Matrix>(System&)> Lambda::EGMP2(const HF::Optio
     };
 }
 
-std::function<std::tuple<double, Matrix>(System&)> Lambda::EGBAGEL(const Bagel::Options& bagelopt, double gstep) {
-    return [bagelopt, gstep](System& system) {
+std::function<std::tuple<double, Matrix>(System&)> Lambda::EGBAGEL(const Bagel::Options& bagelopt) {
+    return [bagelopt](System& system) {
         // initialize ORCA object
         Bagel bagel(system, bagelopt);
 
         // enable the gradient
-        bagel.enableGradient(gstep);
+        bagel.enableGradient();
 
         // run the calculation
         auto bagelres = bagel.run();
 
         // calculate the numerical or analytical gradient
-        return std::tuple{bagelres.E, bagelres.G};
+        return std::tuple{bagelres.E, bagelres.Gs.at(0)};
     };
 }
 
@@ -206,5 +206,21 @@ std::function<std::tuple<double, Matrix>(System&)> Lambda::EGORCA(const Orca::Op
 
         // calculate the numerical or analytical gradient
         return std::tuple{orcares.E, orcares.G};
+    };
+}
+
+std::function<std::tuple<Vector, std::vector<Matrix>>(System&)> Lambda::ESGSBAGEL(const Bagel::Options& bagelopt, const std::vector<int>& targets) {
+    return [bagelopt, targets](System& system) {
+        // initialize ORCA object
+        Bagel bagel(system, bagelopt);
+
+        // enable the gradient
+        bagel.enableGradient(targets);
+
+        // run the calculation
+        auto bagelres = bagel.run();
+
+        // calculate the numerical or analytical gradient
+        return std::tuple{bagelres.excs, bagelres.Gs};
     };
 }
