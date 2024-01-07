@@ -99,9 +99,34 @@ jobs:
             bin/hazel_windows_x86-64.exe
             bin/hview_windows_x86-64.exe
 
+  build_windows_x86-64_openmp:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install Packages
+        run: pip install jinja2
+
+      - name: Configure Hazel
+        run: cmake -B build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGOMP=ON -DSTANDALONE=ON -G "Unix Makefiles"
+
+      - name: Build Hazel
+        run: cmake --build build --parallel 2
+
+      - name: Rename Executable
+        run: mv bin/hazel.exe bin/hazel_windows_x86-64_openmp.exe && mv bin/hview.exe bin/hview_windows_x86-64_openmp.exe
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          path: |
+            bin/hazel_windows_x86-64_openmp.exe
+            bin/hview_windows_x86-64_openmp.exe
+
   release:
     runs-on: ubuntu-latest
-    needs: [build_linux_x86-64, build_linux_x86-64_openmp, build_windows_x86-64]
+    needs: [build_linux_x86-64, build_linux_x86-64_openmp, build_windows_x86-64, build_windows_x86-64_openmp]
 
     steps:
       - uses: actions/checkout@v3
@@ -124,11 +149,12 @@ jobs:
 
       - name: Copy x86-64_openmp Binaries to the Root Folder
         run: |
-          cp artifact/hazel_linux_x86-64_openmp hazel
-          cp artifact/hview_linux_x86-64_openmp hview
+          cp artifact/hazel_linux_x86-64_openmp hazel && cp artifact/hazel_windows_x86-64_openmp.exe hazel.exe
+          cp artifact/hview_linux_x86-64_openmp hview && cp artifact/hview_windows_x86-64_openmp.exe hview.exe
 
       - name: Create x86-64_openmp Packages
         run: |
+          zip -r hazel_windows_x86-64_openmp.zip hazel.exe hview.exe basis example script/plotwfn.py script/potential.py LICENSE.md
           tar -czf hazel_linux_x86-64_openmp.tar.gz hazel hview basis example script/plotwfn.py script/potential.py LICENSE.md
 
       - name: Release linux_x86-64 Version of Hazel
@@ -150,4 +176,11 @@ jobs:
         with:
           repo_token: ${{secrets.GITHUB_TOKEN}}
           file: hazel_windows_x86-64.zip
+          tag: ${{github.ref}}
+
+      - name: Release windows_x86-64 Version of Hazel
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{secrets.GITHUB_TOKEN}}
+          file: hazel_windows_x86-64_openmp.zip
           tag: ${{github.ref}}
