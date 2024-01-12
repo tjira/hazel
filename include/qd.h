@@ -26,5 +26,5 @@ private:
 };
 
 inline QD::Options QD::Options::Load(const Parser& parser) {
-    return {parser.get<std::string>("-f"), parser.get<int>("-i"), parser.get<int>("-n"), parser.get<double>("-s"), parser.get<double>("-t"), parser.get<bool>("--no-real")};
+    return {parser.get<std::string>("-f"), parser.get<int>("-i"), parser.get<int>("-n"), parser.get<double>("-s"), parser.get<double>("-t"), parser.get<bool>("--imaginary")};
 }

@@ -78,9 +78,9 @@ Parser::Parser(int argc, char** argv) : program("hazel", "0.1", argparse::defaul
     program.add_argument("-n", "--nthread").help("-- Number of threads to use.").default_value(1).scan<'i', int>();
     program.add_argument("-p", "--print").help("-- Printing options.").default_value<std::vector<std::string>>({}).append();
     program.add_argument("-s", "--spin").help("-- Spin multiplicity of the system.").default_value(1).scan<'i', int>();
-    program.add_argument("--no-center").help("-- Disable the molecule centering.").default_value(false).implicit_value(true);
+    program.add_argument("--center").help("-- Enable the molecule centering.").default_value(false).implicit_value(true);
     program.add_argument("--no-coulomb").help("-- Disable calculation of the coulomb tensor.").default_value(false).implicit_value(true);
-    program.add_argument("--show-bases").help("-- Print all the available bases.").default_value(false).implicit_value(true);
+    program.add_argument("--bases").help("-- Print all the available bases.").default_value(false).implicit_value(true);
 
     // add arguments to the integral argument parser
     program.at<argparse::ArgumentParser>("ints").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
@@ -321,7 +321,7 @@ Parser::Parser(int argc, char** argv) : program("hazel", "0.1", argparse::defaul
     program.at<argparse::ArgumentParser>("qd").add_argument("-o", "--output").help("-- Output of the wavefunction.").default_value("wavefunction.dat");
     program.at<argparse::ArgumentParser>("qd").add_argument("-f", "--potfile").help("-- File with the PES.").default_value("pes.dat");
     program.at<argparse::ArgumentParser>("qd").add_argument("-t", "--thresh").help("-- Threshold for conververgence in ITP loop.").default_value(1e-8).scan<'g', double>();
-    program.at<argparse::ArgumentParser>("qd").add_argument("--no-real").help("-- Help message.").default_value(false).implicit_value(true);
+    program.at<argparse::ArgumentParser>("qd").add_argument("--imaginary").help("-- Perform the imaginary time propagation.").default_value(false).implicit_value(true);
 
     // add arguments to the BAGEL argument parser
     program.at<argparse::ArgumentParser>("bagel").add_argument("-h", "--help").help("-- Help message.").default_value(false).implicit_value(true);
@@ -342,7 +342,7 @@ Parser::Parser(int argc, char** argv) : program("hazel", "0.1", argparse::defaul
     } help();
 
     // print all tha available bases if requested
-    if (program.get<bool>("--show-bases")) {
+    if (program.get<bool>("--bases")) {
         for (const auto& file : std::filesystem::directory_iterator(std::string(DATADIR) + "/basis")) {
             if (file.path().filename() != "basis.sh") std::cout << file.path().filename().replace_extension() << std::endl;
         }

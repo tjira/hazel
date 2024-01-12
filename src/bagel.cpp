@@ -163,7 +163,7 @@ Bagel::Results Bagel::run() const {
 
 Vector Bagel::extractEnergies(const std::string& output) const {
     // define iterator, smatch and number of states
-    std::vector<double> excs; std::smatch match; int nstate;
+    std::vector<double> excs; std::smatch match; int nstate = 0;
     std::string::const_iterator sstart(output.begin());
 
     // find and append the FCI or CASSCF roots to the result

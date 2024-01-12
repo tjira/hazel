@@ -106,7 +106,7 @@ void Geometry::render(const Shader& shader, const Shader& sshader, int highlight
     }
     for (size_t i = 0; i < objects.size(); i++) {
         if (objects.at(i).name == "bond") { meshes.at("bond").render(shader, objects.at(i).getModel()); continue; }
-        if (i == highlight) continue;
+        if (i == (size_t)highlight) continue;
         meshes.at(objects.at(i).name).render(shader, objects.at(i).getModel());
 
     }

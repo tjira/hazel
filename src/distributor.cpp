@@ -672,7 +672,7 @@ void Distributor::qdyn() {
     QD::Results qdres = QD(QD::Options::Load(parser.at("qd"))).run(system);
 
     // print the energies
-    if (parser.at("qd").get<bool>("--no-real")) std::cout << "\nIMAGINARY TIME PROPAGATION ENERGIES\n" << Matrix(qdres.energy) << std::endl;
+    if (parser.at("qd").get<bool>("--imaginary")) std::cout << "\nIMAGINARY TIME PROPAGATION ENERGIES\n" << Matrix(qdres.energy) << std::endl;
 
     // save the wavefunction
     Utility::SaveWavefunction(parser.at("qd").get<std::string>("-o"), qdres.r, qdres.states, qdres.energy);

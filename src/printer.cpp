@@ -72,8 +72,8 @@ void Printer::Initial(const Parser& program, System& system) {
         std::printf("-- CHARGE: %d, MULTIPLICITY: %d\n", system.charge, system.multi);
         Printer::Mat("\nSYSTEM COORDINATES", system.coords);
 
-        // center the molecule if not disabled
-        if (!program.get<bool>("--no-center")) {
+        // center the molecule if enabled
+        if (program.get<bool>("--center")) {
             Matrix dir(system.atoms.size(), 3); dir.rowwise() -= system.coords.colwise().sum() / system.atoms.size();
             system.move(dir * A2BOHR); Printer::Mat("\nCENTERED SYSTEM COORDINATES", system.coords);
         }

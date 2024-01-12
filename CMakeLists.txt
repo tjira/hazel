@@ -24,7 +24,10 @@ if (WIN32)
     string(APPEND CMAKE_CXX_FLAGS_RELEASE " -static")
     string(APPEND CMAKE_CXX_FLAGS_DEBUG " -static")
 else()
-    string(APPEND CMAKE_CXX_FLAGS_RELEASE " -mavx")
+    if (NOT DEFINED NOAVX OR NOT ${NOAVX})
+        string(APPEND CMAKE_CXX_FLAGS_RELEASE " -mavx")
+    endif()
+    unset(NOAVX CACHE)
 endif()
 
 # set the variable that contains the compile flags

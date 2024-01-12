@@ -113,7 +113,7 @@ Vector Orca::extractEnergies(const std::string& output) const {
         }
 
         // return the results
-        if (excs.size() >= nroots) return Eigen::Map<Vector>(excs.data() + excs.size() - nroots, nroots);
+        if (excs.size() >= (size_t)nroots) return Eigen::Map<Vector>(excs.data() + excs.size() - nroots, nroots);
     }
 
     // return nothing
